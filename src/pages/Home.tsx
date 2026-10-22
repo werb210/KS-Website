@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { FeatureRequest } from "../components/FeatureRequest";
 import { Arch } from "../components/Arch";
 import { PRODUCT_NAME } from "../config";
 import { usePageMeta } from "../hooks/usePageMeta";
@@ -120,6 +121,7 @@ export default function Home() {
           </div>
         </div>
       </section>
+      <FeatureRequest />
     </>
   );
 }

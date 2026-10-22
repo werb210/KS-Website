@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { FeatureRequest } from "../components/FeatureRequest";
 import { PRODUCT_NAME } from "../config";
 import { usePageMeta } from "../hooks/usePageMeta";
 
@@ -126,6 +127,7 @@ export default function Features() {
           </section>
         ))}
       </div>
+      <FeatureRequest />
     </>
   );
 }
