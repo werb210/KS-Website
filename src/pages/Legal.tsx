@@ -76,8 +76,7 @@ export function Privacy() {
           <strong>Lookups with outside services</strong>, when the brokerage turns them on: the business number with the
           federal corporate registry (Corporations Canada), website and email domains with public domain registries
           (RDAP), phone numbers with Twilio to learn the line type, internet addresses with an IP-location service, and,
-          for pro brokerages that connect them, bank data through Flinks and call recordings through a voice-analysis
-          service.
+          for pro brokerages that connect one, call recordings through a voice-analysis service.
         </li>
         <li>
           <strong>Staff activity</strong> in the brokerage's portal (for example, changes to banking details or bulk

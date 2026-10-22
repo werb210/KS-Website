@@ -6,7 +6,8 @@ export type PlanName = "Starter" | "Growth" | "Pro";
 
 export type FraudCheck = { n: number; name: string; plan: PlanName; body: string; needs?: string };
 
-// The 16 checks and the plan that first includes each one (starter 1, 2, 4, 5; growth adds 6, 7, 8; pro has all).
+// The 15 checks and the plan that first includes each one (starter 1, 2, 4, 5; growth adds 6, 7, 8; pro has all).
+// Numbers match the plan keys (fraud_<n>). There is no check 3: Keystone does not connect to client bank accounts.
 export const CHECKS: FraudCheck[] = [
   { n: 1, plan: "Starter", name: "Document tamper scan", body: "Every upload is checked for signs of editing: made with a PDF or photo editor, saved more than once, the same font embedded twice, typed figures laid over a scanned page, pages saved at different quality. Each document gets a red, amber or green badge with the reasons." },
   { n: 2, plan: "Starter", name: "Bank statement math check", body: "Every transaction on each statement is re-added. Running balances, and opening balance plus transactions against the closing balance, have to agree. Edited amounts almost always break the chain." },
@@ -15,10 +16,9 @@ export const CHECKS: FraudCheck[] = [
   { n: 6, plan: "Growth", name: "Business reality check", body: "Looks the business up in the federal corporate registry and checks the applicant is a director, flags PO boxes, mail drops and virtual offices, and checks how long the website has existed and what kind of phone line the business uses.", needs: "The federal registry lookup needs a free Corporations Canada API key." },
   { n: 7, plan: "Growth", name: "Phone and email risk", body: "Flags internet (VoIP) and prepaid phone lines, throwaway email addresses, email domains registered last month, and email addresses that look nothing like the applicant." },
   { n: 8, plan: "Growth", name: "ID checks", body: "Matches the name and date of birth on the ID with the application, and spots screenshots passed off as photos, edited ID images and the same ID picture used on another file." },
-  { n: 3, plan: "Pro", name: "Statement vs live bank data", body: "When the client connects their bank, the uploaded statements are compared with the bank's own records: added, removed or changed transactions and balances that do not match.", needs: "Needs bank connect (Flinks) on your account." },
   { n: 9, plan: "Pro", name: "Device and location check", body: "Notices several businesses applying from the same device or connection, VPNs and data-centre connections, and applications made from outside the country or province you lend in." },
   { n: 10, plan: "Pro", name: "Application behaviour signals", body: "Notices bank and ID numbers pasted rather than typed, applications filled in faster than a person can type, and answers identical to another business's application. No keystrokes are recorded." },
-  { n: 11, plan: "Pro", name: "Loan stacking detector", body: "Finds recent cash advances and daily or weekly repayments to other lenders in the bank data that the applicant did not mention." },
+  { n: 11, plan: "Pro", name: "Loan stacking detector", body: "Finds recent cash advances and daily or weekly repayments to other lenders in the uploaded bank statements that the applicant did not mention." },
   { n: 12, plan: "Pro", name: "Fraud network map", body: "Links applications that share a phone number, email, address, bank account, device or director, and shows the network as a picture, with files confirmed as fraud in red." },
   { n: 13, plan: "Pro", name: "Shared fraud watchlist", body: `Opt in, and confirmed fraud is shared with other ${PRODUCT_NAME} brokerages as scrambled codes only. New applicants are checked against what the others reported. Turning it off removes everything you shared.` },
   { n: 14, plan: "Pro", name: "Inside-job alerts", body: "Your Admins are alerted when someone on your team changes the banking details on a file, exports in bulk, approves a file they submitted, or works through the night." },
@@ -35,7 +35,7 @@ export function includedIn(check: FraudCheck, plan: PlanName): boolean {
 
 const GROUPS: Array<{ title: string; intro: string; ns: number[] }> = [
   { title: "The documents", intro: "Bank statements, tax returns, IDs and void cheques, checked the moment they are uploaded.", ns: [1, 2, 4] },
-  { title: "The money", intro: "Whether the numbers on paper match the money in the bank.", ns: [5, 3, 11] },
+  { title: "The money", intro: "Whether the numbers on paper match the deposits on the bank statements.", ns: [5, 11] },
   { title: "The business and the people", intro: "Whether the business and the applicant are who they say they are.", ns: [6, 7, 8] },
   { title: "How they applied", intro: "Signals from the application itself, collected without recording what anyone typed.", ns: [9, 10] },
   { title: "Across files and brokerages", intro: "Fraudsters reuse details. These checks connect the dots.", ns: [12, 13] },
