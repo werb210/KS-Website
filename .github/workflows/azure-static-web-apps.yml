@@ -31,8 +31,6 @@ jobs:
         env:
           VITE_OPS_URL: ${{ vars.VITE_OPS_URL }}
           VITE_PRODUCT_NAME: ${{ vars.VITE_PRODUCT_NAME }}
-          VITE_SITE_URL: ${{ vars.VITE_SITE_URL }}
-          VITE_CONTACT_EMAIL: ${{ vars.VITE_CONTACT_EMAIL }}
           VITE_CONTACT_ENDPOINT: ${{ vars.VITE_CONTACT_ENDPOINT }}
           VITE_TURNSTILE_SITE_KEY: ${{ vars.VITE_TURNSTILE_SITE_KEY }}
       - name: No Azure site yet
