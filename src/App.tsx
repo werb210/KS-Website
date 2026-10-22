@@ -7,6 +7,7 @@ const Features = lazy(() => import("./pages/Features"));
 const Pricing = lazy(() => import("./pages/Pricing"));
 const MobileApps = lazy(() => import("./pages/MobileApps"));
 const Security = lazy(() => import("./pages/Security"));
+const FraudProtection = lazy(() => import("./pages/FraudProtection"));
 const Faq = lazy(() => import("./pages/Faq"));
 const Contact = lazy(() => import("./pages/Contact"));
 const Terms = lazy(() => import("./pages/Legal").then((m) => ({ default: m.Terms })));
@@ -26,6 +27,7 @@ export default function App() {
           <Route path="/pricing" element={<Pricing />} />
           <Route path="/mobile-apps" element={<MobileApps />} />
           <Route path="/security" element={<Security />} />
+          <Route path="/fraud-protection" element={<FraudProtection />} />
           <Route path="/faq" element={<Faq />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/terms" element={<Terms />} />

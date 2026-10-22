@@ -5,6 +5,7 @@ import { Mark } from "./Mark";
 
 const NAV = [
   { to: "/features", label: "Features" },
+  { to: "/fraud-protection", label: "Fraud protection" },
   { to: "/pricing", label: "Pricing" },
   { to: "/mobile-apps", label: "Mobile apps" },
   { to: "/security", label: "Security" },
@@ -80,6 +81,7 @@ export function Layout({ children }: { children: ReactNode }) {
             <h2>Product</h2>
             <ul>
               <li><Link to="/features">Features</Link></li>
+              <li><Link to="/fraud-protection">Fraud protection</Link></li>
               <li><Link to="/pricing">Pricing</Link></li>
               <li><Link to="/mobile-apps">Mobile apps</Link></li>
               <li><Link to="/security">Security and data</Link></li>

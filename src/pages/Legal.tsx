@@ -53,6 +53,46 @@ export function Privacy() {
         <li>Rights under PIPEDA and provincial law (including Quebec Law 25), and US state laws where they apply.</li>
         <li>How to make a request or complaint.</li>
       </ol>
+      <h2>Fraud-protection data (draft text for counsel)</h2>
+      <p>
+        {PRODUCT_NAME} checks loan applications for fraud on behalf of the brokerage using it. The brokerage decides which
+        checks run (they depend on its plan) and is responsible for telling its applicants. The following is processed in
+        the brokerage's own copy of {PRODUCT_NAME}:
+      </p>
+      <ul>
+        <li>
+          <strong>Uploaded documents:</strong> technical details of each file (which software made it, how it was saved,
+          its fonts and page images) and digital fingerprints (hashes) used to spot the same file or picture on another
+          application. No additional copy of an ID is made.
+        </li>
+        <li>
+          <strong>The client app:</strong> a random device code the app creates for itself, the type of device, the
+          internet address the application came from (stored only as a scrambled hash, together with the country, region
+          and network it belongs to), how long the application took, how many fields were filled in, whether autofill was
+          used, which kinds of sensitive field were pasted into, and a scrambled fingerprint of some answers. Keystrokes
+          and the contents of fields are never recorded.
+        </li>
+        <li>
+          <strong>Lookups with outside services</strong>, when the brokerage turns them on: the business number with the
+          federal corporate registry (Corporations Canada), website and email domains with public domain registries
+          (RDAP), phone numbers with Twilio to learn the line type, internet addresses with an IP-location service, and,
+          for pro brokerages that connect them, bank data through Flinks and call recordings through a voice-analysis
+          service.
+        </li>
+        <li>
+          <strong>Staff activity</strong> in the brokerage's portal (for example, changes to banking details or bulk
+          exports) to alert the brokerage's administrators. Only the kind of action is kept, not the values entered.
+        </li>
+        <li>
+          <strong>Shared fraud watchlist (opt-in):</strong> when a brokerage confirms a file as fraud, scrambled codes
+          (keyed hashes) of the phone numbers, email, business number, addresses, bank account and name with date of
+          birth are sent to us, so other participating brokerages can be warned. We cannot turn these codes back into
+          personal information. Withdrawing a file, or opting out, deletes what was shared.
+        </li>
+      </ul>
+      <p>
+        Results are signs for a person to review. They are not automated decisions to decline an application.
+      </p>
     </div>
   );
 }

@@ -379,3 +379,10 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
 .spinner { display: inline-block; width: 1rem; height: 1rem; border-radius: 50%; border: 2px solid var(--mortar); border-top-color: var(--accent); animation: spin 0.9s linear infinite; vertical-align: -2px; margin-right: 0.4rem; }
 @keyframes spin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .spinner { animation: none; } }
+
+/* Fraud protection: checks by plan */
+.fraud-table { border-collapse: collapse; width: 100%; min-width: 30rem; background: var(--surface); border: 1px solid var(--mortar); border-radius: var(--radius-m); }
+.fraud-table th, .fraud-table td { padding: 0.6rem 0.9rem; border-top: 1px solid var(--mortar-soft); text-align: left; color: var(--ink); }
+.fraud-table thead th { border-top: 0; font-family: var(--font-display); }
+.fraud-table tbody th { font-weight: 500; }
+.fraud-table td { text-align: center; width: 6.5rem; font-weight: 700; color: var(--accent-ink); }
