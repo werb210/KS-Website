@@ -53,6 +53,9 @@ export default function Home() {
               <Link className="btn" to="/signup">
                 Start sign-up
               </Link>
+              <Link className="btn btn--quiet" to="/try">
+                Try it yourself
+              </Link>
               <Link className="btn btn--quiet" to="/pricing">
                 See pricing
               </Link>

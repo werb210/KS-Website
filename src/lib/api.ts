@@ -144,3 +144,46 @@ export async function resumeCheckout(id: string, token: string): Promise<string 
     return null;
   }
 }
+
+export type DemoSignupPayload = {
+  name: string;
+  email: string;
+  company: string;
+  turnstile_token?: string;
+  /** Honeypot. People never see it; it must stay empty. */
+  website_url: string;
+};
+
+export type DemoSignupResult = { ok: true; message: string; resent: boolean } | { ok: false; status: number; errors: Record<string, string>; message: string };
+
+/** POST /api/public/demo/signup - KS-Ops emails a private link to the person's demo. */
+export async function requestDemo(payload: DemoSignupPayload): Promise<DemoSignupResult> {
+  let res: Response;
+  try {
+    res = await fetch(opsUrl("/api/public/demo/signup"), {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify(payload),
+    });
+  } catch {
+    return { ok: false, status: 0, errors: {}, message: "We couldn't reach the demo service. Check your connection and try again." };
+  }
+  let body: Record<string, unknown> = {};
+  try {
+    body = (await res.json()) as Record<string, unknown>;
+  } catch {
+    body = {};
+  }
+  const message = typeof body.message === "string" ? body.message : "";
+  if (res.ok) {
+    return { ok: true, resent: body.resent === true, message: message || "Check your email - we've sent you a private link to your demo." };
+  }
+  const errors: Record<string, string> = {};
+  if (body.errors && typeof body.errors === "object") {
+    for (const [k, v] of Object.entries(body.errors as Record<string, unknown>)) errors[k] = typeof v === "string" ? v : "Check this field.";
+  }
+  let fallback = "The demo didn't start. Try again in a minute, or contact us for a live walkthrough.";
+  if (res.status === 429) fallback = "Too many attempts. Wait a little and try again.";
+  else if (Object.keys(errors).length) fallback = "Some details need fixing. They're marked below.";
+  return { ok: false, status: res.status, errors, message: message || fallback };
+}
