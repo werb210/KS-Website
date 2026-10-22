@@ -1,6 +1,23 @@
 import { opsUrl } from "../config";
 import type { BillingInterval, PlanKey } from "./plans";
 
+/**
+ * Only Stripe's own Checkout pages are followed. Anything else coming back as a payment link (a misconfigured or
+ * compromised service) is treated as "no link", so the page falls back to "we'll contact you" instead of sending the
+ * person somewhere unexpected.
+ */
+export function isStripeCheckoutUrl(url: unknown): url is string {
+  if (typeof url !== "string" || !url.startsWith("https://checkout.stripe.com/")) return false;
+  try {
+    const u = new URL(url);
+    return u.protocol === "https:" && u.hostname === "checkout.stripe.com" && !u.username && !u.password;
+  } catch {
+    return false;
+  }
+}
+
+const checkoutUrlOf = (v: unknown): string | null => (isStripeCheckoutUrl(v) ? v : null);
+
 export type CodeAvailability = { available: boolean; reason?: string };
 
 export async function checkCompanyCode(code: string, signal?: AbortSignal): Promise<CodeAvailability> {
@@ -77,7 +94,7 @@ export async function submitSignup(payload: SignupPayload): Promise<SignupResult
       data: {
         licensee_id: String(body.licensee_id ?? ""),
         signup_token: String(body.signup_token ?? ""),
-        checkout_url: typeof body.checkout_url === "string" && body.checkout_url ? body.checkout_url : null,
+        checkout_url: checkoutUrlOf(body.checkout_url),
         message: typeof body.message === "string" ? body.message : undefined,
       },
     };
@@ -110,8 +127,9 @@ export async function getSignupStatus(id: string, token: string, signal?: AbortS
 }
 
 /**
- * Ask KS-Ops for a fresh payment link for a sign-up whose checkout was cancelled.
- * Returns null when the service can't give one (the page then offers email instead).
+ * Ask KS-Ops for a fresh payment link for a sign-up that hasn't paid yet
+ * (POST /api/public/signup/:id/checkout?token=). Returns null when the service can't give one, or gives
+ * something that isn't a Stripe Checkout page (the page then offers email instead).
  */
 export async function resumeCheckout(id: string, token: string): Promise<string | null> {
   try {
@@ -121,7 +139,7 @@ export async function resumeCheckout(id: string, token: string): Promise<string 
     );
     if (!res.ok) return null;
     const body = (await res.json()) as { checkout_url?: unknown };
-    return typeof body.checkout_url === "string" && body.checkout_url ? body.checkout_url : null;
+    return checkoutUrlOf(body.checkout_url);
   } catch {
     return null;
   }

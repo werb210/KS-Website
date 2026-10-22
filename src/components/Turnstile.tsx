@@ -4,6 +4,7 @@ import { TURNSTILE_SITE_KEY } from "../config";
 type TurnstileApi = {
   render: (el: HTMLElement, opts: Record<string, unknown>) => string;
   remove?: (id: string) => void;
+  reset?: (id: string) => void;
 };
 
 declare global {
@@ -14,11 +15,21 @@ declare global {
 
 const SCRIPT_SRC = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
 
-/** Cloudflare Turnstile check, only rendered when VITE_TURNSTILE_SITE_KEY is set. */
-export function Turnstile({ onToken }: { onToken: (token: string) => void }) {
+/**
+ * Cloudflare Turnstile check, only rendered when VITE_TURNSTILE_SITE_KEY is set. A token works once, so the parent
+ * bumps `resetKey` after a failed submit: the widget is reset and the person gets a fresh token for the next try.
+ */
+export function Turnstile({ onToken, resetKey = 0 }: { onToken: (token: string) => void; resetKey?: number }) {
   const ref = useRef<HTMLDivElement>(null);
+  const widget = useRef<string | null>(null);
   const cb = useRef(onToken);
   cb.current = onToken;
+
+  useEffect(() => {
+    if (!resetKey) return;
+    cb.current("");
+    if (widget.current && window.turnstile?.reset) window.turnstile.reset(widget.current);
+  }, [resetKey]);
 
   useEffect(() => {
     if (!TURNSTILE_SITE_KEY || !ref.current) return;
@@ -26,7 +37,7 @@ export function Turnstile({ onToken }: { onToken: (token: string) => void }) {
     let cancelled = false;
     const mount = () => {
       if (cancelled || !ref.current || !window.turnstile) return;
-      widgetId = window.turnstile.render(ref.current, {
+      widgetId = widget.current = window.turnstile.render(ref.current, {
         sitekey: TURNSTILE_SITE_KEY,
         callback: (t: string) => cb.current(t),
         "expired-callback": () => cb.current(""),
@@ -47,6 +58,7 @@ export function Turnstile({ onToken }: { onToken: (token: string) => void }) {
     return () => {
       cancelled = true;
       if (widgetId && window.turnstile?.remove) window.turnstile.remove(widgetId);
+      widget.current = null;
     };
   }, []);
 

@@ -134,6 +134,7 @@ export default function Signup() {
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState<{ message?: string } | null>(null);
   const [turnstileToken, setTurnstileToken] = useState("");
+  const [turnstileReset, setTurnstileReset] = useState(0);
   const [codeTouched, setCodeTouched] = useState(Boolean(f.company_code));
   const headingRef = useRef<HTMLHeadingElement>(null);
   const firstRender = useRef(true);
@@ -226,6 +227,9 @@ export default function Signup() {
       return;
     }
     setSubmitting(false);
+    // The token was used (or refused): get a fresh one for the next try.
+    setTurnstileToken("");
+    setTurnstileReset((n) => n + 1);
     setApiErrors(res.errors);
     setAlert(res.message);
     const firstField = Object.keys(res.errors).find((k) => FIELD_STEP[k]);
@@ -594,7 +598,7 @@ export default function Signup() {
                   {errorFor("accept_privacy")}
                 </span>
               )}
-              <Turnstile onToken={setTurnstileToken} />
+              <Turnstile onToken={setTurnstileToken} resetKey={turnstileReset} />
               {errorFor("turnstile_token") && <span className="field-error">{errorFor("turnstile_token")}</span>}
             </div>
           )}

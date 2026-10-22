@@ -88,4 +88,22 @@ describe("Sign-up cancelled", () => {
     fireEvent.click(screen.getByRole("button", { name: "Resume payment" }));
     expect(await screen.findByRole("alert")).toHaveTextContent(/hello@example.com/);
   });
+
+  it("posts to the resume route with the sign-up's id and token", async () => {
+    const f = mockFetch({ "/checkout": () => ({ body: { checkout_url: "https://checkout.stripe.com/c/pay/cs_3" } }) });
+    renderSuccess("/signup/cancelled?l=lic-9&t=tok-9");
+    fireEvent.click(screen.getByRole("button", { name: "Resume payment" }));
+    await vi.waitFor(() => expect(goTo).toHaveBeenCalled());
+    const [url, init] = f.mock.calls[0];
+    expect(String(url)).toContain("/api/public/signup/lic-9/checkout?token=tok-9");
+    expect(init?.method).toBe("POST");
+  });
+
+  it("offers email instead of following a link that isn't Stripe Checkout", async () => {
+    mockFetch({ "/checkout": () => ({ body: { checkout_url: "https://evil.example/pay" } }) });
+    renderSuccess("/signup/cancelled?l=lic-1&t=tok-1");
+    fireEvent.click(screen.getByRole("button", { name: "Resume payment" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent(/payment link/);
+    expect(goTo).not.toHaveBeenCalledWith("https://evil.example/pay");
+  });
 });

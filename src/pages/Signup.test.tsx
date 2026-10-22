@@ -1,4 +1,4 @@
-import { fireEvent, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { callsTo, mockFetch } from "../test/fetch";
 import { renderAt } from "../test/render";
@@ -183,5 +183,17 @@ describe("Sign-up", () => {
   it("prefills plan and seats from the pricing link", async () => {
     setup({}, "/signup?plan=pro&seats=6&billing=monthly");
     expect(screen.getByTestId("monthly-total")).toHaveTextContent(`$${(6 * 229).toLocaleString("en-CA")}`);
+  });
+
+  it("does not follow a payment link that isn't a Stripe Checkout page", async () => {
+    for (const checkout_url of ["https://evil.example/pay", "http://checkout.stripe.com/c/pay/cs_1", "https://checkout.stripe.com.evil.example/x"]) {
+      vi.mocked(goTo).mockReset();
+      setup({ "/api/public/signup": () => ({ status: 201, body: { licensee_id: "lic-3", signup_token: "tok-3", checkout_url } }) });
+      await fillToReview();
+      fireEvent.click(screen.getByRole("button", { name: "Continue to payment" }));
+      expect(await screen.findByRole("heading", { name: /Thanks — we'll contact you to complete payment/ })).toBeInTheDocument();
+      expect(goTo).not.toHaveBeenCalled();
+      cleanup();
+    }
   });
 });
