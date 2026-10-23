@@ -386,3 +386,6 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
 .fraud-table thead th { border-top: 0; font-family: var(--font-display); }
 .fraud-table tbody th { font-weight: 500; }
 .fraud-table td { text-align: center; width: 6.5rem; font-weight: 700; color: var(--accent-ink); }
+/* Try it yourself (/try) */
+.try-steps { margin: 0 0 1.5rem; padding-left: 1.4rem; display: grid; gap: 0.5rem; color: var(--ink); }
+.try-steps li { padding-left: 0.25rem; }

@@ -1,5 +1,6 @@
 import { useId, useState } from "react";
 import { Link } from "react-router-dom";
+import { FeatureRequest } from "../components/FeatureRequest";
 import { PRODUCT_NAME } from "../config";
 import { useCatalog } from "../hooks/useCatalog";
 import { usePageMeta } from "../hooks/usePageMeta";
@@ -270,6 +271,7 @@ export default function Pricing() {
           </p>
         </div>
       </section>
+      <FeatureRequest />
     </>
   );
 }

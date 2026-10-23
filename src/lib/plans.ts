@@ -59,6 +59,7 @@ const STARTER_FEATURES: PlanFeature[] = [
   { key: "iphone_dialler", label: "iPhone dialler" },
   { key: "office_sync", label: "Office 365 / Google sync" },
   { key: "ai_assistant", label: "AI assistant" },
+  { key: "lender_portal", label: "Lender portal (lenders can send you deals they can't place)" },
 ];
 const GROWTH_FEATURES: PlanFeature[] = [
   { key: "call_recording", label: "Call recording" },
@@ -67,13 +68,13 @@ const GROWTH_FEATURES: PlanFeature[] = [
   { key: "watch_ipad_apps", label: "Apple Watch and iPad apps" },
   { key: "templates", label: "Message templates" },
   { key: "referrer_portal", label: "Referrer portal" },
+  { key: "broker_portal", label: "Broker portal" },
   { key: "full_reports", label: "Reports" },
   { key: "visitor_tracking", label: "Website visitor tracking" },
   { key: "toll_free_number", label: "Toll-free number" },
 ];
 const PRO_FEATURES: PlanFeature[] = [
   { key: "multiple_lines", label: "Multiple business lines" },
-  { key: "lender_portal", label: "Lender portal" },
   { key: "bank_connect", label: "Bank connect" },
   { key: "ad_attribution", label: "Ad attribution" },
   { key: "api_access", label: "API access" },

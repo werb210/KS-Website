@@ -50,6 +50,9 @@ export function Layout({ children }: { children: ReactNode }) {
                 </li>
               ))}
               <li>
+                <NavLink to="/try">Try it yourself</NavLink>
+              </li>
+              <li>
                 <Link className="btn" to="/signup">
                   Sign up
                 </Link>

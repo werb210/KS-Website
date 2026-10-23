@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { FeatureRequest } from "../components/FeatureRequest";
 import { PRODUCT_NAME } from "../config";
 import { usePageMeta } from "../hooks/usePageMeta";
 
@@ -34,7 +35,8 @@ const AREAS: Area[] = [
       { name: "6-step application wizard", body: "Business, owners, funding needs, financials, documents, sign. On the web and in the iPhone and Android app, shown with your branding." },
       { name: "Client mini-portal", body: "Borrowers check status, answer requests and upload what's missing without calling you." },
       { name: "Referrer portal", body: "Partners send you deals and see how they're going.", plan: "Growth" },
-      { name: "Lender portal", body: "Lenders review the files you send them in one place.", plan: "Pro" },
+      { name: "Broker portal", body: "Partner brokers sign your broker agreement, upload client files and agree the commission split.", plan: "Growth" },
+      { name: "Lender portal (lenders can send you deals they can't place)", body: "Lenders review the files you send them in one place, and send you deals they can't place themselves." },
       { name: "Bank connect", body: "Borrowers link their bank so you get statements without chasing PDFs.", plan: "Pro" },
     ],
   },
@@ -126,6 +128,7 @@ export default function Features() {
           </section>
         ))}
       </div>
+      <FeatureRequest />
     </>
   );
 }
