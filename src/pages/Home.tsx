@@ -92,7 +92,8 @@ export default function Home() {
             <h2 id="how-h">From sign-up to first call</h2>
             <p>
               Sign up online, pay securely, and we set up your copy within one business day. You get sign-in details by
-              email, your staff install the apps, and they sign in with your company code.
+              email. Your staff install the dialler and iPad apps and enter your company code once. Your clients use
+              your brokerage's own branded app or your web client portal, with no company code to enter.
             </p>
           </div>
           <ol className="plain-list" style={{ paddingLeft: "1.4rem", listStyle: "decimal" }}>
