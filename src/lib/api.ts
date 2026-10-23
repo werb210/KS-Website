@@ -156,7 +156,7 @@ export type DemoSignupPayload = {
   website_url: string;
 };
 
-export type DemoSignupResult = { ok: true; message: string; resent: boolean } | { ok: false; status: number; errors: Record<string, string>; message: string };
+export type DemoSignupResult = { ok: true; message: string; resent: boolean; openUrl: string | null } | { ok: false; status: number; errors: Record<string, string>; message: string };
 
 /** POST /api/public/demo/signup - KS-Ops emails a private link to the person's demo. */
 export async function requestDemo(payload: DemoSignupPayload): Promise<DemoSignupResult> {
@@ -178,7 +178,9 @@ export async function requestDemo(payload: DemoSignupPayload): Promise<DemoSignu
   }
   const message = typeof body.message === "string" ? body.message : "";
   if (res.ok) {
-    return { ok: true, resent: body.resent === true, message: message || "Check your email - we've sent you a private link to your demo." };
+    // KS_WEBSITE_v11_LIVE_DEMO - KS-Ops answers the demo's link; the page opens it straight away (https only).
+    const openUrl = typeof body.open_url === "string" && /^https:\/\//.test(body.open_url) ? body.open_url : null;
+    return { ok: true, resent: body.resent === true, openUrl, message: message || "Check your email - we've sent you a private link to your demo." };
   }
   const errors: Record<string, string> = {};
   if (body.errors && typeof body.errors === "object") {

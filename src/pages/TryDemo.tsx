@@ -7,12 +7,12 @@ import { requestDemo } from "../lib/api";
 import { formatNaPhone, validNaPhone } from "../lib/validation";
 
 const WHAT_YOU_DO = [
-  "Scan a QR code and become the borrower: upload sample documents from your own phone and ask the assistant a question.",
-  "Watch the file land in your portal live, then accept or reject each document. One bank statement was doctored - the fraud check catches it.",
-  "Your client calls: the dialler rings on an iPhone and Apple Watch with their file on screen, and the AI writes the call note for you.",
-  "Review the financials, build the credit summary in one click, pick lenders from the match list and submit.",
-  "The lender package lands in your inbox, so you see exactly what a lender would receive.",
-];
+  "See it as your client: walk through the client app the way your borrowers do. Every answer is already filled in - you just click Next.",
+  "See it as the broker: the application lands in your pipeline. Accept the documents, check the financials and the bank summary, and approve the credit summary.",
+  "Catch the fraud: one bank statement was doctored, and the fraud report flags it before it reaches a lender.",
+  "Take the call: your client rings on an iPhone and Apple Watch with their file on screen, and the AI writes the call note for you.",
+  "Pick the lender and send it. The lender package lands in your inbox, so you see exactly what a lender would receive.",
+]
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
@@ -22,7 +22,7 @@ type Form = { name: string; email: string; phone: string; company: string; websi
 export default function TryDemo() {
   usePageMeta(
     "Try it yourself",
-    `Try ${PRODUCT_NAME} yourself: play the borrower on your phone and the broker on your computer, with sample data, in about ten minutes.`,
+    `Try ${PRODUCT_NAME} yourself: see a deal from the client app and from the broker portal, with sample data, in about ten minutes.`,
     "/try",
   );
   const [f, setF] = useState<Form>({ name: "", email: "", phone: "", company: "", website_url: "" });
@@ -59,6 +59,7 @@ export default function TryDemo() {
     if (res.ok) {
       setMessage(res.message);
       setState("sent");
+      if (res.openUrl) window.location.assign(res.openUrl);
       return;
     }
     setErrors(res.errors);
@@ -73,8 +74,8 @@ export default function TryDemo() {
       <div className="wrap wrap--narrow page-head">
         <h1>Try it yourself</h1>
         <p className="lede">
-          Play both sides of a real file in about ten minutes: the borrower on your phone, the broker on your computer. Your
-          own private demo, with sample data, for seven days.
+          See a real deal from both sides in about ten minutes: first the client app your borrowers use, then your portal.
+          Nothing to download, nothing to type - just click Next. Your own private demo, with sample data.
         </p>
       </div>
       <div className="wrap wrap--narrow">
@@ -109,7 +110,7 @@ export default function TryDemo() {
               <div className="field">
                 <label htmlFor="d-email">Work email</label>
                 <input id="d-email" type="email" autoComplete="email" maxLength={200} value={f.email} onChange={set("email")} aria-invalid={!!errors.email} aria-describedby={errors.email ? "d-email-e" : "d-email-h"} />
-                <span className="hint" id="d-email-h">We email you a copy of the link.</span>
+                <span className="hint" id="d-email-h">The lender package from the demo is emailed here.</span>
                 {errors.email && <span className="field-error" id="d-email-e">{errors.email}</span>}
               </div>
             </div>
@@ -117,7 +118,7 @@ export default function TryDemo() {
               <div className="field">
                 <label htmlFor="d-phone">Mobile phone</label>
                 <input id="d-phone" type="tel" inputMode="tel" autoComplete="tel" maxLength={40} value={f.phone} onChange={setPhone} placeholder="(403) 555-0199" aria-invalid={!!errors.phone} aria-describedby={errors.phone ? "d-phone-e" : "d-phone-h"} />
-                <span className="hint" id="d-phone-h">We text your private demo link here. Canadian or US number.</span>
+                <span className="hint" id="d-phone-h">We text you a link so you can come back to it. Canadian or US number.</span>
                 {errors.phone && <span className="field-error" id="d-phone-e">{errors.phone}</span>}
               </div>
               <div className="field">
@@ -133,7 +134,7 @@ export default function TryDemo() {
               <input id="d-website-url" type="text" tabIndex={-1} autoComplete="off" value={f.website_url} onChange={set("website_url")} />
             </div>
             <button className="btn" type="submit" disabled={state === "sending"}>
-              {state === "sending" ? "Sending your link…" : "Text me my demo link"}
+              {state === "sending" ? "Starting your demo…" : "Start my demo"}
             </button>
             <p className="small muted" style={{ marginTop: "0.75rem" }}>
               We use these details to text and email your demo link and to follow up about {PRODUCT_NAME}. See our{" "}
