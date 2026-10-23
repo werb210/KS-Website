@@ -8,7 +8,7 @@ const type = (label: string, value: string) => fireEvent.change(screen.getByLabe
 const fill = () => {
   type("Your name", "Dana Prospect");
   type("Work email", "dana@brokerco.example");
-  type("Mobile phone", "(403) 555-0199");
+  type("Mobile phone", "4035550199");
   type("Brokerage", "BrokerCo");
 };
 const submit = () => fireEvent.click(screen.getByRole("button", { name: "Text me my demo link" }));
@@ -20,6 +20,13 @@ describe("Try it yourself", () => {
     expect(screen.getByRole("heading", { name: "Try it yourself" })).toBeInTheDocument();
     expect(screen.getByText(/One bank statement was doctored/)).toBeInTheDocument();
     expect(screen.getByText(/iPhone and Apple Watch/)).toBeInTheDocument();
+  });
+
+  it("formats the mobile number as it is typed", () => {
+    mockFetch({});
+    renderAt(<TryDemo />, "/try");
+    type("Mobile phone", "4035550199");
+    expect(screen.getByLabelText("Mobile phone")).toHaveValue("(403) 555-0199");
   });
 
   it("checks the form before sending anything", () => {

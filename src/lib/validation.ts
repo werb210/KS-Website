@@ -198,3 +198,14 @@ export function validNaPhone(raw: string): boolean {
   if (d.length === 11 && d.startsWith("1")) d = d.slice(1);
   return d.length === 10 && !/^[01]/.test(d) && !/^[01]/.test(d.slice(3));
 }
+
+/** Formats a North American number as it is typed: "4035550199" -> "(403) 555-0199". A leading 1 or +1 is dropped. */
+export function formatNaPhone(raw: string): string {
+  let d = raw.replace(/\D/g, "");
+  if (d.length > 10 && d.startsWith("1")) d = d.slice(1);
+  d = d.slice(0, 10);
+  if (d.length === 0) return "";
+  if (d.length < 4) return `(${d}`;
+  if (d.length < 7) return `(${d.slice(0, 3)}) ${d.slice(3)}`;
+  return `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`;
+}
