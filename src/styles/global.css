@@ -380,6 +380,12 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
 @keyframes spin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .spinner { animation: none; } }
 
+/* Fraud protection: checks by plan */
+.fraud-table { border-collapse: collapse; width: 100%; min-width: 30rem; background: var(--surface); border: 1px solid var(--mortar); border-radius: var(--radius-m); }
+.fraud-table th, .fraud-table td { padding: 0.6rem 0.9rem; border-top: 1px solid var(--mortar-soft); text-align: left; color: var(--ink); }
+.fraud-table thead th { border-top: 0; font-family: var(--font-display); }
+.fraud-table tbody th { font-weight: 500; }
+.fraud-table td { text-align: center; width: 6.5rem; font-weight: 700; color: var(--accent-ink); }
 /* Try it yourself (/try) */
 .try-steps { margin: 0 0 1.5rem; padding-left: 1.4rem; display: grid; gap: 0.5rem; color: var(--ink); }
 .try-steps li { padding-left: 0.25rem; }
