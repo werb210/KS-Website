@@ -4,6 +4,7 @@ import { Turnstile } from "../components/Turnstile";
 import { PRODUCT_NAME, TURNSTILE_SITE_KEY } from "../config";
 import { usePageMeta } from "../hooks/usePageMeta";
 import { requestDemo } from "../lib/api";
+import { validNaPhone } from "../lib/validation";
 
 const WHAT_YOU_DO = [
   "Scan a QR code and become the borrower: upload sample documents from your own phone and ask the assistant a question.",
@@ -15,7 +16,8 @@ const WHAT_YOU_DO = [
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
-type Form = { name: string; email: string; company: string; website_url: string };
+
+type Form = { name: string; email: string; phone: string; company: string; website_url: string };
 
 export default function TryDemo() {
   usePageMeta(
@@ -23,7 +25,7 @@ export default function TryDemo() {
     `Try ${PRODUCT_NAME} yourself: play the borrower on your phone and the broker on your computer, with sample data, in about ten minutes.`,
     "/try",
   );
-  const [f, setF] = useState<Form>({ name: "", email: "", company: "", website_url: "" });
+  const [f, setF] = useState<Form>({ name: "", email: "", phone: "", company: "", website_url: "" });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [state, setState] = useState<"idle" | "sending" | "sent">("idle");
   const [message, setMessage] = useState("");
@@ -38,6 +40,7 @@ export default function TryDemo() {
     const errs: Record<string, string> = {};
     if (!f.name.trim()) errs.name = "Enter your name.";
     if (!EMAIL_RE.test(f.email.trim())) errs.email = "Enter an email address like name@company.com.";
+    if (!validNaPhone(f.phone)) errs.phone = "Enter your mobile number, like (403) 555-0199.";
     if (!f.company.trim()) errs.company = "Enter your brokerage's name.";
     if (TURNSTILE_SITE_KEY && !token) errs.turnstile_token = "Complete the security check.";
     setErrors(errs);
@@ -47,6 +50,7 @@ export default function TryDemo() {
     const res = await requestDemo({
       name: f.name.trim(),
       email: f.email.trim(),
+      phone: f.phone.trim(),
       company: f.company.trim(),
       website_url: f.website_url,
       turnstile_token: token || undefined,
@@ -84,8 +88,8 @@ export default function TryDemo() {
               <strong>{message}</strong>
             </p>
             <p>
-              We sent it to {f.email.trim()}. Open the link on a computer or tablet and keep your phone nearby. Can't see it? Check
-              your junk folder.
+              Open the link on a computer or tablet and keep your phone nearby. We also emailed it to {f.email.trim()} - if it
+              isn't in your inbox, check your junk folder.
             </p>
           </div>
         ) : (
@@ -104,14 +108,22 @@ export default function TryDemo() {
               <div className="field">
                 <label htmlFor="d-email">Work email</label>
                 <input id="d-email" type="email" autoComplete="email" maxLength={200} value={f.email} onChange={set("email")} aria-invalid={!!errors.email} aria-describedby={errors.email ? "d-email-e" : "d-email-h"} />
-                <span className="hint" id="d-email-h">We email your private demo link here.</span>
+                <span className="hint" id="d-email-h">We email you a copy of the link.</span>
                 {errors.email && <span className="field-error" id="d-email-e">{errors.email}</span>}
               </div>
             </div>
-            <div className="field">
-              <label htmlFor="d-company">Brokerage</label>
-              <input id="d-company" type="text" autoComplete="organization" maxLength={160} value={f.company} onChange={set("company")} aria-invalid={!!errors.company} aria-describedby={errors.company ? "d-company-e" : undefined} />
-              {errors.company && <span className="field-error" id="d-company-e">{errors.company}</span>}
+            <div className="row-2">
+              <div className="field">
+                <label htmlFor="d-phone">Mobile phone</label>
+                <input id="d-phone" type="tel" inputMode="tel" autoComplete="tel" maxLength={40} value={f.phone} onChange={set("phone")} aria-invalid={!!errors.phone} aria-describedby={errors.phone ? "d-phone-e" : "d-phone-h"} />
+                <span className="hint" id="d-phone-h">We text your private demo link here. Canadian or US number.</span>
+                {errors.phone && <span className="field-error" id="d-phone-e">{errors.phone}</span>}
+              </div>
+              <div className="field">
+                <label htmlFor="d-company">Brokerage</label>
+                <input id="d-company" type="text" autoComplete="organization" maxLength={160} value={f.company} onChange={set("company")} aria-invalid={!!errors.company} aria-describedby={errors.company ? "d-company-e" : undefined} />
+                {errors.company && <span className="field-error" id="d-company-e">{errors.company}</span>}
+              </div>
             </div>
             <Turnstile onToken={setToken} resetKey={resetKey} />
             {errors.turnstile_token && <span className="field-error">{errors.turnstile_token}</span>}
@@ -120,10 +132,10 @@ export default function TryDemo() {
               <input id="d-website-url" type="text" tabIndex={-1} autoComplete="off" value={f.website_url} onChange={set("website_url")} />
             </div>
             <button className="btn" type="submit" disabled={state === "sending"}>
-              {state === "sending" ? "Sending your link…" : "Email me my demo"}
+              {state === "sending" ? "Sending your link…" : "Text me my demo link"}
             </button>
             <p className="small muted" style={{ marginTop: "0.75rem" }}>
-              We use these details to send your demo link and to follow up about {PRODUCT_NAME}. See our{" "}
+              We use these details to text and email your demo link and to follow up about {PRODUCT_NAME}. See our{" "}
               <Link to="/privacy">privacy policy</Link>. Everything in the demo is sample data - nothing you do in it reaches a
               real borrower or lender.
             </p>

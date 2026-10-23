@@ -8,9 +8,10 @@ const type = (label: string, value: string) => fireEvent.change(screen.getByLabe
 const fill = () => {
   type("Your name", "Dana Prospect");
   type("Work email", "dana@brokerco.example");
+  type("Mobile phone", "(403) 555-0199");
   type("Brokerage", "BrokerCo");
 };
-const submit = () => fireEvent.click(screen.getByRole("button", { name: "Email me my demo" }));
+const submit = () => fireEvent.click(screen.getByRole("button", { name: "Text me my demo link" }));
 
 describe("Try it yourself", () => {
   it("explains what the demo covers", () => {
@@ -29,6 +30,7 @@ describe("Try it yourself", () => {
     expect(screen.getByText("Enter your name.")).toBeInTheDocument();
     expect(screen.getByText(/Enter an email address/)).toBeInTheDocument();
     expect(screen.getByText("Enter your brokerage's name.")).toBeInTheDocument();
+    expect(screen.getByText(/Enter your mobile number/)).toBeInTheDocument();
     expect(f).not.toHaveBeenCalled();
   });
 
@@ -41,7 +43,7 @@ describe("Try it yourself", () => {
     expect(screen.getByTestId("demo-sent")).toHaveTextContent("dana@brokerco.example");
     const [, init] = callsTo(f, "/api/public/demo/signup")[0]!;
     expect(init?.method).toBe("POST");
-    expect(JSON.parse(String(init?.body))).toEqual({ name: "Dana Prospect", email: "dana@brokerco.example", company: "BrokerCo", website_url: "" });
+    expect(JSON.parse(String(init?.body))).toEqual({ name: "Dana Prospect", email: "dana@brokerco.example", phone: "(403) 555-0199", company: "BrokerCo", website_url: "" });
   });
 
   it("shows the service's field errors and limits", async () => {

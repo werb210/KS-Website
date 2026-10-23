@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { contrastRatio, darkenForWhiteText } from "./contrast";
 import { FALLBACK_CATALOG } from "./plans";
-import { EMPTY_FORM, codeFormatError, suggestCode, validateStep, type SignupForm } from "./validation";
+import { EMPTY_FORM, codeFormatError, suggestCode, validNaPhone, validateStep, type SignupForm } from "./validation";
 
 const c = FALLBACK_CATALOG;
 const good: SignupForm = {
@@ -109,5 +109,12 @@ describe("contrast", () => {
       ["#16263a", "#f4e6c8"], // ink on ochre-soft
     ];
     for (const [fg, bg] of pairs) expect(contrastRatio(fg, bg)!, `${fg} on ${bg}`).toBeGreaterThanOrEqual(4.5);
+  });
+});
+
+describe("validNaPhone (demo sign-up)", () => {
+  it("accepts Canadian/US numbers typed the usual ways and rejects the rest", () => {
+    for (const ok of ["(403) 555-0199", "403.555.0199", "1 403 555 0199", "+1 403-555-0199", "4035550199"]) expect(validNaPhone(ok)).toBe(true);
+    for (const bad of ["", "555-0199", "+44 20 7946 0958", "403 555 019x", "(103) 555-0199"]) expect(validNaPhone(bad)).toBe(false);
   });
 });

@@ -190,3 +190,11 @@ export function validateStep(step: StepKey, f: SignupForm, catalog: Catalog, cod
   }
   return e;
 }
+
+/** Canadian/US number: 10 digits, or 11 starting with 1, typed with the usual spaces, dots, dashes and brackets. */
+export function validNaPhone(raw: string): boolean {
+  if (/[^\d\s()+.-]/.test(raw.trim())) return false;
+  let d = raw.replace(/\D/g, "");
+  if (d.length === 11 && d.startsWith("1")) d = d.slice(1);
+  return d.length === 10 && !/^[01]/.test(d) && !/^[01]/.test(d.slice(3));
+}
