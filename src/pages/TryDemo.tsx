@@ -4,7 +4,7 @@ import { Turnstile } from "../components/Turnstile";
 import { PRODUCT_NAME, TURNSTILE_SITE_KEY } from "../config";
 import { usePageMeta } from "../hooks/usePageMeta";
 import { requestDemo } from "../lib/api";
-import { validNaPhone } from "../lib/validation";
+import { formatNaPhone, validNaPhone } from "../lib/validation";
 
 const WHAT_YOU_DO = [
   "Scan a QR code and become the borrower: upload sample documents from your own phone and ask the assistant a question.",
@@ -34,6 +34,7 @@ export default function TryDemo() {
   const [resetKey, setResetKey] = useState(0);
 
   const set = (k: keyof Form) => (e: { target: { value: string } }) => setF((p) => ({ ...p, [k]: e.target.value }));
+  const setPhone = (e: { target: { value: string } }) => setF((p) => ({ ...p, phone: formatNaPhone(e.target.value) }));
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -88,7 +89,7 @@ export default function TryDemo() {
               <strong>{message}</strong>
             </p>
             <p>
-              Open the link on a computer or tablet and keep your phone nearby. We also emailed it to {f.email.trim()} - if it
+              Open the link on a computer or tablet and keep your phone nearby. The email copy went to {f.email.trim()} - if it
               isn't in your inbox, check your junk folder.
             </p>
           </div>
@@ -115,7 +116,7 @@ export default function TryDemo() {
             <div className="row-2">
               <div className="field">
                 <label htmlFor="d-phone">Mobile phone</label>
-                <input id="d-phone" type="tel" inputMode="tel" autoComplete="tel" maxLength={40} value={f.phone} onChange={set("phone")} aria-invalid={!!errors.phone} aria-describedby={errors.phone ? "d-phone-e" : "d-phone-h"} />
+                <input id="d-phone" type="tel" inputMode="tel" autoComplete="tel" maxLength={40} value={f.phone} onChange={setPhone} placeholder="(403) 555-0199" aria-invalid={!!errors.phone} aria-describedby={errors.phone ? "d-phone-e" : "d-phone-h"} />
                 <span className="hint" id="d-phone-h">We text your private demo link here. Canadian or US number.</span>
                 {errors.phone && <span className="field-error" id="d-phone-e">{errors.phone}</span>}
               </div>

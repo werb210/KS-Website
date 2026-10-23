@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { contrastRatio, darkenForWhiteText } from "./contrast";
 import { FALLBACK_CATALOG } from "./plans";
-import { EMPTY_FORM, codeFormatError, suggestCode, validNaPhone, validateStep, type SignupForm } from "./validation";
+import { EMPTY_FORM, codeFormatError, formatNaPhone, suggestCode, validNaPhone, validateStep, type SignupForm } from "./validation";
 
 const c = FALLBACK_CATALOG;
 const good: SignupForm = {
@@ -116,5 +116,17 @@ describe("validNaPhone (demo sign-up)", () => {
   it("accepts Canadian/US numbers typed the usual ways and rejects the rest", () => {
     for (const ok of ["(403) 555-0199", "403.555.0199", "1 403 555 0199", "+1 403-555-0199", "4035550199"]) expect(validNaPhone(ok)).toBe(true);
     for (const bad of ["", "555-0199", "+44 20 7946 0958", "403 555 019x", "(103) 555-0199"]) expect(validNaPhone(bad)).toBe(false);
+  });
+});
+
+describe("formatNaPhone", () => {
+  it("formats as the person types and drops a leading 1", () => {
+    expect(formatNaPhone("")).toBe("");
+    expect(formatNaPhone("4")).toBe("(4");
+    expect(formatNaPhone("4035")).toBe("(403) 5");
+    expect(formatNaPhone("4035550")).toBe("(403) 555-0");
+    expect(formatNaPhone("4035550199")).toBe("(403) 555-0199");
+    expect(formatNaPhone("+1 403 555 0199")).toBe("(403) 555-0199");
+    expect(formatNaPhone("403555019999")).toBe("(403) 555-0199");
   });
 });
