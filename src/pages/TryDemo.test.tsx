@@ -1,5 +1,5 @@
 import { fireEvent, screen, waitFor } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { callsTo, mockFetch } from "../test/fetch";
 import { renderAt } from "../test/render";
 import TryDemo from "./TryDemo";
@@ -11,14 +11,14 @@ const fill = () => {
   type("Mobile phone", "4035550199");
   type("Brokerage", "BrokerCo");
 };
-const submit = () => fireEvent.click(screen.getByRole("button", { name: "Text me my demo link" }));
+const submit = () => fireEvent.click(screen.getByRole("button", { name: "Start my demo" }));
 
 describe("Try it yourself", () => {
   it("explains what the demo covers", () => {
     mockFetch({});
     renderAt(<TryDemo />, "/try");
     expect(screen.getByRole("heading", { name: "Try it yourself" })).toBeInTheDocument();
-    expect(screen.getByText(/One bank statement was doctored/)).toBeInTheDocument();
+    expect(screen.getByText(/one bank statement was doctored/)).toBeInTheDocument();
     expect(screen.getByText(/iPhone and Apple Watch/)).toBeInTheDocument();
   });
 
@@ -51,6 +51,28 @@ describe("Try it yourself", () => {
     const [, init] = callsTo(f, "/api/public/demo/signup")[0]!;
     expect(init?.method).toBe("POST");
     expect(JSON.parse(String(init?.body))).toEqual({ name: "Dana Prospect", email: "dana@brokerco.example", phone: "(403) 555-0199", company: "BrokerCo", website_url: "" });
+  });
+
+  it("opens the demo straight away when KS-Ops answers its link (https only)", async () => {
+    const assign = vi.fn();
+    const original = window.location;
+    Object.defineProperty(window, "location", { configurable: true, value: { ...original, assign } });
+    try {
+      mockFetch({ "/api/public/demo/signup": () => ({ status: 201, body: { ok: true, message: "Your demo is ready", open_url: "https://portal.example/demo#d=1&t=2" } }) });
+      renderAt(<TryDemo />, "/try");
+      fill();
+      submit();
+      await waitFor(() => expect(assign).toHaveBeenCalledWith("https://portal.example/demo#d=1&t=2"));
+      assign.mockClear();
+      mockFetch({ "/api/public/demo/signup": () => ({ status: 201, body: { ok: true, message: "ok", open_url: "javascript:alert(1)" } }) });
+      renderAt(<TryDemo />, "/try");
+      fill();
+      submit();
+      await screen.findAllByTestId("demo-sent");
+      expect(assign).not.toHaveBeenCalled();
+    } finally {
+      Object.defineProperty(window, "location", { configurable: true, value: original });
+    }
   });
 
   it("shows the service's field errors and limits", async () => {
