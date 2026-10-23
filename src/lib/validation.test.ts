@@ -57,6 +57,9 @@ describe("validateStep", () => {
     expect(validateStep("plan", { ...good, plan: "pro", seats: 2 }, c, "idle")).toEqual({});
     expect(validateStep("plan", { ...good, seats: 0 }, c, "idle").seats).toBeTruthy();
     expect(validateStep("plan", { ...good, seats: 2.5 }, c, "idle").seats).toBeTruthy();
+    // Up to the most KS-Ops accepts (1,000), not the old 500.
+    expect(validateStep("plan", { ...good, seats: 1000 }, c, "idle")).toEqual({});
+    expect(validateStep("plan", { ...good, seats: 1001 }, c, "idle").seats).toBe("For more than 1,000 seats, contact us.");
   });
 
   it("needs https logos and hex colours", () => {
@@ -128,5 +131,16 @@ describe("formatNaPhone", () => {
     expect(formatNaPhone("4035550199")).toBe("(403) 555-0199");
     expect(formatNaPhone("+1 403 555 0199")).toBe("(403) 555-0199");
     expect(formatNaPhone("403555019999")).toBe("(403) 555-0199");
+  });
+});
+
+describe("extra storage on the plan step", () => {
+  it("accepts 0 up to the catalog limit and rejects anything else", () => {
+    expect(validateStep("plan", { ...good, extra_storage_blocks: 0 }, c, "idle")).toEqual({});
+    expect(validateStep("plan", { ...good, extra_storage_blocks: 1000 }, c, "idle")).toEqual({});
+    expect(validateStep("plan", { ...good, extra_storage_blocks: 1001 }, c, "idle").extra_storage_blocks).toMatch(/limited to 1,000/);
+    expect(validateStep("plan", { ...good, extra_storage_blocks: -1 }, c, "idle").extra_storage_blocks).toBeTruthy();
+    expect(validateStep("plan", { ...good, extra_storage_blocks: 1.5 }, c, "idle").extra_storage_blocks).toBeTruthy();
+    expect(validateStep("plan", { ...good, extra_storage_blocks: NaN }, c, "idle").extra_storage_blocks).toBeTruthy();
   });
 });

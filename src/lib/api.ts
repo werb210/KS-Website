@@ -45,6 +45,8 @@ export type SignupPayload = {
   plan: PlanKey;
   billing_interval: BillingInterval;
   support_level: string;
+  /** Extra 50 GB storage blocks, 0 to the catalog's max_blocks. */
+  extra_storage_blocks: number;
   primary_color?: string;
   logo_url?: string;
   assistant_name?: string;

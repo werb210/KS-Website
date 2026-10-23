@@ -5,7 +5,7 @@ import { PRODUCT_NAME } from "../config";
 import { useCatalog } from "../hooks/useCatalog";
 import { usePageMeta } from "../hooks/usePageMeta";
 import type { BillingInterval, Catalog, Plan } from "../lib/plans";
-import { findSupport } from "../lib/plans";
+import { findSupport, hasLiveHelp } from "../lib/plans";
 import { formatMoney, formatNumber, quote } from "../lib/pricing";
 
 export function BillingToggle({ value, onChange }: { value: BillingInterval; onChange: (b: BillingInterval) => void }) {
@@ -191,7 +191,7 @@ export default function Pricing() {
                     <td>{s.covered_seats == null ? "—" : money(s.extra_seat_price)}</td>
                     <td>{s.channels.join(", ")}</td>
                     <td>{s.first_reply}</td>
-                    <td className={s.live_help ? "yes" : "no"}>{s.live_help ? "Yes" : "No"}</td>
+                    <td className={hasLiveHelp(s) ? "yes" : "no"}>{hasLiveHelp(s) ? s.live_help : "No"}</td>
                   </tr>
                 ))}
               </tbody>

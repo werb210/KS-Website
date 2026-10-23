@@ -1,10 +1,23 @@
-import type { BillingInterval, Plan, SupportLevel } from "./plans";
+import type { BillingInterval, Catalog, Plan, SupportLevel } from "./plans";
 
 /** Seats actually billed: whole number, at least 1 and at least the plan minimum (pro = 2). */
 export function billableSeats(plan: Pick<Plan, "min_seats">, seats: number): number {
   const n = Math.floor(Number(seats));
   const whole = Number.isFinite(n) ? n : 1;
   return Math.max(1, plan.min_seats || 1, whole);
+}
+
+/** A whole number within [min, max]; anything unreadable becomes min. */
+export function clampInt(n: number, min: number, max: number): number {
+  const v = Math.floor(Number(n));
+  if (!Number.isFinite(v)) return min;
+  return Math.min(max, Math.max(min, v));
+}
+
+/** Seats someone can choose on a plan: the plan minimum up to the most the sign-up accepts. */
+export function seatRange(plan: Pick<Plan, "min_seats" | "max_seats">): { min: number; max: number } {
+  const min = Math.max(1, plan.min_seats || 1);
+  return { min, max: Math.max(min, plan.max_seats || min) };
 }
 
 export function seatPrice(plan: Plan, billing: BillingInterval): number {
@@ -25,6 +38,10 @@ export type Quote = {
   seatsMonthly: number;
   supportMonthly: number;
   supportExtraSeats: number;
+  storageBlocks: number;
+  storageMonthly: number;
+  /** Storage the plan includes for the billed seats, in GB (extra blocks not counted). */
+  includedStorageGb: number;
   monthlyTotal: number;
   onboardingFee: number;
   /** Months charged up front: 12 on annual billing, 1 on monthly. */
@@ -40,12 +57,15 @@ export function quote(
   seatsRequested: number,
   billing: BillingInterval,
   support: SupportLevel | undefined,
+  storage?: { blocks: number; block_price: number },
 ): Quote {
   const seats = billableSeats(plan, seatsRequested);
   const price = seatPrice(plan, billing);
   const seatsMonthly = round2(seats * price);
   const sup = supportMonthly(support, seats);
-  const monthlyTotal = round2(seatsMonthly + sup);
+  const storageBlocks = storage ? clampInt(storage.blocks, 0, Number.MAX_SAFE_INTEGER) : 0;
+  const storageMonthly = storage ? round2(storageBlocks * storage.block_price) : 0;
+  const monthlyTotal = round2(seatsMonthly + sup + storageMonthly);
   const monthsUpFront = billing === "annual" ? 12 : 1;
   const recurringCharge = round2(monthlyTotal * monthsUpFront);
   const supportExtraSeats = support && support.covered_seats != null ? Math.max(0, seats - support.covered_seats) : 0;
@@ -57,6 +77,9 @@ export function quote(
     seatsMonthly,
     supportMonthly: sup,
     supportExtraSeats,
+    storageBlocks,
+    storageMonthly,
+    includedStorageGb: seats * (plan.allowances?.storage_gb_per_seat ?? 0),
     monthlyTotal,
     onboardingFee: plan.onboarding_fee,
     monthsUpFront,
@@ -64,6 +87,16 @@ export function quote(
     firstPayment: round2(recurringCharge + plan.onboarding_fee),
     annualSavingsPerYear,
   };
+}
+
+/** The sign-up quote: plan, seats, billing, support and extra storage, priced as KS-Ops prices them. */
+export function signupQuote(
+  c: Catalog,
+  plan: Plan,
+  f: { seats: number; billing_interval: BillingInterval; support_level: string; extra_storage_blocks: number },
+): Quote {
+  const support = c.support_levels.find((s) => s.key === f.support_level);
+  return quote(plan, f.seats, f.billing_interval, support, { blocks: f.extra_storage_blocks, block_price: c.extra_storage.price });
 }
 
 export function round2(n: number): number {
