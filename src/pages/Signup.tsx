@@ -341,8 +341,8 @@ export default function Signup() {
             <>
               <p>
                 Your company code is how your team finds your brokerage in the {PRODUCT_NAME} apps. Staff type it once
-                when they first open the iPhone dialler or iPad app, then sign in as usual. Clients who use the mobile
-                app enter it too.
+                when they first open the iPhone dialler or iPad app, then sign in as usual. Your clients never need it:
+                they use your brokerage's own branded app or your web client portal.
               </p>
               <Field
                 id="company_code"

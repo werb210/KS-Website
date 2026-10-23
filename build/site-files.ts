@@ -7,6 +7,7 @@ export const ROUTES = [
   "/pricing",
   "/mobile-apps",
   "/security",
+  "/fraud-protection",
   "/faq",
   "/contact",
   "/signup",

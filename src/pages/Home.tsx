@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { FeatureRequest } from "../components/FeatureRequest";
 import { Arch } from "../components/Arch";
 import { PRODUCT_NAME } from "../config";
 import { usePageMeta } from "../hooks/usePageMeta";
@@ -53,6 +54,9 @@ export default function Home() {
               <Link className="btn" to="/signup">
                 Start sign-up
               </Link>
+              <Link className="btn btn--quiet" to="/try">
+                Try it yourself
+              </Link>
               <Link className="btn btn--quiet" to="/pricing">
                 See pricing
               </Link>
@@ -89,7 +93,8 @@ export default function Home() {
             <h2 id="how-h">From sign-up to first call</h2>
             <p>
               Sign up online, pay securely, and we set up your copy within one business day. You get sign-in details by
-              email, your staff install the apps, and they sign in with your company code.
+              email. Your staff install the dialler and iPad apps and enter your company code once. Your clients use
+              your brokerage's own branded app or your web client portal, with no company code to enter.
             </p>
           </div>
           <ol className="plain-list" style={{ paddingLeft: "1.4rem", listStyle: "decimal" }}>
@@ -120,6 +125,7 @@ export default function Home() {
           </div>
         </div>
       </section>
+      <FeatureRequest />
     </>
   );
 }
