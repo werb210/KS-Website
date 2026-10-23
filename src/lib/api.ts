@@ -149,6 +149,8 @@ export type DemoSignupPayload = {
   name: string;
   email: string;
   company: string;
+  /** Mobile number; KS-Ops texts the demo link to it (and emails it too). */
+  phone: string;
   turnstile_token?: string;
   /** Honeypot. People never see it; it must stay empty. */
   website_url: string;
