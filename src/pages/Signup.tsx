@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Field } from "../components/Field";
+import { NumberStepper } from "../components/NumberStepper";
 import { Turnstile } from "../components/Turnstile";
 import { PRODUCT_NAME, TURNSTILE_SITE_KEY } from "../config";
 import { useCatalog } from "../hooks/useCatalog";
@@ -9,9 +10,9 @@ import { usePageMeta } from "../hooks/usePageMeta";
 import { submitSignup, type SignupPayload } from "../lib/api";
 import { contrastRatio, darkenForWhiteText } from "../lib/contrast";
 import { goTo } from "../lib/navigate";
-import type { BillingInterval, Catalog, PlanKey } from "../lib/plans";
-import { findPlan, findSupport } from "../lib/plans";
-import { formatMoney, quote } from "../lib/pricing";
+import type { BillingInterval, Catalog, PlanKey, SupportLevel } from "../lib/plans";
+import { MAX_SEATS, findPlan, findSupport, hasLiveHelp } from "../lib/plans";
+import { clampInt, formatMoney, formatNumber, seatRange, signupQuote, supportMonthly } from "../lib/pricing";
 import { regionsFor } from "../lib/regions";
 import { DRAFT_KEY, LAST_SIGNUP_KEY, load, remove, save } from "../lib/storage";
 import {
@@ -34,7 +35,8 @@ function initialForm(params: URLSearchParams): SignupForm {
   const plan = params.get("plan");
   if (plan === "starter" || plan === "growth" || plan === "pro") f.plan = plan;
   const seats = Number(params.get("seats"));
-  if (Number.isInteger(seats) && seats > 0 && seats <= 500) f.seats = seats;
+  if (Number.isInteger(seats) && seats > 0 && seats <= MAX_SEATS) f.seats = seats;
+  if (!Number.isInteger(f.extra_storage_blocks) || f.extra_storage_blocks < 0) f.extra_storage_blocks = 0;
   const billing = params.get("billing");
   if (billing === "annual" || billing === "monthly") f.billing_interval = billing;
   return f;
@@ -57,6 +59,7 @@ export function buildPayload(f: SignupForm, turnstileToken: string): SignupPaylo
     plan: f.plan,
     billing_interval: f.billing_interval,
     support_level: f.support_level,
+    extra_storage_blocks: Number(f.extra_storage_blocks) || 0,
     primary_color: opt(f.primary_color),
     logo_url: opt(f.logo_url),
     assistant_name: opt(f.assistant_name),
@@ -67,24 +70,123 @@ export function buildPayload(f: SignupForm, turnstileToken: string): SignupPaylo
   };
 }
 
-function PriceSummary({ c, f }: { c: Catalog; f: SignupForm }) {
+type Adjust = {
+  choosePlan: (k: PlanKey) => void;
+  setSeats: (n: number) => void;
+  setBilling: (b: BillingInterval) => void;
+  setSupport: (k: string) => void;
+  setStorage: (n: number) => void;
+};
+
+function seatsText(n: number) {
+  return `${formatNumber(n)} ${n === 1 ? "seat" : "seats"}`;
+}
+
+/** "Priority: $199 a month, covers 10 seats, then $15 per extra seat" */
+function supportPriceText(s: SupportLevel, m: (n: number) => string) {
+  if (!s.price && !s.extra_seat_price) return "Included with every plan";
+  const base = `${m(s.price)} a month`;
+  return s.covered_seats == null ? base : `${base}, covers ${s.covered_seats} seats, then ${m(s.extra_seat_price)} per extra seat`;
+}
+
+function PriceSummary({ c, f, adjust, showControls, onDetails }: {
+  c: Catalog; f: SignupForm; adjust: Adjust; showControls: boolean; onDetails: () => void;
+}) {
   const plan = findPlan(c, f.plan);
   if (!plan) return null;
   const support = findSupport(c, f.support_level);
-  const q = quote(plan, f.seats, f.billing_interval, support);
+  const q = signupQuote(c, plan, f);
   const m = (n: number) => formatMoney(n, c.currency);
+  const range = seatRange(plan);
+  const block = c.extra_storage;
   return (
     <aside className="signup__summary" aria-labelledby="summary-h" data-testid="price-summary">
       <h2 id="summary-h" style={{ fontSize: "var(--step-1)" }}>
         Your price
       </h2>
+      {showControls && (
+        <div className="summary-controls" data-testid="summary-controls">
+          <fieldset className="field">
+            <legend>Plan</legend>
+            <div className="seg seg--3">
+              {c.plans.map((p) => (
+                <label key={p.key} className="seg__opt">
+                  <input type="radio" name="summary_plan" value={p.key} checked={f.plan === p.key} onChange={() => adjust.choosePlan(p.key)} />
+                  <span>{p.name}</span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
+          <fieldset className="field">
+            <legend>Billing</legend>
+            <div className="seg seg--2">
+              {(["annual", "monthly"] as BillingInterval[]).map((b) => (
+                <label key={b} className="seg__opt">
+                  <input type="radio" name="summary_billing" value={b} checked={f.billing_interval === b} onChange={() => adjust.setBilling(b)} />
+                  <span>{b === "annual" ? "Annual" : "Monthly"}</span>
+                </label>
+              ))}
+            </div>
+            {q.annualSavingsPerYear > 0 && (
+              <span className="saving">
+                {f.billing_interval === "annual"
+                  ? `You save ${m(q.annualSavingsPerYear)} a year with annual billing.`
+                  : `Annual billing would save ${m(q.annualSavingsPerYear)} a year.`}
+              </span>
+            )}
+          </fieldset>
+          <NumberStepper
+            id="summary-seats"
+            label="Seats"
+            compact
+            value={f.seats}
+            min={range.min}
+            max={range.max}
+            onChange={adjust.setSeats}
+            decLabel="Remove a seat"
+            incLabel="Add a seat"
+          />
+          <div className="field">
+            <label htmlFor="summary-support">Support</label>
+            <select id="summary-support" value={f.support_level} onChange={(e) => adjust.setSupport(e.target.value)}>
+              {c.support_levels.map((s) => (
+                <option key={s.key} value={s.key}>
+                  {s.name} {s.price ? `(+${m(s.price)} a month)` : "(included)"}
+                </option>
+              ))}
+            </select>
+          </div>
+          <NumberStepper
+            id="summary-storage"
+            label={`Extra storage (${block.block_gb} GB blocks)`}
+            compact
+            value={f.extra_storage_blocks}
+            min={0}
+            max={block.max_blocks}
+            onChange={adjust.setStorage}
+            decLabel={`Remove ${block.block_gb} GB`}
+            incLabel={`Add ${block.block_gb} GB`}
+          />
+          <button type="button" className="btn btn--quiet summary-details" onClick={onDetails}>
+            Compare plans and support levels
+          </button>
+        </div>
+      )}
       <dl aria-live="polite">
         <dt>
-          {plan.name}, {q.seats} {q.seats === 1 ? "seat" : "seats"} × {m(q.seatPrice)}
+          {plan.name}, {seatsText(q.seats)} × {m(q.seatPrice)}
         </dt>
         <dd>{m(q.seatsMonthly)}</dd>
         <dt>{support?.name ?? "Email"} support{q.supportExtraSeats > 0 ? ` (+${q.supportExtraSeats} seats)` : ""}</dt>
-        <dd>{q.supportMonthly ? m(q.supportMonthly) : "Included"}</dd>
+        <dd data-testid="support-monthly">{q.supportMonthly ? m(q.supportMonthly) : "Included"}</dd>
+        {q.storageBlocks > 0 && (
+          <>
+            <dt>
+              Extra storage, {formatNumber(q.storageBlocks * block.block_gb)} GB
+            </dt>
+            <dd data-testid="storage-monthly">{m(q.storageMonthly)}</dd>
+          </>
+        )}
         <dt className="total">Monthly total</dt>
         <dd className="total" data-testid="monthly-total">
           {m(q.monthlyTotal)}
@@ -173,9 +275,21 @@ export default function Signup() {
 
   function choosePlan(key: PlanKey) {
     const p = findPlan(c, key);
-    setF((prev) => ({ ...prev, plan: key, seats: p ? Math.max(prev.seats, p.min_seats) : prev.seats }));
+    setF((prev) => {
+      if (!p) return { ...prev, plan: key };
+      const r = seatRange(p);
+      return { ...prev, plan: key, seats: clampInt(Number.isFinite(prev.seats) ? prev.seats : r.min, r.min, r.max) };
+    });
     setErrors((e) => ({ ...e, plan: undefined, seats: undefined }));
   }
+
+  const adjust: Adjust = {
+    choosePlan,
+    setSeats: (n) => update("seats", n),
+    setBilling: (b) => update("billing_interval", b),
+    setSupport: (k) => update("support_level", k),
+    setStorage: (n) => update("extra_storage_blocks", n),
+  };
 
   function errorFor(k: string): string | undefined {
     return errors[k] || apiErrors[k];
@@ -187,6 +301,11 @@ export default function Signup() {
     if (Object.keys(e).length) return;
     setAlert("");
     setStep(STEPS[Math.min(idx + 1, STEPS.length - 1)]);
+  }
+
+  function goToStep(s: StepKey) {
+    setErrors({});
+    setStep(s);
   }
 
   function back() {
@@ -240,6 +359,7 @@ export default function Signup() {
   const darker = contrast !== null && contrast < 4.5 ? darkenForWhiteText(f.primary_color) : null;
   const regions = regionsFor(f.country);
   const m = (n: number) => formatMoney(n, c.currency);
+  const planQuote = signupQuote(c, plan ?? c.plans[0], f);
 
   if (done) {
     return (
@@ -385,8 +505,9 @@ export default function Signup() {
             </>
           )}
 
-          {step === "plan" && (
+          {step === "plan" && plan && (
             <>
+              <p className="muted">Change anything here and the price updates straight away. You can add seats or change support later too.</p>
               <fieldset className="field">
                 <legend>Plan</legend>
                 <div className="radio-cards">
@@ -397,60 +518,82 @@ export default function Signup() {
                         {m(f.billing_interval === "annual" ? p.seat_price_annual : p.seat_price_monthly)} per seat / month
                         {p.min_seats > 1 ? `, ${p.min_seats}-seat minimum` : ""}
                       </small>
+                      <small>{p.onboarding_fee ? `${m(p.onboarding_fee)} onboarding (once)` : "No onboarding fee"}</small>
                     </RadioCard>
                   ))}
                 </div>
                 {errorFor("plan") && <span className="field-error">{errorFor("plan")}</span>}
               </fieldset>
-              <Field
+              <NumberStepper
                 id="seats"
                 label="Seats"
-                hint={`One seat per person on your team who signs in.${plan && plan.min_seats > 1 ? ` ${plan.name} needs at least ${plan.min_seats}.` : ""}`}
+                hint={`One seat per person on your team who signs in. ${plan.name}: ${formatNumber(seatRange(plan).min)} to ${formatNumber(seatRange(plan).max)} seats.`}
                 error={errorFor("seats")}
-              >
-                {(a) => (
-                  <input
-                    {...a}
-                    type="number"
-                    inputMode="numeric"
-                    min={plan?.min_seats ?? 1}
-                    max={500}
-                    style={{ maxWidth: "10rem" }}
-                    value={Number.isNaN(f.seats) ? "" : f.seats}
-                    onChange={(e) => update("seats", e.target.value === "" ? NaN : Math.floor(Number(e.target.value)))}
-                  />
-                )}
-              </Field>
+                value={f.seats}
+                min={seatRange(plan).min}
+                max={seatRange(plan).max}
+                onChange={(n) => update("seats", n)}
+                decLabel="Remove a seat"
+                incLabel="Add a seat"
+                unit={`× ${m(planQuote.seatPrice)} = ${m(planQuote.seatsMonthly)} a month`}
+              />
               <fieldset className="field">
                 <legend>Billing</legend>
                 <div className="radio-cards">
                   {(["annual", "monthly"] as BillingInterval[]).map((b) => (
                     <RadioCard key={b} name="billing_interval" value={b} checked={f.billing_interval === b} onChange={() => update("billing_interval", b)}>
                       <strong>{b === "annual" ? "Annual" : "Monthly"}</strong>
-                      <small>{b === "annual" ? "Lower price, paid yearly" : "Paid each month"}</small>
+                      <small>
+                        {m(b === "annual" ? plan.seat_price_annual : plan.seat_price_monthly)} per seat / month,{" "}
+                        {b === "annual" ? "paid yearly" : "paid each month"}
+                      </small>
+                      {b === "annual" && planQuote.annualSavingsPerYear > 0 && (
+                        <small className="saving">Save {m(planQuote.annualSavingsPerYear)} a year</small>
+                      )}
                     </RadioCard>
                   ))}
                 </div>
               </fieldset>
               <fieldset className="field">
                 <legend>Support</legend>
-                <div className="radio-cards">
-                  {c.support_levels.map((s) => (
-                    <RadioCard key={s.key} name="support_level" value={s.key} checked={f.support_level === s.key} onChange={() => update("support_level", s.key)}>
-                      <strong>{s.name}</strong>
-                      <small>
-                        {s.price ? `${m(s.price)}/month` : "Included"}
-                        {s.covered_seats != null ? `, covers ${s.covered_seats} seats, then ${m(s.extra_seat_price)} per seat` : ""}
-                        {s.first_reply ? `. First reply within ${s.first_reply}` : ""}
-                      </small>
-                    </RadioCard>
-                  ))}
+                <span className="hint">The price for your {seatsText(planQuote.seats)} is shown on each option.</span>
+                <div className="radio-cards radio-cards--wide">
+                  {c.support_levels.map((s) => {
+                    const cost = supportMonthly(s, planQuote.seats);
+                    return (
+                      <RadioCard key={s.key} name="support_level" value={s.key} checked={f.support_level === s.key} onChange={() => update("support_level", s.key)}>
+                        <strong>{s.name}</strong>
+                        <small className="radio-card__price">{cost ? `${m(cost)} a month for your team` : "Included"}</small>
+                        <small>{supportPriceText(s, m)}</small>
+                        {s.first_reply && <small>First reply within {s.first_reply}</small>}
+                        {s.channels.length > 0 && <small>{s.channels.join(", ")}</small>}
+                        {hasLiveHelp(s) && <small>Live help: {s.live_help}</small>}
+                      </RadioCard>
+                    );
+                  })}
                 </div>
                 {errorFor("support_level") && <span className="field-error">{errorFor("support_level")}</span>}
               </fieldset>
+              <NumberStepper
+                id="extra_storage_blocks"
+                label={`Extra storage (${c.extra_storage.block_gb} GB blocks, optional)`}
+                hint={`${plan.name} includes ${formatNumber(planQuote.includedStorageGb)} GB for ${seatsText(planQuote.seats)} (${formatNumber(plan.allowances.storage_gb_per_seat)} GB per seat). Each extra ${c.extra_storage.block_gb} GB is ${m(c.extra_storage.price)} a month.`}
+                error={errorFor("extra_storage_blocks")}
+                value={f.extra_storage_blocks}
+                min={0}
+                max={c.extra_storage.max_blocks}
+                onChange={(n) => update("extra_storage_blocks", n)}
+                decLabel={`Remove ${c.extra_storage.block_gb} GB`}
+                incLabel={`Add ${c.extra_storage.block_gb} GB`}
+                unit={
+                  planQuote.storageBlocks > 0
+                    ? `= ${formatNumber(planQuote.storageBlocks * c.extra_storage.block_gb)} GB, ${m(planQuote.storageMonthly)} a month`
+                    : "None added"
+                }
+              />
               {f.plan === c.trial.for && (
                 <p className="callout small">
-                  On {plan?.name}, you can try every {findPlan(c, c.trial.plan)?.name} feature free for {c.trial.days} days
+                  On {plan.name}, you can try every {findPlan(c, c.trial.plan)?.name} feature free for {c.trial.days} days
                   from inside the app.
                 </p>
               )}
@@ -541,8 +684,29 @@ export default function Signup() {
                   {f.contact_name}, {f.contact_email}, {f.contact_phone}
                 </dd>
                 <dt>Plan</dt>
-                <dd>
-                  {plan?.name}, {f.seats} seats, billed {f.billing_interval}, {findSupport(c, f.support_level)?.name} support
+                <dd data-testid="review-plan">
+                  {plan?.name}, billed {f.billing_interval === "annual" ? "annually" : "monthly"}
+                </dd>
+                <dt>Seats</dt>
+                <dd data-testid="review-seats">
+                  {seatsText(planQuote.seats)} × {m(planQuote.seatPrice)} = {m(planQuote.seatsMonthly)} a month
+                </dd>
+                <dt>Support</dt>
+                <dd data-testid="review-support">
+                  {findSupport(c, f.support_level)?.name}, {planQuote.supportMonthly ? `${m(planQuote.supportMonthly)} a month` : "included"}
+                </dd>
+                <dt>Extra storage</dt>
+                <dd data-testid="review-storage">
+                  {planQuote.storageBlocks > 0
+                    ? `${formatNumber(planQuote.storageBlocks * c.extra_storage.block_gb)} GB, ${m(planQuote.storageMonthly)} a month`
+                    : "None"}
+                </dd>
+                <dt>Monthly total</dt>
+                <dd data-testid="review-monthly">{m(planQuote.monthlyTotal)}</dd>
+                <dt>First payment</dt>
+                <dd data-testid="review-first-payment">
+                  {m(planQuote.firstPayment)}
+                  {planQuote.onboardingFee ? ` (includes ${m(planQuote.onboardingFee)} onboarding)` : ""}
                 </dd>
                 <dt>Branding</dt>
                 <dd>
@@ -552,7 +716,13 @@ export default function Signup() {
                 </dd>
               </dl>
               <p className="small">
-                Need to change something? <button type="button" className="btn btn--quiet" style={{ minHeight: 36, padding: "0.2rem 0.6rem" }} onClick={() => setStep("company")}>Edit details</button>
+                Need to change something?{" "}
+                <button type="button" className="btn btn--quiet" style={{ minHeight: 36, padding: "0.2rem 0.6rem" }} onClick={() => setStep("plan")}>
+                  Change plan, seats or support
+                </button>{" "}
+                <button type="button" className="btn btn--quiet" style={{ minHeight: 36, padding: "0.2rem 0.6rem" }} onClick={() => setStep("company")}>
+                  Edit company details
+                </button>
               </p>
               <div className="check">
                 <input
@@ -629,7 +799,7 @@ export default function Signup() {
             </button>
           </div>
         </form>
-        <PriceSummary c={c} f={f} />
+        <PriceSummary c={c} f={f} adjust={adjust} showControls={step !== "plan"} onDetails={() => goToStep("plan")} />
       </div>
     </>
   );

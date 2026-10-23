@@ -20,6 +20,8 @@ export type Plan = {
   seat_price_monthly: number;
   onboarding_fee: number;
   min_seats: number;
+  /** Most seats the sign-up accepts (KS-Ops MAX_SEATS). */
+  max_seats: number;
   allowances: PlanAllowances;
   /** Cumulative: every feature the plan includes. */
   features: PlanFeature[];
@@ -34,13 +36,15 @@ export type SupportLevel = {
   extra_seat_price: number;
   channels: string[];
   first_reply: string;
-  live_help: boolean;
+  /** What live help comes with the level, e.g. "2 hours of voice or screen-share sessions a month", or "None". */
+  live_help: string;
 };
 
 export type Catalog = {
   plans: Plan[];
   support_levels: SupportLevel[];
-  extra_storage: { block_gb: number; price: number };
+  /** Extra storage sold in blocks, per month. max_blocks = most the sign-up accepts. */
+  extra_storage: { block_gb: number; price: number; max_blocks: number };
   overage: { minute: number; text: number };
   trial: {
     days: number;
@@ -80,6 +84,10 @@ const PRO_FEATURES: PlanFeature[] = [
   { key: "sso", label: "Single sign-on" },
 ];
 
+/** KS-Ops' limits (MAX_SEATS, MAX_STORAGE_BLOCKS), used when an older catalog does not send them. */
+export const MAX_SEATS = 1000;
+export const MAX_STORAGE_BLOCKS = 1000;
+
 /**
  * Bundled copy of GET /api/public/plans. Used when the live call fails so the pricing page and sign-up
  * always work. Keep in step with KS-Ops (and KS-server src/plans/catalogue.ts).
@@ -93,6 +101,7 @@ export const FALLBACK_CATALOG: Catalog = {
       seat_price_monthly: 59,
       onboarding_fee: 0,
       min_seats: 1,
+      max_seats: MAX_SEATS,
       allowances: { minutes_per_seat: 50, texts_per_seat: 100, assistant_chats: 200, storage_gb_per_seat: 10 },
       features: [...STARTER_FEATURES],
     },
@@ -103,6 +112,7 @@ export const FALLBACK_CATALOG: Catalog = {
       seat_price_monthly: 139,
       onboarding_fee: 750,
       min_seats: 1,
+      max_seats: MAX_SEATS,
       allowances: { minutes_per_seat: 500, texts_per_seat: 500, assistant_chats: 1000, storage_gb_per_seat: 25 },
       features: [...STARTER_FEATURES, ...GROWTH_FEATURES],
     },
@@ -113,6 +123,7 @@ export const FALLBACK_CATALOG: Catalog = {
       seat_price_monthly: 229,
       onboarding_fee: 2000,
       min_seats: 2,
+      max_seats: MAX_SEATS,
       allowances: { minutes_per_seat: 1500, texts_per_seat: 1500, assistant_chats: null, storage_gb_per_seat: 50 },
       features: [...STARTER_FEATURES, ...GROWTH_FEATURES, ...PRO_FEATURES],
     },
@@ -124,9 +135,9 @@ export const FALLBACK_CATALOG: Catalog = {
       price: 0,
       covered_seats: null,
       extra_seat_price: 0,
-      channels: ["Email"],
-      first_reply: "2 business days",
-      live_help: false,
+      channels: ["Email", "Help articles"],
+      first_reply: "1 business day",
+      live_help: "None",
     },
     {
       key: "priority",
@@ -134,9 +145,9 @@ export const FALLBACK_CATALOG: Catalog = {
       price: 199,
       covered_seats: 10,
       extra_seat_price: 15,
-      channels: ["Email", "In-app tickets"],
-      first_reply: "1 business day",
-      live_help: false,
+      channels: ["Email", "Live chat"],
+      first_reply: "4 business hours",
+      live_help: "2 hours of voice or screen-share sessions a month",
     },
     {
       key: "premium",
@@ -144,9 +155,9 @@ export const FALLBACK_CATALOG: Catalog = {
       price: 499,
       covered_seats: 10,
       extra_seat_price: 30,
-      channels: ["Email", "In-app tickets", "Phone"],
-      first_reply: "4 business hours",
-      live_help: true,
+      channels: ["Email", "Chat", "Phone", "Screen sharing"],
+      first_reply: "1 business hour",
+      live_help: "6 hours of sessions a month and a quarterly training call",
     },
     {
       key: "dedicated",
@@ -154,12 +165,12 @@ export const FALLBACK_CATALOG: Catalog = {
       price: 1200,
       covered_seats: 25,
       extra_seat_price: 40,
-      channels: ["Email", "In-app tickets", "Phone", "Named account manager"],
-      first_reply: "2 business hours",
-      live_help: true,
+      channels: ["All channels, 7 am to 9 pm Mountain", "Named contact"],
+      first_reply: "30 minutes",
+      live_help: "15 hours of sessions a month and new-staff training",
     },
   ],
-  extra_storage: { block_gb: 50, price: 10 },
+  extra_storage: { block_gb: 50, price: 10, max_blocks: MAX_STORAGE_BLOCKS },
   overage: { minute: 0.04, text: 0.03 },
   trial: { days: 14, plan: "pro", for: "starter", bonus_minutes_per_seat: 100, bonus_texts_per_seat: 100 },
   currency: "CAD",
@@ -189,19 +200,38 @@ export function isCatalog(v: unknown): v is Catalog {
   return plansOk && supportOk && isObj(v.extra_storage) && isObj(v.overage) && isObj(v.trial);
 }
 
+/** Older catalogs sent live_help as true/false; now it is a description. */
+function liveHelpText(v: unknown): string {
+  if (typeof v === "string" && v.trim()) return v.trim();
+  return v === true ? "Yes" : "None";
+}
+
+/** True when a support level includes some live help. */
+export function hasLiveHelp(s: Pick<SupportLevel, "live_help">): boolean {
+  return Boolean(s.live_help) && !/^(none|no)$/i.test(s.live_help.trim());
+}
+
 function normalise(c: Catalog): Catalog {
   return {
     ...c,
     currency: c.currency || "CAD",
-    plans: c.plans.map((p) => ({ ...p, min_seats: Math.max(1, Number(p.min_seats) || 1) })),
+    plans: c.plans.map((p) => {
+      const min = Math.max(1, Number(p.min_seats) || 1);
+      return { ...p, min_seats: min, max_seats: Math.max(min, Math.floor(Number(p.max_seats)) || MAX_SEATS) };
+    }),
     support_levels: c.support_levels.map((s) => ({
       ...s,
       covered_seats: s.covered_seats ?? null,
       extra_seat_price: Number(s.extra_seat_price) || 0,
       channels: Array.isArray(s.channels) ? s.channels : [],
       first_reply: s.first_reply ?? "",
-      live_help: Boolean(s.live_help),
+      live_help: liveHelpText(s.live_help),
     })),
+    extra_storage: {
+      block_gb: Number(c.extra_storage.block_gb) || 50,
+      price: Number(c.extra_storage.price) || 0,
+      max_blocks: Math.max(0, Math.floor(Number(c.extra_storage.max_blocks))) || MAX_STORAGE_BLOCKS,
+    },
   };
 }
 

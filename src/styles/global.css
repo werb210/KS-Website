@@ -342,6 +342,42 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
 .signup__summary dt { color: var(--stone); }
 .signup__summary dd { margin: 0; text-align: right; font-weight: 600; }
 .signup__summary .total { border-top: 1px solid var(--mortar); padding-top: 0.5rem; margin-top: 0.25rem; font-size: var(--step-0); }
+/* Seat / storage stepper: - [number] + */
+.stepper { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+.stepper__btn {
+  flex: none; width: 44px; height: 44px; display: inline-grid; place-items: center;
+  border: 1.5px solid #7d8b99; border-radius: var(--radius-s); background: #fff; color: var(--ink);
+  font: 600 1.35rem/1 var(--font-body); cursor: pointer;
+}
+.stepper__btn:hover:not(:disabled) { background: var(--accent-soft); border-color: var(--accent); color: var(--accent-ink); }
+.stepper__btn:disabled { background: var(--mortar-soft); border-color: var(--mortar); color: var(--stone); cursor: not-allowed; }
+.field .stepper input[type="number"] { width: 5.5rem; text-align: center; font-weight: 600; -moz-appearance: textfield; appearance: textfield; }
+.stepper input[type="number"]::-webkit-outer-spin-button,
+.stepper input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.stepper__unit { color: var(--ink-soft); font-size: var(--step--1); }
+.stepper-field--compact { margin-bottom: 0.9rem; }
+.stepper-field--compact label { font-size: var(--step--1); margin-bottom: 0.25rem; }
+.stepper-field--compact .stepper input[type="number"] { width: 4.5rem; }
+.radio-cards--wide { grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); }
+.radio-card span small + small { margin-top: 0.15rem; }
+.radio-card span .radio-card__price { color: var(--ink); font-weight: 600; }
+.saving { display: block; color: var(--ok); font-size: var(--step--1); font-weight: 600; margin-top: 0.35rem; }
+.radio-card span small.saving { color: var(--ok); font-weight: 600; }
+/* Sidebar controls: compact segmented choices so the price can be changed from any step. */
+.summary-controls { border-bottom: 1px solid var(--mortar); margin-bottom: 0.9rem; padding-bottom: 0.4rem; }
+.summary-controls .field { margin-bottom: 0.9rem; }
+.summary-controls .field > label, .summary-controls legend { font-size: var(--step--1); margin-bottom: 0.25rem; }
+.summary-controls select { min-height: 44px; }
+.seg { display: grid; gap: 0; border: 1.5px solid #7d8b99; border-radius: var(--radius-s); overflow: hidden; background: #fff; }
+.seg--2 { grid-template-columns: 1fr 1fr; }
+.seg--3 { grid-template-columns: 1fr 1fr 1fr; }
+.seg__opt { position: relative; margin: 0; }
+.seg__opt + .seg__opt { border-left: 1px solid var(--mortar); }
+.seg__opt input { position: absolute; opacity: 0; inset: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; }
+.seg__opt span { display: grid; place-items: center; min-height: 44px; padding: 0.3rem 0.4rem; font-size: var(--step--1); font-weight: 600; color: var(--ink); text-align: center; }
+.seg__opt input:checked + span { background: var(--accent); color: #fff; }
+.seg__opt input:focus-visible + span { outline: 3px solid var(--focus); outline-offset: -3px; }
+.summary-details { width: 100%; min-height: 40px; padding: 0.35rem 0.6rem; font-size: var(--step--1); margin-bottom: 0.5rem; }
 .steps { list-style: none; padding: 0; margin: 0 0 1.5rem; display: flex; flex-wrap: wrap; gap: 0.35rem; counter-reset: s; }
 .steps li { counter-increment: s; font-size: var(--step--1); color: var(--stone); padding: 0.25rem 0.6rem; border-radius: 999px; border: 1px solid var(--mortar); }
 .steps li::before { content: counter(s) ". "; }

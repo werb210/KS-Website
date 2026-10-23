@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { callsTo, mockFetch } from "../test/fetch";
 import { renderAt } from "../test/render";
@@ -22,7 +22,7 @@ function setup(extra: Routes = {}, path = "/signup") {
 const type = (label: RegExp | string, value: string) => fireEvent.change(screen.getByLabelText(label), { target: { value } });
 const next = () => fireEvent.click(screen.getByRole("button", { name: "Next" }));
 
-async function fillToReview(opts: { plan?: "Starter" | "Growth" | "Pro"; seats?: string } = {}) {
+async function fillToPlan() {
   type("Company name", "Prairie Capital");
   type("Legal name", "Prairie Capital Inc.");
   type("Province or territory", "AB");
@@ -38,6 +38,10 @@ async function fillToReview(opts: { plan?: "Starter" | "Growth" | "Pro"; seats?:
   type("Mobile phone", "403 555 0100");
   next();
   await screen.findByRole("heading", { name: "Plan" });
+}
+
+async function fillToReview(opts: { plan?: "Starter" | "Growth" | "Pro"; seats?: string } = {}) {
+  await fillToPlan();
   if (opts.plan) fireEvent.click(screen.getByRole("radio", { name: new RegExp(`^${opts.plan}`) }));
   if (opts.seats) type("Seats", opts.seats);
   next();
@@ -134,6 +138,7 @@ describe("Sign-up", () => {
       seats: 4,
       billing_interval: "annual",
       support_level: "email",
+      extra_storage_blocks: 0,
       accept_terms: true,
       accept_privacy: true,
       website_url: "",
@@ -195,5 +200,126 @@ describe("Sign-up", () => {
       expect(goTo).not.toHaveBeenCalled();
       cleanup();
     }
+  });
+
+  it("seat stepper: - and + stay inside the plan's minimum and maximum, typed numbers snap into range", async () => {
+    setup();
+    await fillToPlan();
+    const seats = screen.getByLabelText("Seats");
+    const minus = screen.getByRole("button", { name: "Remove a seat" });
+    const plus = screen.getByRole("button", { name: "Add a seat" });
+    expect(seats).toHaveValue(3);
+    fireEvent.click(plus);
+    expect(seats).toHaveValue(4);
+    expect(screen.getByTestId("monthly-total")).toHaveTextContent("$476"); // 4 x $119
+    fireEvent.click(minus);
+    fireEvent.click(minus);
+    fireEvent.click(minus);
+    expect(seats).toHaveValue(1);
+    expect(minus).toBeDisabled();
+    // Pro needs 2: switching raises the count and - stops at 2.
+    fireEvent.click(screen.getByRole("radio", { name: /^Pro/ }));
+    expect(seats).toHaveValue(2);
+    expect(minus).toBeDisabled();
+    // Typed entry above the maximum snaps to 1,000 when the box is left.
+    fireEvent.focus(seats);
+    fireEvent.change(seats, { target: { value: "5000" } });
+    fireEvent.blur(seats);
+    expect(seats).toHaveValue(1000);
+    expect(plus).toBeDisabled();
+    // An empty box goes back to the minimum.
+    fireEvent.focus(seats);
+    fireEvent.change(seats, { target: { value: "" } });
+    fireEvent.blur(seats);
+    expect(seats).toHaveValue(2);
+  });
+
+  it("choosing a support level or extra storage changes the price straight away", async () => {
+    setup();
+    await fillToPlan();
+    // Growth, 3 seats, annual: $357 with Email support.
+    expect(screen.getByTestId("monthly-total")).toHaveTextContent("$357");
+    expect(screen.getByTestId("support-monthly")).toHaveTextContent("Included");
+    fireEvent.click(screen.getByRole("radio", { name: /^Premium/ }));
+    expect(screen.getByTestId("support-monthly")).toHaveTextContent("$499");
+    expect(screen.getByTestId("monthly-total")).toHaveTextContent("$856");
+    fireEvent.click(screen.getByRole("radio", { name: /^Priority/ }));
+    expect(screen.getByTestId("monthly-total")).toHaveTextContent("$556");
+    fireEvent.click(screen.getByRole("button", { name: "Add 50 GB" }));
+    fireEvent.click(screen.getByRole("button", { name: "Add 50 GB" }));
+    expect(screen.getByLabelText(/Extra storage/)).toHaveValue(2);
+    expect(screen.getByTestId("storage-monthly")).toHaveTextContent("$20");
+    expect(screen.getByTestId("monthly-total")).toHaveTextContent("$576");
+    // Annual: 12 x $576 + $750 onboarding.
+    expect(screen.getByTestId("first-payment")).toHaveTextContent("$7,662");
+    fireEvent.click(screen.getByRole("radio", { name: /^Monthly/ }));
+    expect(screen.getByTestId("monthly-total")).toHaveTextContent("$636"); // 3 x $139 + 199 + 20
+  });
+
+  it("the price sidebar can change plan, billing, seats, support and storage from any step", () => {
+    setup();
+    const side = within(screen.getByTestId("summary-controls"));
+    fireEvent.click(side.getByRole("radio", { name: "Starter" }));
+    fireEvent.click(side.getByRole("radio", { name: "Monthly" }));
+    fireEvent.click(side.getByRole("button", { name: "Add a seat" }));
+    expect(side.getByLabelText("Seats")).toHaveValue(4);
+    expect(screen.getByTestId("monthly-total")).toHaveTextContent("$236"); // 4 x $59
+    expect(side.getByText("Annual billing would save $480 a year.")).toBeInTheDocument();
+    fireEvent.change(side.getByLabelText("Support"), { target: { value: "dedicated" } });
+    expect(screen.getByTestId("monthly-total")).toHaveTextContent("$1,436");
+    fireEvent.click(side.getByRole("button", { name: "Add 50 GB" }));
+    expect(screen.getByTestId("monthly-total")).toHaveTextContent("$1,446");
+    // Pro raises the seats to its 2-seat minimum only when needed.
+    fireEvent.click(side.getByRole("radio", { name: "Pro" }));
+    expect(side.getByLabelText("Seats")).toHaveValue(4);
+  });
+
+  it("keeps the review summary and the submitted payload in step with the choices", async () => {
+    const f = setup({
+      "/api/public/signup": () => ({
+        status: 201,
+        body: { licensee_id: "lic-9", signup_token: "tok-9", checkout_url: "https://checkout.stripe.com/c/pay/cs_test_9" },
+      }),
+    });
+    await fillToPlan();
+    fireEvent.click(screen.getByRole("radio", { name: /^Pro/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Add a seat" }));
+    fireEvent.click(screen.getByRole("radio", { name: /^Monthly/ }));
+    fireEvent.click(screen.getByRole("radio", { name: /^Priority/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Add 50 GB" }));
+    next();
+    await screen.findByRole("heading", { name: "Branding" });
+    next();
+    await screen.findByRole("heading", { name: "Review" });
+    expect(screen.getByTestId("review-plan")).toHaveTextContent("Pro, billed monthly");
+    expect(screen.getByTestId("review-seats")).toHaveTextContent("4 seats × $229 = $916 a month");
+    expect(screen.getByTestId("review-support")).toHaveTextContent("Priority, $199 a month");
+    expect(screen.getByTestId("review-storage")).toHaveTextContent("50 GB, $10 a month");
+    expect(screen.getByTestId("review-monthly")).toHaveTextContent("$1,125");
+    expect(screen.getByTestId("review-first-payment")).toHaveTextContent("$3,125 (includes $2,000 onboarding)");
+    // A change made from the sidebar on the review step shows in the summary at once.
+    fireEvent.click(within(screen.getByTestId("summary-controls")).getByRole("button", { name: "Remove 50 GB" }));
+    expect(screen.getByTestId("review-storage")).toHaveTextContent("None");
+    fireEvent.click(within(screen.getByTestId("summary-controls")).getByRole("button", { name: "Add 50 GB" }));
+    fireEvent.click(screen.getByLabelText(/terms of service/));
+    fireEvent.click(screen.getByLabelText(/privacy policy/));
+    fireEvent.click(screen.getByRole("button", { name: "Continue to payment" }));
+    await waitFor(() => expect(goTo).toHaveBeenCalled());
+    const body = JSON.parse(String(callsTo(f, "/api/public/signup")[0][1]?.body));
+    expect(body).toMatchObject({ plan: "pro", seats: 4, billing_interval: "monthly", support_level: "priority", extra_storage_blocks: 1 });
+    // Exactly the fields KS-Ops' sign-up schema takes; nothing it would drop or reject.
+    expect(Object.keys(body).sort()).toEqual(
+      [
+        "accept_privacy", "accept_terms", "billing_interval", "company_code", "company_name", "contact_email", "contact_name",
+        "contact_phone", "country", "extra_storage_blocks", "legal_name", "mailing_address", "plan", "province_state",
+        "seats", "support_level", "website_url", "primary_color",
+      ].sort(),
+    );
+  });
+
+  it("does not offer the hidden bank connect add-on", async () => {
+    setup();
+    await fillToPlan();
+    expect(screen.queryByText(/bank connect/i)).not.toBeInTheDocument();
   });
 });

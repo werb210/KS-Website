@@ -1,5 +1,5 @@
 import type { BillingInterval, Catalog, PlanKey } from "./plans";
-import { findPlan } from "./plans";
+import { MAX_SEATS, findPlan } from "./plans";
 import { regionsFor } from "./regions";
 
 export type SignupForm = {
@@ -17,6 +17,8 @@ export type SignupForm = {
   seats: number;
   billing_interval: BillingInterval;
   support_level: string;
+  /** Extra 50 GB storage blocks bought on top of the plan's allowance. */
+  extra_storage_blocks: number;
   logo_url: string;
   primary_color: string;
   assistant_name: string;
@@ -40,6 +42,7 @@ export const EMPTY_FORM: SignupForm = {
   seats: 3,
   billing_interval: "annual",
   support_level: "email",
+  extra_storage_blocks: 0,
   logo_url: "",
   primary_color: "#1f4e79",
   assistant_name: "",
@@ -78,6 +81,7 @@ export const FIELD_STEP: Record<string, StepKey> = {
   seats: "plan",
   billing_interval: "plan",
   support_level: "plan",
+  extra_storage_blocks: "plan",
   logo_url: "branding",
   primary_color: "branding",
   assistant_name: "branding",
@@ -169,9 +173,14 @@ export function validateStep(step: StepKey, f: SignupForm, catalog: Catalog, cod
       const plan = findPlan(catalog, f.plan);
       if (!plan) e.plan = "Choose a plan.";
       const seats = Number(f.seats);
+      const maxSeats = plan?.max_seats ?? MAX_SEATS;
       if (!Number.isInteger(seats) || seats < 1) e.seats = "Enter a whole number of seats.";
-      else if (seats > 500) e.seats = "For more than 500 seats, contact us.";
+      else if (seats > maxSeats) e.seats = `For more than ${maxSeats.toLocaleString("en-CA")} seats, contact us.`;
       else if (plan && seats < plan.min_seats) e.seats = `${plan.name} needs at least ${plan.min_seats} seats.`;
+      const blocks = Number(f.extra_storage_blocks ?? 0);
+      const maxBlocks = catalog.extra_storage.max_blocks;
+      if (!Number.isInteger(blocks) || blocks < 0) e.extra_storage_blocks = "Enter a whole number of storage blocks, or 0.";
+      else if (blocks > maxBlocks) e.extra_storage_blocks = `Extra storage is limited to ${maxBlocks.toLocaleString("en-CA")} blocks.`;
       if (f.billing_interval !== "annual" && f.billing_interval !== "monthly") e.billing_interval = "Choose billing.";
       if (!catalog.support_levels.some((s) => s.key === f.support_level)) e.support_level = "Choose a support level.";
       break;
