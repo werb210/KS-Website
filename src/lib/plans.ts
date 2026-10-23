@@ -75,7 +75,6 @@ const GROWTH_FEATURES: PlanFeature[] = [
 ];
 const PRO_FEATURES: PlanFeature[] = [
   { key: "multiple_lines", label: "Multiple business lines" },
-  { key: "bank_connect", label: "Bank connect" },
   { key: "ad_attribution", label: "Ad attribution" },
   { key: "api_access", label: "API access" },
   { key: "sso", label: "Single sign-on" },

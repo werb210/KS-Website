@@ -37,7 +37,6 @@ const AREAS: Area[] = [
       { name: "Referrer portal", body: "Partners send you deals and see how they're going.", plan: "Growth" },
       { name: "Broker portal", body: "Partner brokers sign your broker agreement, upload client files and agree the commission split.", plan: "Growth" },
       { name: "Lender portal (lenders can send you deals they can't place)", body: "Lenders review the files you send them in one place, and send you deals they can't place themselves." },
-      { name: "Bank connect", body: "Borrowers link their bank so you get statements without chasing PDFs.", plan: "Pro" },
     ],
   },
   {
