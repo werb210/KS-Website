@@ -226,3 +226,47 @@ export async function fetchDemoContact(demoId: string, key: string): Promise<Dem
     return null;
   }
 }
+
+// KS_WEBSITE_BETA_v1 - the beta programme sign-up (KS-Ops POST /api/public/beta-signup).
+export type BetaSignupPayload = {
+  name: string;
+  email: string;
+  brokerage: string;
+  /** Keys from BETA_INTERESTS (src/pages/BetaProgramme.tsx). */
+  interests: string[];
+  message?: string;
+  turnstile_token?: string;
+  /** Honeypot. People never see it; it must stay empty. */
+  website_url: string;
+};
+
+export type BetaSignupResult = { ok: true; message: string } | { ok: false; status: number; errors: Record<string, string>; message: string };
+
+export async function joinBetaProgramme(payload: BetaSignupPayload): Promise<BetaSignupResult> {
+  let res: Response;
+  try {
+    res = await fetch(opsUrl("/api/public/beta-signup"), {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify(payload),
+    });
+  } catch {
+    return { ok: false, status: 0, errors: {}, message: "We couldn't reach the sign-up service. Check your connection and try again." };
+  }
+  let body: Record<string, unknown> = {};
+  try {
+    body = (await res.json()) as Record<string, unknown>;
+  } catch {
+    body = {};
+  }
+  const message = typeof body.message === "string" ? body.message : "";
+  if (res.ok) return { ok: true, message: message || "Thanks - you're on the list. We'll email you when a beta that matches your interests opens." };
+  const errors: Record<string, string> = {};
+  if (body.errors && typeof body.errors === "object") {
+    for (const [k, v] of Object.entries(body.errors as Record<string, unknown>)) errors[k] = typeof v === "string" ? v : "Check this field.";
+  }
+  let fallback = "That didn't go through. Try again in a minute, or contact us.";
+  if (res.status === 429) fallback = "Too many attempts. Wait a little and try again.";
+  else if (Object.keys(errors).length) fallback = "Some details need fixing. They're marked below.";
+  return { ok: false, status: res.status, errors, message: message || fallback };
+}

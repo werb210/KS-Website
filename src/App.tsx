@@ -16,6 +16,7 @@ const Signup = lazy(() => import("./pages/Signup"));
 const SignupSuccess = lazy(() => import("./pages/SignupSuccess"));
 const SignupCancelled = lazy(() => import("./pages/SignupCancelled"));
 const TryDemo = lazy(() => import("./pages/TryDemo"));
+const BetaProgramme = lazy(() => import("./pages/BetaProgramme")); // KS_WEBSITE_BETA_v1
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 export default function App() {
@@ -37,6 +38,7 @@ export default function App() {
           <Route path="/signup/success" element={<SignupSuccess />} />
           <Route path="/signup/cancelled" element={<SignupCancelled />} />
           <Route path="/try" element={<TryDemo />} />
+          <Route path="/beta" element={<BetaProgramme />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
