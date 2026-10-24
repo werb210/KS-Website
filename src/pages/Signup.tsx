@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { Link, useSearchParams } from "react-router-dom";
+import { BrandFromWebsite, type BrandPatch } from "../components/BrandFromWebsite";
 import { ColourField } from "../components/ColourField";
+import { FontField } from "../components/FontField";
 import { Field } from "../components/Field";
 import { LogoUpload } from "../components/LogoUpload";
 import { NumberStepper } from "../components/NumberStepper";
@@ -9,7 +11,7 @@ import { PRODUCT_NAME, TURNSTILE_SITE_KEY } from "../config";
 import { useCatalog } from "../hooks/useCatalog";
 import { useCodeAvailability } from "../hooks/useCodeAvailability";
 import { usePageMeta } from "../hooks/usePageMeta";
-import { submitSignup, type SignupPayload } from "../lib/api";
+import { submitSignup, type BrandScanResult, type SignupPayload } from "../lib/api";
 import { useDemoContact } from "../lib/prefill";
 import { goTo } from "../lib/navigate";
 import type { BillingInterval, Catalog, PlanKey, SupportLevel } from "../lib/plans";
@@ -75,6 +77,7 @@ export function buildPayload(f: SignupForm, turnstileToken: string): SignupPaylo
     primary_color: opt(f.primary_color),
     accent_color: opt(f.accent_color),
     background_color: opt(f.background_color),
+    font_family: opt(f.font_family),
     logo_file: logo && f.logo_file ? { content_type: logo[1], data_base64: logo[2], filename: f.logo_file.name } : undefined,
     assistant_name: opt(f.assistant_name),
     accept_terms: true,
@@ -302,6 +305,14 @@ export default function Signup() {
       setErrors((e) => ({ ...e, [k]: undefined }));
       setApiErrors((e) => ({ ...e, [k]: undefined }));
     }
+  }
+
+  // "Use my website": the suggestions go into the branding fields, where the contrast checks run as usual.
+  const [websiteFont, setWebsiteFont] = useState<BrandScanResult["suggestions"]["font"]>(null);
+  function applyBrand(patch: BrandPatch) {
+    setF((prev) => ({ ...prev, ...patch }));
+    setErrors((e) => ({ ...e, ...Object.fromEntries(Object.keys(patch).map((k) => [k, undefined])) }));
+    setApiErrors((e) => ({ ...e, ...Object.fromEntries(Object.keys(patch).map((k) => [k, undefined])) }));
   }
 
   function choosePlan(key: PlanKey) {
@@ -675,6 +686,7 @@ export default function Signup() {
           {step === "branding" && (
             <>
               <p className="muted">Optional. You can change all of this later from your settings.</p>
+              <BrandFromWebsite website={f.website} form={f} apply={applyBrand} onScanned={(r) => setWebsiteFont(r.suggestions.font)} />
               <LogoUpload value={f.logo_file} onChange={(v) => update("logo_file", v)} error={errorFor("logo_file")} />
               <ColourField
                 id="primary_color"
@@ -707,6 +719,7 @@ export default function Signup() {
                 fallback="#f4f6f7"
                 optional
               />
+              <FontField value={f.font_family} onChange={(v) => update("font_family", v)} websiteFont={websiteFont} error={errorFor("font_family")} />
               <Field id="assistant_name" label="Assistant's name (optional)" hint="What your AI assistant calls itself with clients, like Ava or Max." error={errorFor("assistant_name")}>
                 {(a) => <input {...a} type="text" maxLength={40} value={f.assistant_name} onChange={(e) => update("assistant_name", e.target.value)} />}
               </Field>
@@ -761,6 +774,7 @@ export default function Signup() {
                 <dd data-testid="review-branding">
                   Main {f.primary_color || "default"}, accent {f.accent_color || "default"}
                   {f.background_color ? `, background ${f.background_color}` : ""}
+                  {f.font_family ? `, font ${f.font_family}` : ""}
                   {f.logo_file ? `, logo ${f.logo_file.name}` : ", no logo yet"}
                   {f.assistant_name ? `, assistant named ${f.assistant_name}` : ""}
                 </dd>

@@ -57,6 +57,7 @@ export type SignupPayload = {
   primary_color?: string;
   accent_color?: string;
   background_color?: string;
+  font_family?: string;
   logo_url?: string;
   /** An uploaded logo (PNG, JPG or SVG, base64), stored by KS-Ops. */
   logo_file?: { content_type: string; data_base64: string; filename?: string };
@@ -269,4 +270,43 @@ export async function joinBetaProgramme(payload: BetaSignupPayload): Promise<Bet
   if (res.status === 429) fallback = "Too many attempts. Wait a little and try again.";
   else if (Object.keys(errors).length) fallback = "Some details need fixing. They're marked below.";
   return { ok: false, status: res.status, errors, message: message || fallback };
+}
+
+// KS-Ops v14 "Use my website": POST /api/public/brand-scan.
+export type BrandScanLogo = { source_url: string | null; content_type: string; data_base64: string; filename: string };
+export type BrandScanResult = {
+  url: string;
+  site_name: string | null;
+  logo: BrandScanLogo | null;
+  favicon_url: string | null;
+  colors: { theme_color: string | null; palette: string[]; body_background: string | null };
+  fonts: { body: string | null; headings: string | null; google: string[]; font_faces: string[] };
+  suggestions: {
+    primary_color: string | null;
+    accent_color: string | null;
+    background_color: string | null;
+    font: { family: string; source: "google" | "self_hosted" | "system" } | null;
+  };
+};
+
+export class BrandScanFailed extends Error {}
+
+export async function scanWebsiteBrand(url: string, signal?: AbortSignal): Promise<BrandScanResult> {
+  let res: Response;
+  try {
+    res = await fetch(opsUrl("/api/public/brand-scan"), {
+      method: "POST",
+      signal,
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify({ url }),
+    });
+  } catch {
+    throw new BrandScanFailed("We couldn't reach our service. Check your connection and try again.");
+  }
+  const body = (await res.json().catch(() => ({}))) as Partial<BrandScanResult> & { ok?: boolean; message?: string };
+  if (res.status === 429) throw new BrandScanFailed("Too many tries. Please wait a few minutes, or fill in your branding yourself.");
+  if (!res.ok || body.ok !== true || !body.suggestions) {
+    throw new BrandScanFailed(typeof body.message === "string" && body.message ? body.message : "We couldn't read that website. You can fill in your branding yourself.");
+  }
+  return body as BrandScanResult;
 }

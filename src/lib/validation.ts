@@ -32,6 +32,8 @@ export type SignupForm = {
   accent_color: string;
   /** Optional background / surface colour ("" = the default). */
   background_color: string;
+  /** The font for the client app and pages ("" = the default). A family name, e.g. "Lato". */
+  font_family: string;
   assistant_name: string;
   accept_terms: boolean;
   accept_privacy: boolean;
@@ -67,6 +69,7 @@ export const EMPTY_FORM: SignupForm = {
   primary_color: "#1f4e79",
   accent_color: "#0e6655",
   background_color: "",
+  font_family: "",
   assistant_name: "",
   accept_terms: false,
   accept_privacy: false,
@@ -114,6 +117,7 @@ export const FIELD_STEP: Record<string, StepKey> = {
   primary_color: "branding",
   accent_color: "branding",
   background_color: "branding",
+  font_family: "branding",
   assistant_name: "branding",
   accept_terms: "review",
   accept_privacy: "review",
@@ -230,6 +234,7 @@ export function validateStep(step: StepKey, f: SignupForm, catalog: Catalog, cod
       if (f.primary_color && !HEX.test(f.primary_color)) e.primary_color = "Use a colour like #1f4e79.";
       if (f.accent_color && !HEX.test(f.accent_color)) e.accent_color = "Use a colour like #0e6655.";
       if (f.background_color && !HEX.test(f.background_color)) e.background_color = "Use a colour like #f4f6f7, or leave it empty.";
+      if (f.font_family && !/^[A-Za-z0-9][A-Za-z0-9 -]{0,59}$/.test(f.font_family.trim())) e.font_family = "Choose a font from the list.";
       if (f.assistant_name.length > 40) e.assistant_name = "Keep the assistant's name to 40 characters.";
       break;
     }

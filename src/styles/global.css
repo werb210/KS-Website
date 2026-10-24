@@ -454,3 +454,11 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
 .pgi__big { font: 700 var(--step-2)/1.2 var(--font-display); margin: 0 0 0.5rem; color: var(--ink); }
 @media (max-width: 760px) { .pgi { grid-template-columns: 1fr; gap: 1.5rem; } }
 .feature-area li .feature-tip { display: block; margin-top: 0.5rem; }
+
+/* Sign-up branding: "Use my website" and the font picker. */
+.brand-scan { border: 1px solid var(--mortar); border-radius: var(--radius-m); background: var(--surface); padding: 1rem 1.1rem; margin: 0 0 1.5rem; }
+.brand-scan__title { font-size: var(--step-0); margin: 0 0 0.35rem; }
+.brand-scan__row { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+.brand-scan__row input { flex: 1 1 14rem; min-width: 0; }
+.brand-scan__done { margin-top: 0.6rem; }
+.font-sample { margin: 0.5rem 0 0; padding: 0.6rem 0.8rem; border: 1px solid var(--mortar-soft); border-radius: var(--radius-s); background: var(--surface); color: var(--ink); font-size: 1.05rem; }
