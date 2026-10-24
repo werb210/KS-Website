@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { FeatureRequest } from "../components/FeatureRequest";
 import { Arch } from "../components/Arch";
+import { PgiTip } from "../components/PgiTip";
 import { PRODUCT_NAME } from "../config";
 import { usePageMeta } from "../hooks/usePageMeta";
 
@@ -11,7 +12,7 @@ const PARTS = [
   },
   {
     title: "Branded client portal",
-    body: "Your borrowers apply through a 6-step application under your name, upload documents and check progress themselves.",
+    body: "Your borrowers apply through a 6-step application under your name, upload documents and check progress themselves. As an app on iPhone or Android, or as a website in any browser: their choice.",
   },
   {
     title: "Documents with OCR",
@@ -46,9 +47,6 @@ export default function Home() {
             <p className="lede">
               {PRODUCT_NAME} is a complete, ready-to-run system for commercial lending and business financing brokers. Pipeline,
               client portal, phones, documents and an AI assistant, all under your own brand.
-            </p>
-            <p className="muted">
-              It isn't a prototype: it's the system a working Canadian brokerage runs on every day, now available to yours.
             </p>
             <div className="hero__actions">
               <Link className="btn" to="/signup">
@@ -87,14 +85,38 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="section" aria-labelledby="how-h">
+      <section className="section" aria-labelledby="pgi-h">
+        <div className="wrap pgi">
+          <div>
+            <h2 id="pgi-h">Earn more on every deal with PGI</h2>
+            <p className="lede">
+              Offer PGI to your clients to close more deals and earn extra commission. All you need to do is... nothing.
+              One checkbox, and {PRODUCT_NAME} pays you.
+            </p>
+            <PgiTip />
+          </div>
+          <div className="pgi__card">
+            <p className="pgi__big">One checkbox</p>
+            <p>
+              Your client ticks the PGI box in their application. The rest happens without you, and your referral
+              commission is paid to your brokerage.
+            </p>
+            <p className="small" style={{ marginBottom: 0 }}>
+              Included on every plan.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section className="section section--surface" aria-labelledby="how-h">
         <div className="wrap split">
           <div>
             <h2 id="how-h">From sign-up to first call</h2>
             <p>
               Sign up online, pay securely, and we set up your copy within one business day. You get sign-in details by
-              email. Your staff install the dialler and iPad apps and enter your company code once. Your clients use
-              your brokerage's own branded app or your web client portal, with no company code to enter.
+              email. Your staff install the dialler and iPad apps and enter your company code once. Your clients can
+              use your brokerage's own app on iPhone or Android, or your client portal as a website in any browser,
+              whichever they prefer, with no company code to enter.
             </p>
           </div>
           <ol className="plain-list" style={{ paddingLeft: "1.4rem", listStyle: "decimal" }}>
@@ -107,7 +129,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="section section--surface">
+      <section className="section">
         <div className="wrap split">
           <div>
             <h2>Hosted in Canada</h2>

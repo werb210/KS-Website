@@ -40,11 +40,11 @@ export default function Faq() {
     },
     {
       q: "What's a company code?",
-      a: "A short name you choose at sign-up, like prairie-capital. Your staff enter it once in the iPhone dialler and iPad apps so those apps connect to your brokerage. Your clients never need it: they use your brokerage's own branded app or your web client portal.",
+      a: "A short name you choose at sign-up, like prairie-capital. Your staff enter it once in the iPhone dialler and iPad apps so those apps connect to your brokerage. Your clients never need it: they use your brokerage's own app on iPhone or Android, or your client portal as a website in any browser.",
     },
     {
       q: "Is the client app under our name?",
-      a: "Yes. Your clients download your brokerage's own app from the App Store and Google Play, with your name, icon, colours and wording. It is published from your own Apple and Google developer accounts, and it is already connected to your system, so clients just sign in with a one-time code sent to their phone.",
+      a: "Yes. Your clients can download your brokerage's own app from the App Store and Google Play, with your name, icon, colours and wording, or use the same client portal as a website in any browser. It's their choice. The app is published from your own Apple and Google developer accounts and is already connected to your system, so clients just sign in with a one-time code sent to their phone.",
     },
     {
       q: "Can we change plans later?",

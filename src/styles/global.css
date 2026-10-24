@@ -425,3 +425,32 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
 /* Try it yourself (/try) */
 .try-steps { margin: 0 0 1.5rem; padding-left: 1.4rem; display: grid; gap: 0.5rem; color: var(--ink); }
 .try-steps li { padding-left: 0.25rem; }
+
+/* Small quiet buttons inside form text (colour fixes, remove logo). */
+.btn--small { min-height: 36px; padding: 0.25rem 0.6rem; font-size: var(--step--1); }
+
+/* Logo preview: the uploaded logo on a light and a dark tile, so the person can see it works on both. */
+.logo-preview { margin-top: 0.75rem; }
+.logo-preview__tiles { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+.logo-preview__tile { display: grid; place-items: center; width: 10rem; height: 5rem; padding: 0.5rem; background: var(--surface); border: 1px solid var(--mortar); border-radius: var(--radius-s); }
+.logo-preview__tile--dark { background: var(--ink); border-color: var(--ink); }
+.logo-preview__tile img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.field input[type="file"] { font: inherit; color: var(--ink); max-width: 100%; }
+.field legend { padding: 0; }
+
+/* "What is PGI?" tip. */
+.tip { position: relative; display: inline-block; }
+.tip__button { font: inherit; font-weight: 600; color: var(--accent-ink); background: var(--accent-soft); border: 1px solid var(--accent); border-radius: 999px; padding: 0.35rem 0.9rem; min-height: 40px; cursor: pointer; }
+.tip__button:hover { background: #c9e3db; }
+.tip__panel { position: absolute; z-index: 30; left: 0; top: calc(100% + 0.5rem); width: min(24rem, calc(100vw - 2rem)); background: var(--surface); color: var(--ink); border: 1px solid var(--stone); border-radius: var(--radius-m); box-shadow: 0 10px 30px rgba(22, 38, 58, 0.18); padding: 1rem 1.1rem; }
+.tip__panel h3 { font-size: var(--step-0); margin: 0 2rem 0.5rem 0; }
+.tip__panel p { font-size: var(--step--1); color: var(--ink-soft); margin: 0 0 0.5rem; }
+.tip__panel p:last-of-type { margin-bottom: 0; }
+.tip__close { position: absolute; top: 0.5rem; right: 0.5rem; width: 36px; height: 36px; border: 1px solid var(--mortar); border-radius: var(--radius-s); background: var(--surface); color: var(--ink); font-size: 1.1rem; line-height: 1; cursor: pointer; }
+.tip__close:hover { background: var(--mortar-soft); }
+.pgi { display: grid; grid-template-columns: 1.2fr 1fr; gap: 2.5rem; align-items: center; }
+.pgi__card { background: var(--ochre-soft); border: 1px solid #e2c98f; border-radius: var(--radius-m); padding: 1.5rem; color: var(--ink); }
+.pgi__card p { color: var(--ink); }
+.pgi__big { font: 700 var(--step-2)/1.2 var(--font-display); margin: 0 0 0.5rem; color: var(--ink); }
+@media (max-width: 760px) { .pgi { grid-template-columns: 1fr; gap: 1.5rem; } }
+.feature-area li .feature-tip { display: block; margin-top: 0.5rem; }

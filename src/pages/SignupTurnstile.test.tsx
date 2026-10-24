@@ -58,7 +58,9 @@ async function fillToReview() {
   type("Company name", "Prairie Capital");
   type("Legal name", "Prairie Capital Inc.");
   type("Province or territory", "AB");
-  type("Mailing address", "100 Main St, Calgary AB");
+  type("Street address", "100 Main St");
+  type("City", "Calgary");
+  type("Postal code", "T2P 1A1");
   next();
   await screen.findByText("prairie-capital is available.");
   next();

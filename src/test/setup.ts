@@ -7,6 +7,7 @@ beforeEach(() => {
   resetCatalogCache();
   try {
     window.sessionStorage.clear();
+    window.localStorage.clear();
   } catch {
     /* ignore */
   }

@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { contrastRatio, darkenForWhiteText } from "./contrast";
+import { DARK_TEXT, contrastRatio, darkenForWhiteText, lightenForDarkText } from "./contrast";
 import { FALLBACK_CATALOG } from "./plans";
-import { EMPTY_FORM, codeFormatError, formatNaPhone, suggestCode, validNaPhone, validateStep, type SignupForm } from "./validation";
+import {
+  EMPTY_FORM, codeFormatError, formatNaPhone, normalizePostal, oneLineAddress, suggestCode, validNaPhone, validateStep, type SignupForm,
+} from "./validation";
 
 const c = FALLBACK_CATALOG;
 const good: SignupForm = {
@@ -10,7 +12,9 @@ const good: SignupForm = {
   legal_name: "Prairie Capital Inc.",
   country: "CA",
   province_state: "AB",
-  mailing_address: "100 Main St, Calgary AB T2P 1A1",
+  address_line1: "100 Main St",
+  city: "Calgary",
+  postal_code: "T2P 1A1",
   company_code: "prairie-capital",
   contact_name: "Pat Lee",
   contact_email: "pat@prairie.example",
@@ -30,7 +34,7 @@ describe("validateStep", () => {
 
   it("requires company details and a province from the chosen country", () => {
     const e = validateStep("company", { ...EMPTY_FORM, country: "US", province_state: "AB" }, c, "idle");
-    expect(Object.keys(e).sort()).toEqual(["company_name", "legal_name", "mailing_address", "province_state"]);
+    expect(Object.keys(e).sort()).toEqual(["address_line1", "city", "company_name", "legal_name", "postal_code", "province_state"]);
     expect(e.province_state).toMatch(/state/);
   });
 
@@ -62,10 +66,32 @@ describe("validateStep", () => {
     expect(validateStep("plan", { ...good, seats: 1001 }, c, "idle").seats).toBe("For more than 1,000 seats, contact us.");
   });
 
-  it("needs https logos and hex colours", () => {
-    const e = validateStep("branding", { ...good, logo_url: "http://x.example/logo.png", primary_color: "blue" }, c, "idle");
-    expect(e.logo_url).toBeTruthy();
+  it("needs PNG, JPG or SVG logos under 500 KB, and hex colours", () => {
+    const logo = { name: "l.gif", type: "image/gif", size: 10, data_url: "data:image/gif;base64,R0lG" };
+    let e = validateStep("branding", { ...good, logo_file: logo, primary_color: "blue", accent_color: "red", background_color: "nope" }, c, "idle");
+    expect(e.logo_file).toBe("Use a PNG, JPG or SVG file.");
     expect(e.primary_color).toBeTruthy();
+    expect(e.accent_color).toBeTruthy();
+    expect(e.background_color).toBeTruthy();
+    e = validateStep("branding", { ...good, logo_file: { ...logo, type: "image/png", size: 600 * 1024 } }, c, "idle");
+    expect(e.logo_file).toBe("Use a logo file under 500 KB.");
+    expect(validateStep("branding", { ...good, background_color: "" }, c, "idle")).toEqual({});
+  });
+
+  it("needs a street, city and a postal or ZIP code that fits the country", () => {
+    const e = validateStep("company", { ...good, address_line1: "", city: "", postal_code: "12345" }, c, "idle");
+    expect(e).toMatchObject({ address_line1: "Enter your street address.", city: "Enter your city.", postal_code: "Enter a postal code like T2P 1P6." });
+    expect(validateStep("company", { ...good, country: "US", province_state: "CA", postal_code: "94105-1234" }, c, "idle")).toEqual({});
+    expect(validateStep("company", { ...good, country: "US", province_state: "CA", postal_code: "T2P 1A1" }, c, "idle").postal_code).toBe(
+      "Enter a ZIP code like 94105 or 94105-1234.",
+    );
+  });
+
+  it("formats postal codes and the one-line address", () => {
+    expect(normalizePostal("CA", "t2p1a1")).toBe("T2P 1A1");
+    expect(normalizePostal("CA", "Z2P1A1")).toBeNull();
+    expect(normalizePostal("US", "94105")).toBe("94105");
+    expect(oneLineAddress({ ...good, address_line2: "Unit 4", postal_code: "t2p1a1" })).toBe("100 Main St, Unit 4, Calgary AB T2P 1A1, Canada");
   });
 
   it("requires both acceptances on review", () => {
@@ -142,5 +168,13 @@ describe("extra storage on the plan step", () => {
     expect(validateStep("plan", { ...good, extra_storage_blocks: -1 }, c, "idle").extra_storage_blocks).toBeTruthy();
     expect(validateStep("plan", { ...good, extra_storage_blocks: 1.5 }, c, "idle").extra_storage_blocks).toBeTruthy();
     expect(validateStep("plan", { ...good, extra_storage_blocks: NaN }, c, "idle").extra_storage_blocks).toBeTruthy();
+  });
+});
+
+describe("background colours", () => {
+  it("lightens a background until dark text on it is easy to read", () => {
+    const fixed = lightenForDarkText("#334455")!;
+    expect(contrastRatio(fixed, DARK_TEXT)!).toBeGreaterThanOrEqual(4.5);
+    expect(lightenForDarkText("#f4f6f7")).toBe("#f4f6f7");
   });
 });

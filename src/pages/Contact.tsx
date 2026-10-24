@@ -1,6 +1,7 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { CONTACT_EMAIL, CONTACT_ENDPOINT, PRODUCT_NAME } from "../config";
 import { usePageMeta } from "../hooks/usePageMeta";
+import { useDemoContact } from "../lib/prefill";
 
 export function buildMailto(to: string, f: { name: string; email: string; company: string; message: string }): string {
   const subject = `${PRODUCT_NAME} enquiry${f.company ? ` from ${f.company}` : ""}`;
@@ -14,7 +15,19 @@ export default function Contact() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [state, setState] = useState<"idle" | "sending" | "sent" | "failed">("idle");
 
-  const set = (k: keyof typeof f) => (e: { target: { value: string } }) => setF({ ...f, [k]: e.target.value });
+  const set = (k: keyof typeof f) => (e: { target: { value: string } }) => setF((p) => ({ ...p, [k]: e.target.value }));
+
+  // From the person's demo (a link from it, or what they typed on "Try it yourself" here): fill empty fields only.
+  const demo = useDemoContact();
+  useEffect(() => {
+    if (!demo) return;
+    setF((p) => ({
+      ...p,
+      name: p.name.trim() ? p.name : demo.name,
+      email: p.email.trim() ? p.email : demo.email,
+      company: p.company.trim() ? p.company : demo.company,
+    }));
+  }, [demo]);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();

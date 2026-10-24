@@ -26,7 +26,9 @@ async function fillToPlan() {
   type("Company name", "Prairie Capital");
   type("Legal name", "Prairie Capital Inc.");
   type("Province or territory", "AB");
-  type("Mailing address", "100 Main St, Calgary AB");
+  type("Street address", "100 Main St");
+  type("City", "Calgary");
+  type("Postal code", "T2P 1A1");
   next();
   await screen.findByRole("heading", { name: "Company code" });
   expect(screen.getByLabelText("Company code")).toHaveValue("prairie-capital");
@@ -69,7 +71,9 @@ describe("Sign-up", () => {
     type("Company name", "Prairie Capital");
     type("Legal name", "Prairie Capital Inc.");
     type("Province or territory", "AB");
-    type("Mailing address", "100 Main St");
+    type("Street address", "100 Main St");
+    type("City", "Calgary");
+    type("Postal code", "T2P 1A1");
     next();
     await screen.findByText(/That code is taken/);
     next();
@@ -82,7 +86,9 @@ describe("Sign-up", () => {
     type("Company name", "Acme Lending");
     type("Legal name", "A Co Ltd");
     type("Province or territory", "ON");
-    type("Mailing address", "1 King St");
+    type("Street address", "1 King St");
+    type("City", "Toronto");
+    type("Postal code", "M5H 1A1");
     next();
     await screen.findByText("acme-lending is available.");
     next();
@@ -293,9 +299,11 @@ describe("Sign-up", () => {
     next();
     await screen.findByRole("heading", { name: "Review" });
     expect(screen.getByTestId("review-plan")).toHaveTextContent("Pro, billed monthly");
-    expect(screen.getByTestId("review-seats")).toHaveTextContent("4 seats × $229 = $916 a month");
-    expect(screen.getByTestId("review-support")).toHaveTextContent("Priority, $199 a month");
-    expect(screen.getByTestId("review-storage")).toHaveTextContent("50 GB, $10 a month");
+    // Prices are in the one live summary (sidebar); the review lists the choices and keeps the totals.
+    expect(screen.getByTestId("review-seats")).toHaveTextContent(/^4 seats$/);
+    expect(screen.getByTestId("review-support")).toHaveTextContent(/^Priority$/);
+    expect(screen.getByTestId("review-storage")).toHaveTextContent(/^50 GB$/);
+    expect(screen.getByTestId("review-address")).toHaveTextContent("100 Main St, Calgary AB T2P 1A1, Canada");
     expect(screen.getByTestId("review-monthly")).toHaveTextContent("$1,125");
     expect(screen.getByTestId("review-first-payment")).toHaveTextContent("$3,125 (includes $2,000 onboarding)");
     // A change made from the sidebar on the review step shows in the summary at once.
@@ -313,7 +321,7 @@ describe("Sign-up", () => {
       [
         "accept_privacy", "accept_terms", "billing_interval", "company_code", "company_name", "contact_email", "contact_name",
         "contact_phone", "country", "extra_storage_blocks", "legal_name", "mailing_address", "payment_method", "plan", "province_state",
-        "seats", "support_level", "website_url", "primary_color",
+        "seats", "support_level", "website_url", "primary_color", "accent_color", "address_line1", "city", "postal_code",
       ].sort(),
     );
   });
