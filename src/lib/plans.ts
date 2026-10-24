@@ -61,7 +61,8 @@ export type Catalog = {
   trial: {
     days: number;
     plan: PlanKey;
-    for: PlanKey;
+    /** The plans offered the in-app trial: Starter and Growth (older catalogues send one key). */
+    for: PlanKey | PlanKey[];
     bonus_minutes_per_seat: number;
     bonus_texts_per_seat: number;
   };
@@ -184,7 +185,7 @@ export const FALLBACK_CATALOG: Catalog = {
   ],
   extra_storage: { block_gb: 50, price: 10, max_blocks: MAX_STORAGE_BLOCKS },
   overage: { minute: 0.04, text: 0.03 },
-  trial: { days: 14, plan: "pro", for: "starter", bonus_minutes_per_seat: 100, bonus_texts_per_seat: 100 },
+  trial: { days: 14, plan: "pro", for: ["starter", "growth"], bonus_minutes_per_seat: 100, bonus_texts_per_seat: 100 },
   currency: "CAD",
 };
 
@@ -260,6 +261,18 @@ export async function fetchCatalog(signal?: AbortSignal): Promise<CatalogResult>
     if (signal?.aborted) throw err;
     return { catalog: FALLBACK_CATALOG, source: "fallback" };
   }
+}
+
+/** The plans the in-app trial is offered on (Starter and Growth). */
+export function trialPlans(c: Catalog): string[] {
+  const f = c.trial.for as unknown;
+  return Array.isArray(f) ? f.map(String) : [String(f)];
+}
+
+/** "Starter or Growth" */
+export function trialPlanNames(c: Catalog): string {
+  const names = trialPlans(c).map((k) => findPlan(c, k)?.name ?? k);
+  return names.length > 1 ? `${names.slice(0, -1).join(", ")} or ${names[names.length - 1]}` : names[0] ?? "Starter";
 }
 
 export function findPlan(c: Catalog, key: string): Plan | undefined {

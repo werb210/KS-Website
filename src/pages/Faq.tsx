@@ -28,7 +28,7 @@ export default function Faq() {
     },
     {
       q: "How does the free trial work?",
-      a: `On Starter you can turn on a ${c.trial.days}-day trial of every Pro feature from inside the app. When it ends you stay on Starter unless you choose to upgrade. Each brokerage gets one trial.`,
+      a: `On Starter or Growth you can turn on a ${c.trial.days}-day trial of every Pro feature from inside the app. When it ends you stay on your plan unless you choose to upgrade. Each brokerage gets one trial.`,
     },
     {
       q: "Do you provide lenders?",
@@ -60,6 +60,16 @@ export default function Faq() {
         <>
           In Canada, in Microsoft Azure's Canada Central region, in a database just for your brokerage.{" "}
           <Link to="/security">More on security</Link>.
+        </>
+      ),
+    },
+    {
+      q: "How long are records kept?",
+      a: (
+        <>
+          Applications, uploaded documents, signed agreements, lender packages and the audit log are kept for 7 years after
+          a file closes (funded, declined or withdrawn) and cannot be deleted before then. An admin can also place a legal
+          hold, which keeps everything under it until the hold is released. <Link to="/security">More on records</Link>.
         </>
       ),
     },

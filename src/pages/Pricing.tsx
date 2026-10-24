@@ -5,7 +5,7 @@ import { PRODUCT_NAME } from "../config";
 import { useCatalog } from "../hooks/useCatalog";
 import { usePageMeta } from "../hooks/usePageMeta";
 import type { BillingInterval, Catalog, Plan } from "../lib/plans";
-import { findSupport, hasLiveHelp } from "../lib/plans";
+import { findSupport, hasLiveHelp, trialPlanNames } from "../lib/plans";
 import { formatMoney, formatNumber, quote } from "../lib/pricing";
 
 export function BillingToggle({ value, onChange }: { value: BillingInterval; onChange: (b: BillingInterval) => void }) {
@@ -93,7 +93,7 @@ export default function Pricing() {
   const seatsId = useId();
   const supportId = useId();
   const money = (n: number) => formatMoney(n, c.currency);
-  const trialFor = c.plans.find((p) => p.key === c.trial.for)?.name ?? "Starter";
+  const trialFor = trialPlanNames(c);
   const trialPlan = c.plans.find((p) => p.key === c.trial.plan)?.name ?? "Pro";
   const maxSaving = Math.max(...c.plans.map((p) => p.seat_price_monthly - p.seat_price_annual));
 
@@ -156,10 +156,10 @@ export default function Pricing() {
         <div className="callout" style={{ margin: "2.5rem 0" }}>
           <h2 style={{ fontSize: "var(--step-1)" }}>Try every {trialPlan} feature free for {c.trial.days} days on {trialFor}</h2>
           <p>
-            Start on {trialFor} and switch on a {c.trial.days}-day trial from inside the app whenever you're ready. You get
-            every {trialPlan} feature, plus {formatNumber(c.trial.bonus_minutes_per_seat)} extra call minutes and{" "}
-            {formatNumber(c.trial.bonus_texts_per_seat)} extra texts per seat for the trial. When it ends you stay on{" "}
-            {trialFor} unless you choose to upgrade. One trial per brokerage.
+            On {trialFor}, switch on a {c.trial.days}-day trial from inside the app whenever you're ready. You get every{" "}
+            {trialPlan} feature for the trial, and on Starter {formatNumber(c.trial.bonus_minutes_per_seat)} extra call minutes
+            and {formatNumber(c.trial.bonus_texts_per_seat)} extra texts per seat as well. When it ends you stay on your plan
+            unless you choose to upgrade. One trial per brokerage.
           </p>
         </div>
       </div>
