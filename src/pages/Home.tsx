@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { FeatureRequest } from "../components/FeatureRequest";
 import { Arch } from "../components/Arch";
 import { PgiTip } from "../components/PgiTip";
+import { Screenshot } from "../components/Screenshot";
 import { PRODUCT_NAME } from "../config";
 import { usePageMeta } from "../hooks/usePageMeta";
 
@@ -64,6 +65,20 @@ export default function Home() {
         </div>
       </section>
 
+      <section className="section" aria-labelledby="real-h">
+        <div className="wrap">
+          <h2 id="real-h">The real thing, not a mock-up</h2>
+          <p className="lede" style={{ marginBottom: "2rem" }}>
+            These are the actual apps on a sample file: your staff work the deal in the portal while your client
+            applies and follows along from their phone.
+          </p>
+          <div className="shots-pair">
+            <Screenshot name="portal-pipeline" sizes="(max-width: 900px) 92vw, 800px" caption="Staff portal: the sales pipeline." />
+            <Screenshot name="client-portal" sizes="(max-width: 900px) 60vw, 300px" caption="Client app: the borrower's own portal." />
+          </div>
+        </div>
+      </section>
+
       <section className="section section--surface" aria-labelledby="parts-h">
         <div className="wrap">
           <h2 id="parts-h">What your team gets on day one</h2>
@@ -114,14 +129,15 @@ export default function Home() {
             <h2 id="how-h">From sign-up to first call</h2>
             <p>
               Sign up online, pay securely, and we set up your copy within one business day. You get sign-in details by
-              email. Your staff install the dialler and iPad apps and enter your company code once. Your clients can
+              email. Your staff sign in to the dialler and iPad apps with their work email or mobile number; the app
+              finds your brokerage automatically. Your clients can
               use your brokerage's own app on iPhone or Android, or your client portal as a website in any browser,
-              whichever they prefer, with no company code to enter.
+              whichever they prefer.
             </p>
           </div>
           <ol className="plain-list" style={{ paddingLeft: "1.4rem", listStyle: "decimal" }}>
             <li>Choose a plan and the number of seats.</li>
-            <li>Pick your company code, colours, logo and the assistant's name.</li>
+            <li>Pick your colours, logo, font and the assistant's name.</li>
             <li>Pay by bank debit or card through our secure checkout.</li>
             <li>We set up your copy and email your sign-in details.</li>
             <li>Add your lenders, invite your team and start taking applications.</li>

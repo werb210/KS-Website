@@ -1,0 +1,57 @@
+{
+  "client-portal": {
+    "width": 300,
+    "height": 626,
+    "frame": "phone"
+  },
+  "client-wizard": {
+    "width": 300,
+    "height": 626,
+    "frame": "phone"
+  },
+  "ipad-documents": {
+    "width": 720,
+    "height": 510,
+    "frame": "ipad"
+  },
+  "portal-banking": {
+    "width": 800,
+    "height": 524,
+    "frame": "browser"
+  },
+  "portal-calculator": {
+    "width": 800,
+    "height": 524,
+    "frame": "browser"
+  },
+  "portal-credit": {
+    "width": 800,
+    "height": 524,
+    "frame": "browser"
+  },
+  "portal-documents": {
+    "width": 800,
+    "height": 524,
+    "frame": "browser"
+  },
+  "portal-financials": {
+    "width": 800,
+    "height": 524,
+    "frame": "browser"
+  },
+  "portal-fraud": {
+    "width": 800,
+    "height": 524,
+    "frame": "browser"
+  },
+  "portal-lenders": {
+    "width": 800,
+    "height": 524,
+    "frame": "browser"
+  },
+  "portal-pipeline": {
+    "width": 800,
+    "height": 524,
+    "frame": "browser"
+  }
+}
