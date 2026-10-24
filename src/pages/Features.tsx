@@ -1,9 +1,10 @@
 import { Link } from "react-router-dom";
 import { FeatureRequest } from "../components/FeatureRequest";
+import { PgiTip } from "../components/PgiTip";
 import { PRODUCT_NAME } from "../config";
 import { usePageMeta } from "../hooks/usePageMeta";
 
-type Item = { name: string; body: string; plan?: "Growth" | "Pro" };
+type Item = { name: string; body: string; plan?: "Growth" | "Pro"; pgiTip?: boolean };
 type Area = { title: string; intro: string; items: Item[] };
 
 const AREAS: Area[] = [
@@ -32,11 +33,16 @@ const AREAS: Area[] = [
     title: "Client portal and applications",
     intro: "Your brand in front of every borrower.",
     items: [
-      { name: "6-step application wizard", body: "Business, owners, funding needs, financials, documents, sign. On the web and in the iPhone and Android app, shown with your branding." },
+      { name: "6-step application wizard", body: "Business, owners, funding needs, financials, documents, sign, shown with your branding. Clients can use it as an app on iPhone or Android, or as a website in any browser: their choice." },
       { name: "Client mini-portal", body: "Borrowers check status, answer requests and upload what's missing without calling you." },
       { name: "Referrer portal", body: "Partners send you deals and see how they're going.", plan: "Growth" },
       { name: "Broker portal", body: "Partner brokers sign your broker agreement, upload client files and agree the commission split.", plan: "Growth" },
       { name: "Lender portal (lenders can send you deals they can't place)", body: "Lenders review the files you send them in one place, and send you deals they can't place themselves." },
+      {
+        name: "Personal Guarantee Insurance (PGI)",
+        body: `Offer PGI to your clients to close more deals and earn extra commission. All you need to do is... nothing. One checkbox, and ${PRODUCT_NAME} pays you.`,
+        pgiTip: true,
+      },
     ],
   },
   {
@@ -121,6 +127,11 @@ export default function Features() {
                     )}
                   </strong>
                   <span>{i.body}</span>
+                  {i.pgiTip && (
+                    <span className="feature-tip">
+                      <PgiTip />
+                    </span>
+                  )}
                 </li>
               ))}
             </ul>

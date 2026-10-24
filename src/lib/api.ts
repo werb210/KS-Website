@@ -36,6 +36,11 @@ export type SignupPayload = {
   company_code: string;
   country: "CA" | "US";
   province_state: string;
+  /** The address in parts (KS-Ops v13). mailing_address is the same address on one line, for older KS-Ops. */
+  address_line1: string;
+  address_line2?: string;
+  city: string;
+  postal_code: string;
   mailing_address: string;
   website?: string;
   contact_name: string;
@@ -50,7 +55,11 @@ export type SignupPayload = {
   /** "acss_debit" (Canadian pre-authorized debit, the default) or "card". */
   payment_method: PaymentMethod;
   primary_color?: string;
+  accent_color?: string;
+  background_color?: string;
   logo_url?: string;
+  /** An uploaded logo (PNG, JPG or SVG, base64), stored by KS-Ops. */
+  logo_file?: { content_type: string; data_base64: string; filename?: string };
   assistant_name?: string;
   accept_terms: true;
   accept_privacy: true;
@@ -153,7 +162,7 @@ export type DemoSignupPayload = {
   name: string;
   email: string;
   company: string;
-  /** Mobile number; KS-Ops texts the demo link to it (and emails it too). */
+  /** Mobile number, so the team can reach them. The demo link itself is emailed. */
   phone: string;
   turnstile_token?: string;
   /** Honeypot. People never see it; it must stay empty. */
@@ -194,4 +203,26 @@ export async function requestDemo(payload: DemoSignupPayload): Promise<DemoSignu
   if (res.status === 429) fallback = "Too many attempts. Wait a little and try again.";
   else if (Object.keys(errors).length) fallback = "Some details need fixing. They're marked below.";
   return { ok: false, status: res.status, errors, message: message || fallback };
+}
+
+export type DemoContact = { name: string; email: string; company: string; phone: string };
+
+/**
+ * POST /api/public/demo/prefill - the details someone gave for their demo, from the demo id and key that demo emails
+ * and the demo's last step put in the link's #fragment. Null when it can't be had (the forms then stay empty).
+ */
+export async function fetchDemoContact(demoId: string, key: string): Promise<DemoContact | null> {
+  try {
+    const res = await fetch(opsUrl("/api/public/demo/prefill"), {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify({ demo_id: demoId, key }),
+    });
+    if (!res.ok) return null;
+    const b = (await res.json()) as Record<string, unknown>;
+    const str = (v: unknown) => (typeof v === "string" ? v.slice(0, 200) : "");
+    return { name: str(b.name), email: str(b.email), company: str(b.company), phone: str(b.phone) };
+  } catch {
+    return null;
+  }
 }

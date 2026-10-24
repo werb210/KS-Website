@@ -7,7 +7,11 @@ export type SignupForm = {
   legal_name: string;
   country: "CA" | "US";
   province_state: string;
-  mailing_address: string;
+  /** Mailing address in parts (unit is optional). */
+  address_line1: string;
+  address_line2: string;
+  city: string;
+  postal_code: string;
   website: string;
   company_code: string;
   contact_name: string;
@@ -21,20 +25,33 @@ export type SignupForm = {
   extra_storage_blocks: number;
   /** Bank debit (Canadian pre-authorized debit) by default, or card. */
   payment_method: PaymentMethod;
-  logo_url: string;
+  /** An uploaded logo, read in the browser (null = none). */
+  logo_file: LogoFile | null;
   primary_color: string;
+  /** Accent (secondary) colour, for links and highlights. */
+  accent_color: string;
+  /** Optional background / surface colour ("" = the default). */
+  background_color: string;
   assistant_name: string;
   accept_terms: boolean;
   accept_privacy: boolean;
   website_url: string;
 };
 
+export type LogoFile = { name: string; type: string; size: number; data_url: string };
+
+export const MAX_LOGO_BYTES = 500 * 1024;
+export const LOGO_TYPES = ["image/png", "image/jpeg", "image/svg+xml"];
+
 export const EMPTY_FORM: SignupForm = {
   company_name: "",
   legal_name: "",
   country: "CA",
   province_state: "",
-  mailing_address: "",
+  address_line1: "",
+  address_line2: "",
+  city: "",
+  postal_code: "",
   website: "",
   company_code: "",
   contact_name: "",
@@ -46,8 +63,10 @@ export const EMPTY_FORM: SignupForm = {
   support_level: "email",
   extra_storage_blocks: 0,
   payment_method: "acss_debit",
-  logo_url: "",
+  logo_file: null,
   primary_color: "#1f4e79",
+  accent_color: "#0e6655",
+  background_color: "",
   assistant_name: "",
   accept_terms: false,
   accept_privacy: false,
@@ -75,6 +94,10 @@ export const FIELD_STEP: Record<string, StepKey> = {
   country: "company",
   province_state: "company",
   mailing_address: "company",
+  address_line1: "company",
+  address_line2: "company",
+  city: "company",
+  postal_code: "company",
   website: "company",
   company_code: "code",
   contact_name: "contact",
@@ -87,7 +110,10 @@ export const FIELD_STEP: Record<string, StepKey> = {
   extra_storage_blocks: "plan",
   payment_method: "plan",
   logo_url: "branding",
+  logo_file: "branding",
   primary_color: "branding",
+  accent_color: "branding",
+  background_color: "branding",
   assistant_name: "branding",
   accept_terms: "review",
   accept_privacy: "review",
@@ -155,7 +181,13 @@ export function validateStep(step: StepKey, f: SignupForm, catalog: Catalog, cod
       if (!regionsFor(f.country).some((r) => r.code === f.province_state)) {
         e.province_state = f.country === "US" ? "Choose a state." : "Choose a province or territory.";
       }
-      req("mailing_address", "Enter your mailing address.");
+      req("address_line1", "Enter your street address.");
+      req("city", "Enter your city.");
+      if (!String(f.postal_code ?? "").trim()) {
+        e.postal_code = f.country === "US" ? "Enter your ZIP code." : "Enter your postal code.";
+      } else if (!normalizePostal(f.country, f.postal_code)) {
+        e.postal_code = f.country === "US" ? "Enter a ZIP code like 94105 or 94105-1234." : "Enter a postal code like T2P 1P6.";
+      }
       if (f.website.trim() && !isHttpUrl(normaliseWebsite(f.website))) e.website = "Enter a web address like example.com.";
       break;
     }
@@ -191,8 +223,13 @@ export function validateStep(step: StepKey, f: SignupForm, catalog: Catalog, cod
       break;
     }
     case "branding": {
-      if (f.logo_url.trim() && !isHttpUrl(f.logo_url.trim(), true)) e.logo_url = "Use a full https:// link to your logo.";
+      if (f.logo_file) {
+        if (!LOGO_TYPES.includes(f.logo_file.type)) e.logo_file = "Use a PNG, JPG or SVG file.";
+        else if (f.logo_file.size > MAX_LOGO_BYTES) e.logo_file = "Use a logo file under 500 KB.";
+      }
       if (f.primary_color && !HEX.test(f.primary_color)) e.primary_color = "Use a colour like #1f4e79.";
+      if (f.accent_color && !HEX.test(f.accent_color)) e.accent_color = "Use a colour like #0e6655.";
+      if (f.background_color && !HEX.test(f.background_color)) e.background_color = "Use a colour like #f4f6f7, or leave it empty.";
       if (f.assistant_name.length > 40) e.assistant_name = "Keep the assistant's name to 40 characters.";
       break;
     }
@@ -222,4 +259,25 @@ export function formatNaPhone(raw: string): string {
   if (d.length < 4) return `(${d}`;
   if (d.length < 7) return `(${d.slice(0, 3)}) ${d.slice(3)}`;
   return `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`;
+}
+
+/** Canadian postal code ("T2P 1P6") or US ZIP code ("94105", "94105-1234") in its usual form, or null. */
+export function normalizePostal(country: string, raw: string): string | null {
+  const v = String(raw ?? "").trim().toUpperCase().replace(/\s+/g, " ");
+  if (country === "US") return /^\d{5}(-\d{4})?$/.test(v) ? v : null;
+  const c = v.replace(/[\s-]/g, "");
+  if (!/^[ABCEGHJ-NPRSTVXY]\d[ABCEGHJ-NPRSTV-Z]\d[ABCEGHJ-NPRSTV-Z]\d$/.test(c)) return null;
+  return `${c.slice(0, 3)} ${c.slice(3)}`;
+}
+
+/** The address on one line: "100 Main St, Unit 4, Calgary AB T2P 1P6, Canada". */
+export function oneLineAddress(f: Pick<SignupForm, "address_line1" | "address_line2" | "city" | "province_state" | "postal_code" | "country">): string {
+  const postal = normalizePostal(f.country, f.postal_code) ?? f.postal_code.trim();
+  const cityLine = [f.city.trim(), f.province_state, postal].filter(Boolean).join(" ");
+  return [f.address_line1.trim(), f.address_line2.trim(), cityLine, f.country === "US" ? "United States" : "Canada"].filter(Boolean).join(", ");
+}
+
+/** The postal or ZIP code tidied when it is valid, else as typed. */
+export function normalisePostalOrSelf(country: string, raw: string): string {
+  return normalizePostal(country, raw) ?? raw.trim();
 }

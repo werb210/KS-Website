@@ -1,6 +1,8 @@
-import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from "react";
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { Link, useSearchParams } from "react-router-dom";
+import { ColourField } from "../components/ColourField";
 import { Field } from "../components/Field";
+import { LogoUpload } from "../components/LogoUpload";
 import { NumberStepper } from "../components/NumberStepper";
 import { Turnstile } from "../components/Turnstile";
 import { PRODUCT_NAME, TURNSTILE_SITE_KEY } from "../config";
@@ -8,11 +10,11 @@ import { useCatalog } from "../hooks/useCatalog";
 import { useCodeAvailability } from "../hooks/useCodeAvailability";
 import { usePageMeta } from "../hooks/usePageMeta";
 import { submitSignup, type SignupPayload } from "../lib/api";
-import { contrastRatio, darkenForWhiteText } from "../lib/contrast";
+import { useDemoContact } from "../lib/prefill";
 import { goTo } from "../lib/navigate";
 import type { BillingInterval, Catalog, PlanKey, SupportLevel } from "../lib/plans";
 import { MAX_SEATS, PAYMENT_METHODS, findPlan, findSupport, hasLiveHelp, isPaymentMethod } from "../lib/plans";
-import { clampInt, formatMoney, formatNumber, seatRange, signupQuote, supportMonthly } from "../lib/pricing";
+import { clampInt, formatMoney, formatNumber, seatRange, signupQuote } from "../lib/pricing";
 import { regionsFor } from "../lib/regions";
 import { DRAFT_KEY, LAST_SIGNUP_KEY, load, remove, save } from "../lib/storage";
 import {
@@ -20,7 +22,9 @@ import {
   FIELD_STEP,
   STEP_LABELS,
   STEPS,
+  normalisePostalOrSelf,
   normaliseWebsite,
+  oneLineAddress,
   suggestCode,
   validateStep,
   type CodeState,
@@ -32,6 +36,7 @@ import {
 function initialForm(params: URLSearchParams): SignupForm {
   const draft = load<Partial<SignupForm>>(DRAFT_KEY);
   const f: SignupForm = { ...EMPTY_FORM, ...(draft ?? {}), website_url: "" };
+  if (f.logo_file && (typeof f.logo_file !== "object" || typeof f.logo_file.data_url !== "string")) f.logo_file = null;
   const plan = params.get("plan");
   if (plan === "starter" || plan === "growth" || plan === "pro") f.plan = plan;
   const seats = Number(params.get("seats"));
@@ -45,13 +50,18 @@ function initialForm(params: URLSearchParams): SignupForm {
 
 export function buildPayload(f: SignupForm, turnstileToken: string): SignupPayload {
   const opt = (v: string) => (v.trim() ? v.trim() : undefined);
+  const logo = f.logo_file ? /^data:([^;,]+);base64,(.*)$/.exec(f.logo_file.data_url) : null;
   return {
     company_name: f.company_name.trim(),
     legal_name: f.legal_name.trim(),
     company_code: f.company_code.trim(),
     country: f.country,
     province_state: f.province_state,
-    mailing_address: f.mailing_address.trim(),
+    address_line1: f.address_line1.trim(),
+    address_line2: opt(f.address_line2),
+    city: f.city.trim(),
+    postal_code: normalisePostalOrSelf(f.country, f.postal_code),
+    mailing_address: oneLineAddress(f),
     website: f.website.trim() ? normaliseWebsite(f.website) : undefined,
     contact_name: f.contact_name.trim(),
     contact_email: f.contact_email.trim(),
@@ -63,7 +73,9 @@ export function buildPayload(f: SignupForm, turnstileToken: string): SignupPaylo
     extra_storage_blocks: Number(f.extra_storage_blocks) || 0,
     payment_method: f.payment_method,
     primary_color: opt(f.primary_color),
-    logo_url: opt(f.logo_url),
+    accent_color: opt(f.accent_color),
+    background_color: opt(f.background_color),
+    logo_file: logo && f.logo_file ? { content_type: logo[1], data_base64: logo[2], filename: f.logo_file.name } : undefined,
     assistant_name: opt(f.assistant_name),
     accept_terms: true,
     accept_privacy: true,
@@ -252,6 +264,23 @@ export default function Signup() {
     save(DRAFT_KEY, draft);
   }, [f]);
 
+  // From the person's demo: their name, email, phone and brokerage fill any empty field (all still editable).
+  const demo = useDemoContact();
+  useEffect(() => {
+    if (!demo) return;
+    setF((prev) => {
+      const next = { ...prev };
+      if (!prev.contact_name.trim() && demo.name) next.contact_name = demo.name;
+      if (!prev.contact_email.trim() && demo.email) next.contact_email = demo.email;
+      if (!prev.contact_phone.trim() && demo.phone) next.contact_phone = demo.phone;
+      if (!prev.company_name.trim() && demo.company) {
+        next.company_name = demo.company;
+        if (!prev.company_code.trim()) next.company_code = suggestCode(demo.company);
+      }
+      return next;
+    });
+  }, [demo]);
+
   useEffect(() => {
     if (firstRender.current) {
       firstRender.current = false;
@@ -357,8 +386,6 @@ export default function Signup() {
     if (firstField) setStep(FIELD_STEP[firstField]);
   }
 
-  const contrast = useMemo(() => contrastRatio(f.primary_color, "#ffffff"), [f.primary_color]);
-  const darker = contrast !== null && contrast < 4.5 ? darkenForWhiteText(f.primary_color) : null;
   const regions = regionsFor(f.country);
   const m = (n: number) => formatMoney(n, c.currency);
   const planQuote = signupQuote(c, plan ?? c.plans[0], f);
@@ -370,9 +397,8 @@ export default function Signup() {
         <div className="status-box" role="status">
           <p>
             We've received the sign-up for <strong>{f.company_name}</strong>. Someone from our team will email{" "}
-            <strong>{f.contact_email}</strong> within one business day to set up payment.
+            <strong>{f.contact_email}</strong> within one business day with a secure payment link.
           </p>
-          {done.message && <p>{done.message}</p>}
           <p style={{ marginBottom: 0 }}>Once payment is set up we'll prepare your copy and send your sign-in details.</p>
         </div>
         <Link to="/">Back to the home page</Link>
@@ -421,38 +447,72 @@ export default function Signup() {
               <Field id="legal_name" label="Legal name" hint="As registered, for invoices and the licence agreement." error={errorFor("legal_name")}>
                 {(a) => <input {...a} type="text" value={f.legal_name} onChange={(e) => update("legal_name", e.target.value)} />}
               </Field>
-              <div className="row-2">
-                <Field id="country" label="Country" error={errorFor("country")}>
-                  {(a) => (
-                    <select
-                      {...a}
-                      value={f.country}
-                      onChange={(e) => {
-                        update("country", e.target.value as "CA" | "US");
-                        update("province_state", "");
-                      }}
-                    >
-                      <option value="CA">Canada</option>
-                      <option value="US">United States</option>
-                    </select>
-                  )}
+              <fieldset className="field address" aria-describedby={errorFor("mailing_address") ? "mailing_address-error" : undefined}>
+                <legend>Mailing address</legend>
+                <Field id="address_line1" label="Street address" error={errorFor("address_line1")}>
+                  {(a) => <input {...a} type="text" autoComplete="address-line1" maxLength={200} value={f.address_line1} onChange={(e) => update("address_line1", e.target.value)} />}
                 </Field>
-                <Field id="province_state" label={f.country === "US" ? "State" : "Province or territory"} error={errorFor("province_state")}>
-                  {(a) => (
-                    <select {...a} value={f.province_state} onChange={(e) => update("province_state", e.target.value)}>
-                      <option value="">Choose…</option>
-                      {regions.map((r) => (
-                        <option key={r.code} value={r.code}>
-                          {r.name}
-                        </option>
-                      ))}
-                    </select>
-                  )}
+                <Field id="address_line2" label="Unit or suite (optional)" error={errorFor("address_line2")}>
+                  {(a) => <input {...a} type="text" autoComplete="address-line2" maxLength={120} value={f.address_line2} onChange={(e) => update("address_line2", e.target.value)} />}
                 </Field>
-              </div>
-              <Field id="mailing_address" label="Mailing address" hint="Street, city and postal or ZIP code." error={errorFor("mailing_address")}>
-                {(a) => <textarea {...a} rows={3} autoComplete="street-address" value={f.mailing_address} onChange={(e) => update("mailing_address", e.target.value)} />}
-              </Field>
+                <div className="row-2">
+                  <Field id="city" label="City" error={errorFor("city")}>
+                    {(a) => <input {...a} type="text" autoComplete="address-level2" maxLength={120} value={f.city} onChange={(e) => update("city", e.target.value)} />}
+                  </Field>
+                  <Field id="province_state" label={f.country === "US" ? "State" : "Province or territory"} error={errorFor("province_state")}>
+                    {(a) => (
+                      <select {...a} value={f.province_state} onChange={(e) => update("province_state", e.target.value)}>
+                        <option value="">Choose…</option>
+                        {regions.map((r) => (
+                          <option key={r.code} value={r.code}>
+                            {r.name}
+                          </option>
+                        ))}
+                      </select>
+                    )}
+                  </Field>
+                </div>
+                <div className="row-2">
+                  <Field
+                    id="postal_code"
+                    label={f.country === "US" ? "ZIP code" : "Postal code"}
+                    error={errorFor("postal_code")}
+                  >
+                    {(a) => (
+                      <input
+                        {...a}
+                        type="text"
+                        autoComplete="postal-code"
+                        maxLength={10}
+                        placeholder={f.country === "US" ? "94105" : "T2P 1P6"}
+                        value={f.postal_code}
+                        onChange={(e) => update("postal_code", e.target.value)}
+                        onBlur={() => update("postal_code", normalisePostalOrSelf(f.country, f.postal_code))}
+                      />
+                    )}
+                  </Field>
+                  <Field id="country" label="Country" error={errorFor("country")}>
+                    {(a) => (
+                      <select
+                        {...a}
+                        value={f.country}
+                        onChange={(e) => {
+                          update("country", e.target.value as "CA" | "US");
+                          update("province_state", "");
+                        }}
+                      >
+                        <option value="CA">Canada</option>
+                        <option value="US">United States</option>
+                      </select>
+                    )}
+                  </Field>
+                </div>
+                {errorFor("mailing_address") && (
+                  <span className="field-error" id="mailing_address-error">
+                    {errorFor("mailing_address")}
+                  </span>
+                )}
+              </fieldset>
               <Field id="website" label="Website (optional)" error={errorFor("website")}>
                 {(a) => <input {...a} type="url" inputMode="url" placeholder="example.com" value={f.website} onChange={(e) => update("website", e.target.value)} />}
               </Field>
@@ -464,7 +524,8 @@ export default function Signup() {
               <p>
                 Your company code is how your team finds your brokerage in the {PRODUCT_NAME} apps. Staff type it once
                 when they first open the iPhone dialler or iPad app, then sign in as usual. Your clients never need it:
-                they use your brokerage's own branded app or your web client portal.
+                they use your brokerage's own app on iPhone or Android, or your client portal as a website in any
+                browser, whichever they prefer.
               </p>
               <Field
                 id="company_code"
@@ -537,7 +598,6 @@ export default function Signup() {
                 onChange={(n) => update("seats", n)}
                 decLabel="Remove a seat"
                 incLabel="Add a seat"
-                unit={`× ${m(planQuote.seatPrice)} = ${m(planQuote.seatsMonthly)} a month`}
               />
               <fieldset className="field">
                 <legend>Billing</legend>
@@ -558,14 +618,12 @@ export default function Signup() {
               </fieldset>
               <fieldset className="field">
                 <legend>Support</legend>
-                <span className="hint">The price for your {seatsText(planQuote.seats)} is shown on each option.</span>
+                <span className="hint">Your total is in the price summary.</span>
                 <div className="radio-cards radio-cards--wide">
                   {c.support_levels.map((s) => {
-                    const cost = supportMonthly(s, planQuote.seats);
                     return (
                       <RadioCard key={s.key} name="support_level" value={s.key} checked={f.support_level === s.key} onChange={() => update("support_level", s.key)}>
                         <strong>{s.name}</strong>
-                        <small className="radio-card__price">{cost ? `${m(cost)} a month for your team` : "Included"}</small>
                         <small>{supportPriceText(s, m)}</small>
                         {s.first_reply && <small>First reply within {s.first_reply}</small>}
                         {s.channels.length > 0 && <small>{s.channels.join(", ")}</small>}
@@ -587,11 +645,7 @@ export default function Signup() {
                 onChange={(n) => update("extra_storage_blocks", n)}
                 decLabel={`Remove ${c.extra_storage.block_gb} GB`}
                 incLabel={`Add ${c.extra_storage.block_gb} GB`}
-                unit={
-                  planQuote.storageBlocks > 0
-                    ? `= ${formatNumber(planQuote.storageBlocks * c.extra_storage.block_gb)} GB, ${m(planQuote.storageMonthly)} a month`
-                    : "None added"
-                }
+                unit={planQuote.storageBlocks > 0 ? `= ${formatNumber(planQuote.storageBlocks * c.extra_storage.block_gb)} GB` : "None added"}
               />
               <fieldset className="field">
                 <legend>How you'll pay</legend>
@@ -621,57 +675,38 @@ export default function Signup() {
           {step === "branding" && (
             <>
               <p className="muted">Optional. You can change all of this later from your settings.</p>
-              <Field id="logo_url" label="Logo link (optional)" hint="A https:// link to your logo image (PNG or SVG). Or email it to us later." error={errorFor("logo_url")}>
-                {(a) => <input {...a} type="url" inputMode="url" placeholder="https://" value={f.logo_url} onChange={(e) => update("logo_url", e.target.value)} />}
-              </Field>
-              <div className="field">
-                <label htmlFor="primary_color">Main brand colour</label>
-                <span className="hint" id="primary_color-hint">
-                  Used for buttons and headers. White text needs a contrast of at least 4.5 to 1 to be easy to read.
-                </span>
-                <div className="swatch-row">
-                  <input
-                    type="color"
-                    aria-label="Pick a colour"
-                    value={/^#[0-9a-f]{6}$/i.test(f.primary_color) ? f.primary_color : "#1f4e79"}
-                    onChange={(e) => update("primary_color", e.target.value)}
-                  />
-                  <input
-                    id="primary_color"
-                    type="text"
-                    style={{ maxWidth: "9rem" }}
-                    aria-describedby={`primary_color-hint primary_color-check${errorFor("primary_color") ? " primary_color-error" : ""}`}
-                    aria-invalid={Boolean(errorFor("primary_color"))}
-                    value={f.primary_color}
-                    onChange={(e) => update("primary_color", e.target.value.trim())}
-                  />
-                  {contrast !== null && (
-                    <span className="swatch-preview" style={{ background: f.primary_color }} aria-hidden="true">
-                      Apply now
-                    </span>
-                  )}
-                </div>
-                <span id="primary_color-check" aria-live="polite">
-                  {contrast !== null &&
-                    (contrast >= 4.5 ? (
-                      <span className="field-ok">Contrast with white text: {contrast.toFixed(1)} to 1. Easy to read.</span>
-                    ) : (
-                      <span className="field-error">
-                        Contrast with white text: {contrast.toFixed(1)} to 1. Too light for white text.{" "}
-                        {darker && (
-                          <button type="button" className="btn btn--quiet" style={{ minHeight: 36, padding: "0.25rem 0.6rem", marginTop: "0.4rem" }} onClick={() => update("primary_color", darker)}>
-                            Use {darker} instead
-                          </button>
-                        )}
-                      </span>
-                    ))}
-                </span>
-                {errorFor("primary_color") && (
-                  <span className="field-error" id="primary_color-error">
-                    {errorFor("primary_color")}
-                  </span>
-                )}
-              </div>
+              <LogoUpload value={f.logo_file} onChange={(v) => update("logo_file", v)} error={errorFor("logo_file")} />
+              <ColourField
+                id="primary_color"
+                label="Main brand colour"
+                hint="Used for buttons and headers, with white text on it. White text needs a contrast of at least 4.5 to 1 to be easy to read."
+                value={f.primary_color}
+                onChange={(v) => update("primary_color", v)}
+                error={errorFor("primary_color")}
+                mode="white-text"
+                fallback="#1f4e79"
+              />
+              <ColourField
+                id="accent_color"
+                label="Accent colour"
+                hint="A second colour for highlights, badges and secondary buttons, also with white text on it."
+                value={f.accent_color}
+                onChange={(v) => update("accent_color", v)}
+                error={errorFor("accent_color")}
+                mode="white-text"
+                fallback="#0e6655"
+              />
+              <ColourField
+                id="background_color"
+                label="Background colour (optional)"
+                hint="For page backgrounds and panels, with dark text on it. Leave it empty for our light grey."
+                value={f.background_color}
+                onChange={(v) => update("background_color", v)}
+                error={errorFor("background_color")}
+                mode="dark-text"
+                fallback="#f4f6f7"
+                optional
+              />
               <Field id="assistant_name" label="Assistant's name (optional)" hint="What your AI assistant calls itself with clients, like Ava or Max." error={errorFor("assistant_name")}>
                 {(a) => <input {...a} type="text" maxLength={40} value={f.assistant_name} onChange={(e) => update("assistant_name", e.target.value)} />}
               </Field>
@@ -685,10 +720,8 @@ export default function Signup() {
                 <dd>
                   {f.company_name} ({f.legal_name})
                 </dd>
-                <dt>Location</dt>
-                <dd>
-                  {f.mailing_address}, {f.province_state}, {f.country === "US" ? "United States" : "Canada"}
-                </dd>
+                <dt>Mailing address</dt>
+                <dd data-testid="review-address">{oneLineAddress(f)}</dd>
                 {f.website && (
                   <>
                     <dt>Website</dt>
@@ -706,18 +739,12 @@ export default function Signup() {
                   {plan?.name}, billed {f.billing_interval === "annual" ? "annually" : "monthly"}
                 </dd>
                 <dt>Seats</dt>
-                <dd data-testid="review-seats">
-                  {seatsText(planQuote.seats)} × {m(planQuote.seatPrice)} = {m(planQuote.seatsMonthly)} a month
-                </dd>
+                <dd data-testid="review-seats">{seatsText(planQuote.seats)}</dd>
                 <dt>Support</dt>
-                <dd data-testid="review-support">
-                  {findSupport(c, f.support_level)?.name}, {planQuote.supportMonthly ? `${m(planQuote.supportMonthly)} a month` : "included"}
-                </dd>
+                <dd data-testid="review-support">{findSupport(c, f.support_level)?.name}</dd>
                 <dt>Extra storage</dt>
                 <dd data-testid="review-storage">
-                  {planQuote.storageBlocks > 0
-                    ? `${formatNumber(planQuote.storageBlocks * c.extra_storage.block_gb)} GB, ${m(planQuote.storageMonthly)} a month`
-                    : "None"}
+                  {planQuote.storageBlocks > 0 ? `${formatNumber(planQuote.storageBlocks * c.extra_storage.block_gb)} GB` : "None"}
                 </dd>
                 <dt>Payment</dt>
                 <dd data-testid="review-payment">
@@ -731,10 +758,11 @@ export default function Signup() {
                   {planQuote.onboardingFee ? ` (includes ${m(planQuote.onboardingFee)} onboarding)` : ""}
                 </dd>
                 <dt>Branding</dt>
-                <dd>
-                  {f.primary_color || "Default colour"}
+                <dd data-testid="review-branding">
+                  Main {f.primary_color || "default"}, accent {f.accent_color || "default"}
+                  {f.background_color ? `, background ${f.background_color}` : ""}
+                  {f.logo_file ? `, logo ${f.logo_file.name}` : ", no logo yet"}
                   {f.assistant_name ? `, assistant named ${f.assistant_name}` : ""}
-                  {f.logo_url ? ", logo provided" : ""}
                 </dd>
               </dl>
               <p className="small">

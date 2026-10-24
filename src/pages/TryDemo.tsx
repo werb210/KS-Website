@@ -4,6 +4,7 @@ import { Turnstile } from "../components/Turnstile";
 import { PRODUCT_NAME, TURNSTILE_SITE_KEY } from "../config";
 import { usePageMeta } from "../hooks/usePageMeta";
 import { requestDemo } from "../lib/api";
+import { rememberDemoContact } from "../lib/prefill";
 import { formatNaPhone, validNaPhone } from "../lib/validation";
 
 const WHAT_YOU_DO = [
@@ -22,7 +23,7 @@ type Form = { name: string; email: string; phone: string; company: string; websi
 export default function TryDemo() {
   usePageMeta(
     "Try it yourself",
-    `Try ${PRODUCT_NAME} yourself: see a deal from the client app and from the broker portal, with sample data, in about ten minutes.`,
+    `Try ${PRODUCT_NAME} yourself: see a deal from the client app and from the broker portal, with sample data. It takes about ten minutes.`,
     "/try",
   );
   const [f, setF] = useState<Form>({ name: "", email: "", phone: "", company: "", website_url: "" });
@@ -57,6 +58,8 @@ export default function TryDemo() {
       turnstile_token: token || undefined,
     });
     if (res.ok) {
+      // Kept in this browser so Sign up and Contact can be filled in for them later.
+      rememberDemoContact({ name: f.name.trim(), email: f.email.trim(), company: f.company.trim(), phone: f.phone.trim() });
       setMessage(res.message);
       setState("sent");
       if (res.openUrl) window.location.assign(res.openUrl);
@@ -74,8 +77,9 @@ export default function TryDemo() {
       <div className="wrap wrap--narrow page-head">
         <h1>Try it yourself</h1>
         <p className="lede">
-          See a real deal from both sides in about ten minutes: first the client app your borrowers use, then your portal.
-          Nothing to download, nothing to type - just click Next. Your own private demo, with sample data.
+          It takes about ten minutes: you'll see a real deal from both sides, first the client app your borrowers use,
+          then your portal. Nothing to download, nothing to type - just click Next. Your own private demo, with sample
+          data.
         </p>
       </div>
       <div className="wrap wrap--narrow">
@@ -118,7 +122,7 @@ export default function TryDemo() {
               <div className="field">
                 <label htmlFor="d-phone">Mobile phone</label>
                 <input id="d-phone" type="tel" inputMode="tel" autoComplete="tel" maxLength={40} value={f.phone} onChange={setPhone} placeholder="(403) 555-0199" aria-invalid={!!errors.phone} aria-describedby={errors.phone ? "d-phone-e" : "d-phone-h"} />
-                <span className="hint" id="d-phone-h">We text you a link so you can come back to it. Canadian or US number.</span>
+                <span className="hint" id="d-phone-h">So we can reach you. Canadian or US number.</span>
                 {errors.phone && <span className="field-error" id="d-phone-e">{errors.phone}</span>}
               </div>
               <div className="field">
@@ -137,7 +141,7 @@ export default function TryDemo() {
               {state === "sending" ? "Starting your demo…" : "Start my demo"}
             </button>
             <p className="small muted" style={{ marginTop: "0.75rem" }}>
-              We use these details to text and email your demo link and to follow up about {PRODUCT_NAME}. See our{" "}
+              We use these details to email your demo link and to follow up about {PRODUCT_NAME}. See our{" "}
               <Link to="/privacy">privacy policy</Link>. Everything in the demo is sample data - nothing you do in it reaches a
               real borrower or lender.
             </p>

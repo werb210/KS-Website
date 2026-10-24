@@ -46,3 +46,22 @@ export function darkenForWhiteText(hex: string, target = 4.5): string | null {
 export function toHex(rgb: [number, number, number]): string {
   return "#" + rgb.map((c) => c.toString(16).padStart(2, "0")).join("");
 }
+
+/** Text colour used on a licensee's background / surface colour. */
+export const DARK_TEXT = "#16263a";
+
+/** Lighten a colour step by step (towards white) until dark text on it reaches the target ratio. */
+export function lightenForDarkText(hex: string, target = 4.5, text = DARK_TEXT): string | null {
+  const rgb = parseHex(hex);
+  if (!rgb) return null;
+  let [r, g, b] = rgb;
+  for (let i = 0; i < 100; i++) {
+    const out = toHex([r, g, b]);
+    const ratio = contrastRatio(out, text);
+    if (ratio !== null && ratio >= target) return out;
+    r = Math.min(255, Math.ceil(r + (255 - r) * 0.08));
+    g = Math.min(255, Math.ceil(g + (255 - g) * 0.08));
+    b = Math.min(255, Math.ceil(b + (255 - b) * 0.08));
+  }
+  return "#ffffff";
+}

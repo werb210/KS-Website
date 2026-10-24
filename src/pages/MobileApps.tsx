@@ -21,24 +21,29 @@ function Phone({ title, rows }: { title: string; rows: string[] }) {
 export default function MobileApps() {
   usePageMeta(
     "Mobile apps",
-    `${PRODUCT_NAME} mobile apps: a branded client app for iPhone and Android, an iPhone dialler with Apple Watch app for staff, and the staff portal on iPad.`,
+    `${PRODUCT_NAME} mobile apps: a branded client app for iPhone and Android (or the same client portal as a website in any browser), an iPhone dialler with Apple Watch app for staff, and the staff portal on iPad.`,
     "/mobile-apps",
   );
   return (
     <>
       <div className="wrap page-head">
         <h1>Apps for your clients and your team</h1>
-        <p>Your borrowers apply from their phone. Your staff call, text and check files from theirs.</p>
+        <p>Your borrowers apply from their phone or any browser. Your staff call, text and check files from their phones.</p>
       </div>
       <section className="section section--tight">
         <div className="wrap split">
           <div>
-            <h2>Client app for iPhone and Android</h2>
+            <h2>Client app for iPhone and Android, or any browser</h2>
             <p>
-              The same 6-step application and client mini-portal as your website, in your brokerage's own app: your
-              name, icon, colours and wording, listed in the App Store and Google Play under your name. It is already
-              connected to your system, so borrowers just download it, sign in with a one-time code sent to their
-              phone, upload documents with the camera and get notified when you need something.
+              Your clients choose how they use it: as your brokerage's own app on iPhone or Android, or as a website
+              in any browser on a computer, tablet or phone. Both have the same 6-step application and client
+              mini-portal, with your name, colours and wording.
+            </p>
+            <p>
+              The app is listed in the App Store and Google Play under your name and is already connected to your
+              system, so borrowers just download it, sign in with a one-time code sent to their phone, upload
+              documents with the camera and get notified when you need something. The website needs nothing
+              installed.
             </p>
             <h2 style={{ marginTop: "2rem" }}>iPhone dialler for staff</h2>
             <p>
@@ -72,9 +77,9 @@ export default function MobileApps() {
             to your brokerage's own system and shows your branding from then on.
           </p>
           <p>
-            Your clients never enter a company code. They use your brokerage's own branded app, published from your Apple and
-            Google developer accounts, or your web client portal at its own address. Both are already connected to
-            your system.
+            Your clients never enter a company code. They use your brokerage's own app on iPhone or Android, published
+            from your Apple and Google developer accounts, or your client portal as a website in any browser, at its own
+            address. It's their choice, and both are already connected to your system.
           </p>
           <p>
             <Link className="btn" to="/signup">
