@@ -10,6 +10,7 @@ export const ROUTES = [
   "/fraud-protection",
   "/faq",
   "/contact",
+  "/beta",
   "/signup",
   "/terms",
   "/privacy",

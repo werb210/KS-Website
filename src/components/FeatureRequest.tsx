@@ -13,7 +13,14 @@ export function FeatureRequest() {
         <p style={{ marginTop: "1.5rem" }}>
           <Link className="btn" to="/contact">
             Tell us your idea
+          </Link>{" "}
+          {/* KS_WEBSITE_BETA_v1 */}
+          <Link className="btn btn--ghost" to="/beta">
+            Join our beta programme
           </Link>
+        </p>
+        <p className="small muted" style={{ maxWidth: "60ch" }}>
+          Want to try new features first? Beta members get early access and help shape what we build.
         </p>
       </div>
     </section>
