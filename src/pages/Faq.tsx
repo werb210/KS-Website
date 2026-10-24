@@ -39,8 +39,8 @@ export default function Faq() {
       a: "We set up your copy within one business day of payment and email your sign-in details. Growth and Pro include onboarding help to get your team, lenders and branding in place.",
     },
     {
-      q: "What's a company code?",
-      a: "A short name you choose at sign-up, like prairie-capital. Your staff enter it once in the iPhone dialler and iPad apps so those apps connect to your brokerage. Your clients never need it: they use your brokerage's own app on iPhone or Android, or your client portal as a website in any browser.",
+      q: "How do my staff sign in to the apps?",
+      a: "Your staff sign in to the dialler and iPad apps with their work email or mobile number; the app finds your brokerage automatically. Your clients use your brokerage's own app on iPhone or Android, or your client portal as a website in any browser.",
     },
     {
       q: "Is the client app under our name?",

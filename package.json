@@ -14,6 +14,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "vitest run",
     "check:brand": "node scripts/check-brand-strings.mjs",
+    "screenshots": "node scripts/screenshots/capture.mjs && node scripts/screenshots/frame.mjs",
     "ci": "npm run check:brand && npm run lint && npm run typecheck && npm run test && npm run build"
   },
   "dependencies": {
