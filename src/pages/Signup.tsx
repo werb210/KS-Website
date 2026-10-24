@@ -533,10 +533,9 @@ export default function Signup() {
           {step === "code" && (
             <>
               <p>
-                Your company code is how your team finds your brokerage in the {PRODUCT_NAME} apps. Staff type it once
-                when they first open the iPhone dialler or iPad app, then sign in as usual. Your clients never need it:
-                they use your brokerage's own app on iPhone or Android, or your client portal as a website in any
-                browser, whichever they prefer.
+                Your company code is a short name for your brokerage's web addresses, like <code>prairie-capital</code>.
+                Nobody has to type it: your staff sign in to the dialler and iPad apps with their work email or mobile
+                number, and the app finds your brokerage automatically.
               </p>
               <Field
                 id="company_code"

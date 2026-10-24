@@ -26,6 +26,10 @@ npm run dev          # local dev server
 npm run ci           # brand check, lint, typecheck, tests, build
 ```
 
+App screenshots: real screens of the client app and staff portal from their demo builds, made by
+`scripts/screenshots/` (see its README to regenerate them). iPhone dialler and Apple Watch screenshots go in
+`src/assets/screens/native/` (`iphone-dialler.png`, `apple-watch.png`).
+
 `scripts/check-brand-strings.mjs` fails the build if the vendor's brand name or phone number appears in the source.
 
 ## Pages

@@ -3,6 +3,8 @@ import { FeatureRequest } from "../components/FeatureRequest";
 import { PgiTip } from "../components/PgiTip";
 import { PRODUCT_NAME } from "../config";
 import { usePageMeta } from "../hooks/usePageMeta";
+import { Screenshot } from "../components/Screenshot";
+import type { ScreenName } from "../lib/screens";
 
 type Item = { name: string; body: string; plan?: "Growth" | "Pro"; pgiTip?: boolean };
 type Area = { title: string; intro: string; items: Item[] };
@@ -92,6 +94,16 @@ const AREAS: Area[] = [
   },
 ];
 
+const GALLERY: Array<{ name: ScreenName; caption: string }> = [
+  { name: "portal-documents", caption: "Documents read on upload, with tampered statements flagged." },
+  { name: "portal-financials", caption: "Figures from the financial statements, ready to review." },
+  { name: "portal-banking", caption: "Bank statement analysis with a three-month trend." },
+  { name: "portal-credit", caption: "A credit summary drafted for you to edit." },
+  { name: "portal-fraud", caption: "A fraud score with plain-English reasons." },
+  { name: "portal-lenders", caption: "Lenders matched to the deal, ready to submit." },
+  { name: "portal-calculator", caption: "A loan calculator with the full payment schedule." },
+];
+
 export default function Features() {
   usePageMeta(
     "Features",
@@ -106,6 +118,19 @@ export default function Features() {
           Everything below is included on every plan unless it's marked Growth or Pro. <Link to="/pricing">See plans</Link>.
         </p>
       </div>
+      <section className="section section--tight" aria-labelledby="inside-h">
+        <div className="wrap">
+        <h2 id="inside-h" style={{ fontSize: "var(--step-2)" }}>
+          A look inside
+        </h2>
+        <p className="muted">Real screens from the staff portal, on a sample application.</p>
+        <div className="shots-grid">
+          {GALLERY.map((g) => (
+            <Screenshot key={g.name} name={g.name} sizes="(max-width: 700px) 92vw, (max-width: 1100px) 46vw, 520px" caption={g.caption} />
+          ))}
+        </div>
+        </div>
+      </section>
       <div className="wrap">
         {AREAS.map((a) => (
           <section className="feature-area" key={a.title} aria-labelledby={`area-${a.title}`}>
