@@ -1,5 +1,5 @@
-import type { BillingInterval, Catalog, PlanKey } from "./plans";
-import { MAX_SEATS, findPlan } from "./plans";
+import type { BillingInterval, Catalog, PaymentMethod, PlanKey } from "./plans";
+import { MAX_SEATS, findPlan, isPaymentMethod } from "./plans";
 import { regionsFor } from "./regions";
 
 export type SignupForm = {
@@ -19,6 +19,8 @@ export type SignupForm = {
   support_level: string;
   /** Extra 50 GB storage blocks bought on top of the plan's allowance. */
   extra_storage_blocks: number;
+  /** Bank debit (Canadian pre-authorized debit) by default, or card. */
+  payment_method: PaymentMethod;
   logo_url: string;
   primary_color: string;
   assistant_name: string;
@@ -43,6 +45,7 @@ export const EMPTY_FORM: SignupForm = {
   billing_interval: "annual",
   support_level: "email",
   extra_storage_blocks: 0,
+  payment_method: "acss_debit",
   logo_url: "",
   primary_color: "#1f4e79",
   assistant_name: "",
@@ -82,6 +85,7 @@ export const FIELD_STEP: Record<string, StepKey> = {
   billing_interval: "plan",
   support_level: "plan",
   extra_storage_blocks: "plan",
+  payment_method: "plan",
   logo_url: "branding",
   primary_color: "branding",
   assistant_name: "branding",
@@ -183,6 +187,7 @@ export function validateStep(step: StepKey, f: SignupForm, catalog: Catalog, cod
       else if (blocks > maxBlocks) e.extra_storage_blocks = `Extra storage is limited to ${maxBlocks.toLocaleString("en-CA")} blocks.`;
       if (f.billing_interval !== "annual" && f.billing_interval !== "monthly") e.billing_interval = "Choose billing.";
       if (!catalog.support_levels.some((s) => s.key === f.support_level)) e.support_level = "Choose a support level.";
+      if (!isPaymentMethod(f.payment_method)) e.payment_method = "Choose bank debit or credit card.";
       break;
     }
     case "branding": {

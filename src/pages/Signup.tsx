@@ -11,7 +11,7 @@ import { submitSignup, type SignupPayload } from "../lib/api";
 import { contrastRatio, darkenForWhiteText } from "../lib/contrast";
 import { goTo } from "../lib/navigate";
 import type { BillingInterval, Catalog, PlanKey, SupportLevel } from "../lib/plans";
-import { MAX_SEATS, findPlan, findSupport, hasLiveHelp } from "../lib/plans";
+import { MAX_SEATS, PAYMENT_METHODS, findPlan, findSupport, hasLiveHelp, isPaymentMethod } from "../lib/plans";
 import { clampInt, formatMoney, formatNumber, seatRange, signupQuote, supportMonthly } from "../lib/pricing";
 import { regionsFor } from "../lib/regions";
 import { DRAFT_KEY, LAST_SIGNUP_KEY, load, remove, save } from "../lib/storage";
@@ -37,6 +37,7 @@ function initialForm(params: URLSearchParams): SignupForm {
   const seats = Number(params.get("seats"));
   if (Number.isInteger(seats) && seats > 0 && seats <= MAX_SEATS) f.seats = seats;
   if (!Number.isInteger(f.extra_storage_blocks) || f.extra_storage_blocks < 0) f.extra_storage_blocks = 0;
+  if (!isPaymentMethod(f.payment_method)) f.payment_method = EMPTY_FORM.payment_method;
   const billing = params.get("billing");
   if (billing === "annual" || billing === "monthly") f.billing_interval = billing;
   return f;
@@ -60,6 +61,7 @@ export function buildPayload(f: SignupForm, turnstileToken: string): SignupPaylo
     billing_interval: f.billing_interval,
     support_level: f.support_level,
     extra_storage_blocks: Number(f.extra_storage_blocks) || 0,
+    payment_method: f.payment_method,
     primary_color: opt(f.primary_color),
     logo_url: opt(f.logo_url),
     assistant_name: opt(f.assistant_name),
@@ -591,6 +593,22 @@ export default function Signup() {
                     : "None added"
                 }
               />
+              <fieldset className="field">
+                <legend>How you'll pay</legend>
+                <span className="hint">Bank debit is the default. You enter your bank or card details on the secure Stripe payment page.</span>
+                <div className="radio-cards radio-cards--wide">
+                  {PAYMENT_METHODS.map((pm) => (
+                    <RadioCard key={pm.key} name="payment_method" value={pm.key} checked={f.payment_method === pm.key} onChange={() => update("payment_method", pm.key)}>
+                      <strong>
+                        {pm.name}
+                        {pm.key === "acss_debit" ? " (recommended)" : ""}
+                      </strong>
+                      <small>{pm.detail}</small>
+                    </RadioCard>
+                  ))}
+                </div>
+                {errorFor("payment_method") && <span className="field-error">{errorFor("payment_method")}</span>}
+              </fieldset>
               {f.plan === c.trial.for && (
                 <p className="callout small">
                   On {plan.name}, you can try every {findPlan(c, c.trial.plan)?.name} feature free for {c.trial.days} days
@@ -700,6 +718,10 @@ export default function Signup() {
                   {planQuote.storageBlocks > 0
                     ? `${formatNumber(planQuote.storageBlocks * c.extra_storage.block_gb)} GB, ${m(planQuote.storageMonthly)} a month`
                     : "None"}
+                </dd>
+                <dt>Payment</dt>
+                <dd data-testid="review-payment">
+                  {PAYMENT_METHODS.find((pm) => pm.key === f.payment_method)?.name ?? "Bank debit"}
                 </dd>
                 <dt>Monthly total</dt>
                 <dd data-testid="review-monthly">{m(planQuote.monthlyTotal)}</dd>

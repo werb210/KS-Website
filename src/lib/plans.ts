@@ -3,6 +3,18 @@ import { opsUrl } from "../config";
 export type PlanKey = "starter" | "growth" | "pro";
 export type BillingInterval = "annual" | "monthly";
 
+/** How the licensee pays (KS-Ops payment_method). Bank debit is the default. */
+export type PaymentMethod = "acss_debit" | "card";
+export const PAYMENT_METHODS: ReadonlyArray<{ key: PaymentMethod; name: string; detail: string }> = [
+  {
+    key: "acss_debit",
+    name: "Bank debit",
+    detail: "Pre-authorized debit from a Canadian business bank account. You agree to the debit agreement on the payment page.",
+  },
+  { key: "card", name: "Credit card", detail: "Visa, Mastercard or American Express, charged automatically." },
+];
+export const isPaymentMethod = (v: unknown): v is PaymentMethod => v === "acss_debit" || v === "card";
+
 export type PlanAllowances = {
   minutes_per_seat: number;
   texts_per_seat: number;

@@ -65,7 +65,7 @@ export default function Faq() {
     },
     {
       q: "How do we pay?",
-      a: "By card through Stripe's secure checkout. Annual billing is charged once a year; monthly billing every month. Onboarding fees are charged once with your first payment.",
+      a: "By pre-authorized debit from a Canadian business bank account (the default), or by credit card, through Stripe's secure checkout. Annual billing is charged once a year; monthly billing every month. Onboarding fees are charged once with your first payment.",
     },
   ];
   return (
