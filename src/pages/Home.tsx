@@ -100,7 +100,7 @@ export default function Home() {
           <ol className="plain-list" style={{ paddingLeft: "1.4rem", listStyle: "decimal" }}>
             <li>Choose a plan and the number of seats.</li>
             <li>Pick your company code, colours, logo and the assistant's name.</li>
-            <li>Pay by card through our secure checkout.</li>
+            <li>Pay by bank debit or card through our secure checkout.</li>
             <li>We set up your copy and email your sign-in details.</li>
             <li>Add your lenders, invite your team and start taking applications.</li>
           </ol>

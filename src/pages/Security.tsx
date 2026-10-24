@@ -28,7 +28,7 @@ const POINTS = [
   },
   {
     title: "Payments",
-    body: "Card payments for your subscription are handled by Stripe. We never see or store your full card number.",
+    body: "Bank debit and card payments for your subscription are handled by Stripe. We never see or store your full card or bank account number.",
   },
   {
     title: "Access by our team",

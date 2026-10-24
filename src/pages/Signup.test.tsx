@@ -139,6 +139,7 @@ describe("Sign-up", () => {
       billing_interval: "annual",
       support_level: "email",
       extra_storage_blocks: 0,
+      payment_method: "acss_debit",
       accept_terms: true,
       accept_privacy: true,
       website_url: "",
@@ -311,10 +312,37 @@ describe("Sign-up", () => {
     expect(Object.keys(body).sort()).toEqual(
       [
         "accept_privacy", "accept_terms", "billing_interval", "company_code", "company_name", "contact_email", "contact_name",
-        "contact_phone", "country", "extra_storage_blocks", "legal_name", "mailing_address", "plan", "province_state",
+        "contact_phone", "country", "extra_storage_blocks", "legal_name", "mailing_address", "payment_method", "plan", "province_state",
         "seats", "support_level", "website_url", "primary_color",
       ].sort(),
     );
+  });
+
+  it("offers bank debit by default and card as the alternative, and sends the choice", async () => {
+    const f = setup({
+      "/api/public/signup": () => ({
+        status: 201,
+        body: { licensee_id: "lic-3", signup_token: "tok-3", checkout_url: "https://checkout.stripe.com/c/pay/cs_test_3" },
+      }),
+    });
+    await fillToPlan();
+    const bank = screen.getByRole("radio", { name: /^Bank debit/ });
+    const card = screen.getByRole("radio", { name: /^Credit card/ });
+    expect(bank).toBeChecked();
+    expect(card).not.toBeChecked();
+    expect(screen.getByText(/Pre-authorized debit from a Canadian business bank account/)).toBeInTheDocument();
+    fireEvent.click(card);
+    next();
+    await screen.findByRole("heading", { name: "Branding" });
+    next();
+    await screen.findByRole("heading", { name: "Review" });
+    expect(screen.getByTestId("review-payment")).toHaveTextContent("Credit card");
+    fireEvent.click(screen.getByLabelText(/terms of service/));
+    fireEvent.click(screen.getByLabelText(/privacy policy/));
+    fireEvent.click(screen.getByRole("button", { name: "Continue to payment" }));
+    await waitFor(() => expect(goTo).toHaveBeenCalled());
+    const body = JSON.parse(String(callsTo(f, "/api/public/signup")[0][1]?.body));
+    expect(body.payment_method).toBe("card");
   });
 
   it("does not offer the hidden bank connect add-on", async () => {

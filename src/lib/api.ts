@@ -1,5 +1,5 @@
 import { opsUrl } from "../config";
-import type { BillingInterval, PlanKey } from "./plans";
+import type { BillingInterval, PaymentMethod, PlanKey } from "./plans";
 
 /**
  * Only Stripe's own Checkout pages are followed. Anything else coming back as a payment link (a misconfigured or
@@ -47,6 +47,8 @@ export type SignupPayload = {
   support_level: string;
   /** Extra 50 GB storage blocks, 0 to the catalog's max_blocks. */
   extra_storage_blocks: number;
+  /** "acss_debit" (Canadian pre-authorized debit, the default) or "card". */
+  payment_method: PaymentMethod;
   primary_color?: string;
   logo_url?: string;
   assistant_name?: string;
