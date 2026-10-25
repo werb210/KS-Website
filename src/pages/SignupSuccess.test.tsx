@@ -3,7 +3,7 @@ import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { callsTo, mockFetch } from "../test/fetch";
 import SignupCancelled from "./SignupCancelled";
-import SignupSuccess, { POLL_INTERVAL_MS } from "./SignupSuccess";
+import SignupSuccess, { POLL_INTERVAL_MS, SETUP_POLL_MS } from "./SignupSuccess";
 
 vi.mock("../lib/navigate", () => ({ goTo: vi.fn() }));
 import { goTo } from "../lib/navigate";
@@ -105,5 +105,68 @@ describe("Sign-up cancelled", () => {
     fireEvent.click(screen.getByRole("button", { name: "Resume payment" }));
     expect(await screen.findByRole("alert")).toHaveTextContent(/payment link/);
     expect(goTo).not.toHaveBeenCalledWith("https://evil.example/pay");
+  });
+});
+
+// KS_OPS_AUTO_PROVISION_v1 - "We're setting up your system" with live progress, then the sign-in button.
+describe("Sign-up success: setup progress", () => {
+  beforeEach(() => vi.useFakeTimers());
+  afterEach(() => vi.useRealTimers());
+  const P = "A".repeat(22) + "b".repeat(21);
+
+  it("shows live progress from the opaque token, then the sign-in button and the email note", async () => {
+    let n = 0;
+    const f = mockFetch({
+      "/status": () => ({ body: { status: "provisioning", company_name: "Prairie Capital" } }),
+      "/api/public/provisioning/": () =>
+        ++n < 3
+          ? { body: { state: "setting_up", company_name: "Prairie Capital", steps: [{ label: "Creating your servers and database", status: n === 1 ? "in_progress" : "done" }, { label: "Installing Keystone", status: "pending" }] } }
+          : { body: { state: "ready", company_name: "Prairie Capital", portal_url: "https://ks-prairie-portal.azurestaticapps.net", steps: [] } },
+    });
+    renderSuccess(`/signup/success?l=lic-1&t=tok-1&p=${P}`);
+    await flush();
+    await flush();
+    expect(String(callsTo(f, "/api/public/provisioning/")[0][0])).toBe(`https://ops.test/api/public/provisioning/${P}`);
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("We're setting up your system");
+    expect(screen.getByTestId("setup-progress")).toHaveTextContent(/Creating your servers and database: in progress/);
+    expect(screen.getByTestId("setup-progress")).toHaveTextContent(/Installing Keystone: waiting/);
+    await act(async () => { await vi.advanceTimersByTimeAsync(SETUP_POLL_MS); });
+    expect(screen.getByTestId("setup-progress")).toHaveTextContent(/Creating your servers and database: done/);
+    await act(async () => { await vi.advanceTimersByTimeAsync(SETUP_POLL_MS); });
+    const button = screen.getByRole("link", { name: "Sign in to your staff portal" });
+    expect(button).toHaveAttribute("href", "https://ks-prairie-portal.azurestaticapps.net/");
+    expect(screen.getByTestId("setup-progress")).toHaveTextContent(/email with your sign-in link and company code is on its way/);
+    await act(async () => { await vi.advanceTimersByTimeAsync(SETUP_POLL_MS * 3); });
+    expect(callsTo(f, "/api/public/provisioning/")).toHaveLength(3);
+  });
+
+  it("says it is taking longer when the team has to step in", async () => {
+    mockFetch({
+      "/status": () => ({ body: { status: "provisioning", company_name: "X" } }),
+      "/api/public/provisioning/": () => ({ body: { state: "needs_attention", company_name: "X", steps: [] } }),
+    });
+    renderSuccess(`/signup/success?l=lic-1&t=tok-1&p=${P}`);
+    await flush();
+    await flush();
+    expect(screen.getByTestId("setup-progress")).toHaveTextContent(/taking longer than usual/);
+  });
+
+  it("never offers a sign-in button that is not https", async () => {
+    mockFetch({
+      "/status": () => ({ body: { status: "active", company_name: "X" } }),
+      "/api/public/provisioning/": () => ({ body: { state: "ready", company_name: "X", portal_url: "javascript:alert(1)" } }),
+    });
+    renderSuccess(`/signup/success?l=lic-1&t=tok-1&p=${P}`);
+    await flush();
+    await flush();
+    expect(screen.queryByRole("link", { name: /Sign in/ })).toBeNull();
+  });
+
+  it("without a token keeps the old message", async () => {
+    const f = mockFetch({ "/status": () => ({ body: { status: "provisioning", company_name: "X" } }) });
+    renderSuccess("/signup/success?l=lic-1&t=tok-1&p=short");
+    await flush();
+    expect(callsTo(f, "/api/public/provisioning/")).toHaveLength(0);
+    expect(screen.getByTestId("signup-status")).toHaveTextContent(/We're setting up your copy now/);
   });
 });

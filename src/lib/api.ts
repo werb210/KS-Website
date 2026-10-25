@@ -140,6 +140,46 @@ export async function getSignupStatus(id: string, token: string, signal?: AbortS
   return { status: String(body.status ?? ""), company_name: String(body.company_name ?? "") };
 }
 
+// KS_OPS_AUTO_PROVISION_v1 - setup progress after payment (KS-Ops GET /api/public/provisioning/:token). The token is
+// opaque (it comes from Stripe's success link as p=); the answer holds progress labels and, once ready, the portal.
+export type SetupStep = { label: string; status: "done" | "in_progress" | "pending" };
+export type SetupStatus = {
+  state: "waiting_payment" | "setting_up" | "ready" | "needs_attention" | "not_found";
+  company_name: string;
+  portal_url: string | null;
+  steps: SetupStep[];
+};
+
+/** Only an https address is ever offered as the sign-in button. */
+export function safePortalUrl(raw: unknown): string | null {
+  if (typeof raw !== "string") return null;
+  try {
+    const u = new URL(raw);
+    return u.protocol === "https:" ? u.toString() : null;
+  } catch {
+    return null;
+  }
+}
+
+export async function getSetupStatus(token: string, signal?: AbortSignal): Promise<SetupStatus> {
+  const res = await fetch(opsUrl(`/api/public/provisioning/${encodeURIComponent(token)}`), { signal, headers: { Accept: "application/json" } });
+  if (res.status === 404) return { state: "not_found", company_name: "", portal_url: null, steps: [] };
+  if (!res.ok) throw new Error(`status ${res.status}`);
+  const body = (await res.json()) as Record<string, unknown>;
+  const states = ["waiting_payment", "setting_up", "ready", "needs_attention", "not_found"];
+  const state = states.includes(String(body.state)) ? (String(body.state) as SetupStatus["state"]) : "setting_up";
+  const steps = Array.isArray(body.steps)
+    ? body.steps
+        .filter((s): s is Record<string, unknown> => Boolean(s) && typeof s === "object")
+        .map((s) => ({
+          label: String(s.label ?? ""),
+          status: (["done", "in_progress", "pending"].includes(String(s.status)) ? String(s.status) : "pending") as SetupStep["status"],
+        }))
+        .filter((s) => s.label)
+    : [];
+  return { state, company_name: String(body.company_name ?? ""), portal_url: safePortalUrl(body.portal_url), steps };
+}
+
 /**
  * Ask KS-Ops for a fresh payment link for a sign-up that hasn't paid yet
  * (POST /api/public/signup/:id/checkout?token=). Returns null when the service can't give one, or gives
