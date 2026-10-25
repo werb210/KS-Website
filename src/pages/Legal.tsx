@@ -21,10 +21,10 @@ export function Terms() {
         <li>Parties, the licensed software and the licensee's own copy.</li>
         <li>Seats, plans, allowances, overage, extra storage and price changes.</li>
         <li>Billing (annual and monthly), onboarding fees, taxes, refunds and late payment.</li>
-        <li>The 14-day trial of Pro features on Starter.</li>
+        <li>The 14-day trial of Pro features on Starter and Growth.</li>
         <li>Acceptable use, including calling and texting rules (CASL, CRTC and, in the US, TCPA).</li>
         <li>The licensee's responsibilities for client consent, lender relationships and regulatory compliance.</li>
-        <li>Data ownership, export on cancellation and deletion timelines.</li>
+        <li>Data ownership, export on cancellation, the 7-year record retention, legal holds and deletion timelines.</li>
         <li>Third-party services (Microsoft Azure, Stripe, Twilio, OpenAI and others).</li>
         <li>Support levels and service availability.</li>
         <li>Warranties, limitation of liability and indemnities.</li>

@@ -15,7 +15,7 @@ import { submitSignup, type BrandScanResult, type SignupPayload } from "../lib/a
 import { useDemoContact } from "../lib/prefill";
 import { goTo } from "../lib/navigate";
 import type { BillingInterval, Catalog, PlanKey, SupportLevel } from "../lib/plans";
-import { MAX_SEATS, PAYMENT_METHODS, findPlan, findSupport, hasLiveHelp, isPaymentMethod } from "../lib/plans";
+import { MAX_SEATS, PAYMENT_METHODS, findPlan, findSupport, hasLiveHelp, isPaymentMethod, trialPlans } from "../lib/plans";
 import { clampInt, formatMoney, formatNumber, seatRange, signupQuote } from "../lib/pricing";
 import { regionsFor } from "../lib/regions";
 import { DRAFT_KEY, LAST_SIGNUP_KEY, load, remove, save } from "../lib/storage";
@@ -673,7 +673,7 @@ export default function Signup() {
                 </div>
                 {errorFor("payment_method") && <span className="field-error">{errorFor("payment_method")}</span>}
               </fieldset>
-              {f.plan === c.trial.for && (
+              {trialPlans(c).includes(f.plan) && (
                 <p className="callout small">
                   On {plan.name}, you can try every {findPlan(c, c.trial.plan)?.name} feature free for {c.trial.days} days
                   from inside the app.

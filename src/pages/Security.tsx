@@ -31,8 +31,16 @@ const HOSTING: Point[] = [
 
 const RECORDS: Point[] = [
   {
-    title: "Documents stay on file",
-    body: "Nothing is deleted on a timer while your account is active, so you can keep documents for the full record-keeping period your rules require. Only an Admin can delete a document.",
+    title: "Records kept for 7 years",
+    body: "Applications, uploaded documents, signed agreements, lender packages and the audit log are locked for 7 years from the later of the upload and the file closing (funded, declined or withdrawn). Delete buttons show a lock and the first date the record can be deleted, and the server refuses earlier deletes.",
+  },
+  {
+    title: "Legal holds",
+    body: "An Admin can place a legal hold on an application, contact or company, with a reason. Nothing under a hold can be deleted or purged until an Admin releases it. Placing and releasing a hold is recorded in the audit log.",
+  },
+  {
+    title: "Nothing deleted automatically",
+    body: "After 7 years a record becomes eligible for deletion and is listed in the Admin Retention report. It is only deleted when an Admin chooses to.",
   },
   {
     title: "SIN and SSN removed after signing",
@@ -40,7 +48,7 @@ const RECORDS: Point[] = [
   },
   {
     title: "Audit log",
-    body: "Sign-ins, one-time code checks, new users and role changes, pipeline moves, document uploads and report exports are recorded with who did it and when.",
+    body: "Sign-ins, one-time code checks, new users and role changes, pipeline moves, document uploads, report exports and legal holds are recorded with who did it and when. Audit entries cannot be deleted for 7 years.",
   },
   {
     title: "Consent records",
@@ -51,8 +59,8 @@ const RECORDS: Point[] = [
     body: "An Admin can download everything in your copy, every record and uploaded file, as one zip file. It stays available after you cancel.",
   },
   {
-    title: "Cancelling: 6 months, then deleted",
-    body: "If you cancel, your data is kept for 180 days so you can download it. Your Admins are emailed 7 days and 1 day before it is permanently deleted, records and files alike.",
+    title: "Cancelling: 6 months, then deleted - except retained records",
+    body: "If you cancel, your data is kept for 180 days so you can download it, and your Admins are emailed 7 days and 1 day before it is deleted. Records still inside their 7 years, or under a legal hold, are not destroyed: they are kept read-only and encrypted, out of use, and deleted when their 7 years are up. We can provide a copy on your written request.",
   },
 ];
 

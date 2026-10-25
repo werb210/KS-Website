@@ -70,7 +70,7 @@ describe("client app wording", () => {
 describe("Security page", () => {
   it("lists the compliance features the system has", () => {
     renderAt(<Security />);
-    for (const h of ["Documents stay on file", "SIN and SSN removed after signing", "Audit log", "Consent records", "Export your data any time", "Cancelling: 6 months, then deleted", "Roles", "Fraud checks"]) {
+    for (const h of ["Records kept for 7 years", "Legal holds", "SIN and SSN removed after signing", "Audit log", "Consent records", "Export your data any time", "Cancelling: 6 months, then deleted - except retained records", "Roles", "Fraud checks"]) {
       expect(screen.getByRole("heading", { name: h })).toBeInTheDocument();
     }
     expect(document.body.textContent).toMatch(/kept for 180 days/);
