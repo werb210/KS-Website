@@ -34,9 +34,10 @@ export function buildCsp(opts: { opsUrl: string; contactEndpoint?: string; turns
   return [
     "default-src 'self'",
     `script-src 'self'${opts.turnstile ? ` ${cf}` : ""}`,
-    "style-src 'self' 'unsafe-inline'",
+    // Google Fonts: the sign-up font picker previews the font the licensee chooses.
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "img-src 'self' data: https:",
-    "font-src 'self'",
+    "font-src 'self' https://fonts.gstatic.com",
     `connect-src ${[...connect].join(" ")}`,
     `frame-src ${opts.turnstile ? cf : "'none'"}`,
     "form-action 'self' https://checkout.stripe.com",

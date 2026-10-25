@@ -37,5 +37,10 @@ App screenshots: real screens of the client app and staff portal from their demo
 Home, Features, Pricing, Mobile apps, Security, FAQ, Contact, Terms (draft), Privacy (draft), Sign up,
 `/signup/success`, `/signup/cancelled`.
 
+Sign-up branding step: "Use my website" posts the brokerage's address to KS-Ops `POST /api/public/brand-scan`, which
+reads the site server-side and suggests a logo, colours and font; they pre-fill the fields (contrast checks still run,
+everything stays editable). The font (`font_family`) is sent with the sign-up like the colours. The CSP allows Google
+Fonts (`fonts.googleapis.com` styles, `fonts.gstatic.com` fonts) for the font preview.
+
 Pricing and sign-up read `GET /api/public/plans`; if that fails they use the bundled copy in `src/lib/plans.ts`.
 Keep that copy in step with KS-Ops.
