@@ -182,7 +182,7 @@ export default function SignupSuccess() {
         <li>You sign in, add your lenders and invite your team. Growth and Pro onboarding starts with a call from us.</li>
       </ol>
       <p>
-        <Link to="/">Back to the home page</Link>
+        <Link to="/" className="tap-link">Back to the home page</Link>
       </p>
     </div>
   );
