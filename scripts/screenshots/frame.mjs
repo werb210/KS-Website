@@ -6,7 +6,7 @@
 //   node scripts/screenshots/frame.mjs
 //
 // The frame is chosen by the name: client-* = phone, portal-* = browser window, ipad-* = iPad.
-import { mkdirSync, readdirSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -88,7 +88,9 @@ async function framed(file, kind) {
 }
 
 mkdirSync(OUT, { recursive: true });
-const sizes = {};
+// Screens framed before (and not captured again this time) keep their entry.
+const SIZES = join(OUT, "sizes.json");
+const sizes = existsSync(SIZES) ? JSON.parse(readFileSync(SIZES, "utf8")) : {};
 for (const f of readdirSync(RAW).filter((n) => n.endsWith(".png")).sort()) {
   const name = f.replace(/\.png$/, "");
   const kind = frameOf(name);
@@ -106,5 +108,6 @@ for (const f of readdirSync(RAW).filter((n) => n.endsWith(".png")).sort()) {
   sizes[name] = { width: meta.width, height: meta.height, frame: kind };
   console.log(`  ${name} (${kind}) ${meta.width}x${meta.height}`);
 }
-writeFileSync(join(OUT, "sizes.json"), JSON.stringify(sizes, null, 2) + "\n");
+const sorted = Object.fromEntries(Object.keys(sizes).sort().map((k) => [k, sizes[k]]));
+writeFileSync(SIZES, JSON.stringify(sorted, null, 2) + "\n");
 console.log(`Wrote ${Object.keys(sizes).length} screens to src/assets/screens/`);
