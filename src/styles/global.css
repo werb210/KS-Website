@@ -489,3 +489,14 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
   .shots-pair, .shots-grid { grid-template-columns: minmax(0, 1fr); }
   .shots-pair .shot--phone { max-width: 240px; }
 }
+
+/* KS_WEBSITE_PHONE_READABLE - on a phone (and a phone held sideways) the small print is at least 15px and every
+   link or button on its own line is a 44px tap target. Links inside a sentence keep the line's height. */
+@media (max-width: 767px), (pointer: coarse) and (max-height: 500px) {
+  :root { --step--1: 0.9375rem; }
+  .brand { min-height: 44px; }
+  .site-nav a, .site-footer li > a, .tap-link { display: inline-flex; align-items: center; min-height: 44px; min-width: 44px; }
+  .site-footer li { margin-bottom: 0; }
+  .summary-details, .tip__button, .btn--small, .toggle button { min-height: 44px; }
+  .tip__close { width: 44px; height: 44px; }
+}
