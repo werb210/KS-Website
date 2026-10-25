@@ -28,7 +28,7 @@ node scripts/screenshots/frame.mjs
 - `frame.mjs` puts each one in a frame (`client-*` phone, `portal-*` browser window, `ipad-*` iPad) and writes
   `src/assets/screens/<name>-<w>.avif|.webp` at 1x and 2x, `<name>.png` (1x fallback) and `sizes.json`.
 - Alt text and captions live in `src/lib/screens.ts` and the pages; a new screen needs an `SCREEN_ALT` entry.
-- The screens: client wizard step and client portal (phone); pipeline, documents, financials, bank summary chart,
+- The screens: client wizard step, client portal and the client loan calculator (phone); pipeline, documents, financials, bank summary chart,
   credit summary, fraud score, lenders and loan calculator (browser); documents on iPad.
 
 If an app's demo changes (new tour step order, test ids), adjust the steps in `capture.mjs`.

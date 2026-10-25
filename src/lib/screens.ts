@@ -7,6 +7,7 @@ export type ScreenName = keyof typeof sizes;
 export const SCREEN_ALT: Record<ScreenName, string> = {
   "client-wizard": "The client app on an iPhone: step 3 of the 6-step application, with the business details filled in.",
   "client-portal": "The client's own portal after applying, showing their advisor and that the application is in review.",
+  "client-calculator": "The loan calculator in the client app: payment per period, total interest and total cost for $250,000 over 60 months, with the payment schedule.",
   "portal-pipeline": "The staff portal's sales pipeline, with applications in columns from Received to Off to Lender.",
   "portal-documents": "An application's documents in the staff portal: bank statements read on upload, one flagged as edited after the bank created it.",
   "portal-financials": "Figures read from a client's financial statements, each with how sure the reader is.",

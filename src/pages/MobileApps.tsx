@@ -48,8 +48,9 @@ export default function MobileApps() {
             </p>
           </div>
           <div className="shots-phones">
-            <Screenshot name="client-wizard" sizes="(max-width: 600px) 44vw, 260px" caption="The application, step 3 of 6." />
-            <Screenshot name="client-portal" sizes="(max-width: 600px) 44vw, 260px" caption="The client's own portal." />
+            <Screenshot name="client-wizard" sizes="(max-width: 600px) 30vw, 220px" caption="The application, step 3 of 6." />
+            <Screenshot name="client-portal" sizes="(max-width: 600px) 30vw, 220px" caption="The client's own portal." />
+            <Screenshot name="client-calculator" sizes="(max-width: 600px) 30vw, 220px" caption="A loan calculator on the More tab." />
           </div>
         </div>
       </section>

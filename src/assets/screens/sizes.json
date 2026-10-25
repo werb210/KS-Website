@@ -1,4 +1,9 @@
 {
+  "client-calculator": {
+    "width": 300,
+    "height": 626,
+    "frame": "phone"
+  },
   "client-portal": {
     "width": 300,
     "height": 626,

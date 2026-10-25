@@ -28,7 +28,10 @@ const portalDist = resolve(arg("portal-dist", "../KS-Portal/dist"));
 const fontCssFile = arg("font-css", "");
 const only = arg("only", "");
 
-for (const d of [clientDist, portalDist]) {
+const onlyNames = only ? only.split(",") : [];
+const needClient = !only || onlyNames.some((n) => n.startsWith("client-"));
+const needPortal = !only || onlyNames.some((n) => /^(portal|ipad)-/.test(n));
+for (const d of [needClient ? clientDist : null, needPortal ? portalDist : null].filter(Boolean)) {
   if (!existsSync(join(d, "index.html"))) {
     console.error(`No build at ${d}. Build it first (npx vite build in that repo).`);
     process.exit(1);
@@ -59,7 +62,7 @@ const { chromium } = await import("playwright");
 mkdirSync(RAW, { recursive: true });
 const fontCss = fontCssFile ? readFileSync(fontCssFile, "utf8") : null;
 const client = await serve(clientDist);
-const portal = await serve(portalDist);
+const portal = needPortal ? await serve(portalDist) : null;
 const browser = await chromium.launch();
 
 async function context(opts) {
@@ -107,13 +110,14 @@ const shot = async (page, name) => {
   await next(4); // owners -> documents -> terms -> submitted: the client's own portal
   await page.waitForTimeout(1500);
   await capture("client-portal");
-  // KS-Client v13: the loan calculator on the More tab.
-  await page.locator('[data-testid="cmp-tab-more"]').click().catch(() => {});
-  await page.waitForTimeout(800);
-  const calc = page.getByRole("button", { name: /calculator/i }).first();
-  if (await calc.count()) {
-    await calc.click();
-    await page.waitForTimeout(1000);
+  // KS-Client v13: the loan calculator on the More tab (More -> Loan calculator).
+  if (want("client-calculator")) {
+    // The tour is over by now; its pop-up would sit over the tab bar.
+    await page.addStyleTag({ content: '[data-testid="live-demo-tour"]{display:none!important}' });
+    await page.locator('[data-testid="cmp-tab-more"]').click();
+    await page.locator('[data-testid="cmp-more-calculator"]').click({ timeout: 10_000 });
+    await page.getByRole("dialog", { name: "Loan calculator" }).waitFor({ timeout: 10_000 });
+    await page.waitForTimeout(800);
     await capture("client-calculator");
   }
   await ctx.close();
@@ -173,5 +177,5 @@ if (want("ipad-documents")) {
 
 await browser.close();
 client.server.close();
-portal.server.close();
+portal?.server.close();
 console.log(`Raw screens in ${RAW}. Next: node scripts/screenshots/frame.mjs`);
