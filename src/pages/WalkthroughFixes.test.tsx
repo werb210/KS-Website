@@ -120,6 +120,8 @@ describe("demo details pre-fill Sign up and Contact", () => {
     type("Company name", "BrokerCo Capital Inc");
     expect(screen.getByLabelText("Company name")).toHaveValue("BrokerCo Capital Inc");
     type("Legal name", "BrokerCo Capital Inc.");
+    type("Business number", "123456789"); // KS_WEBSITE_TWILIO_AUTO
+    type("Kind of business", "corporation");
     type("Street address", "1 Main St");
     type("City", "Calgary");
     type("Province or territory", "AB");
@@ -163,6 +165,8 @@ describe("Sign up: address, single price summary, logo and colours", () => {
     renderAt(<Signup />, "/signup");
     type("Company name", "Prairie Capital");
     type("Legal name", "Prairie Capital Inc.");
+    type("Business number", "123456789"); // KS_WEBSITE_TWILIO_AUTO
+    type("Kind of business", "corporation");
     type("Street address", "100 Main St");
     type("Unit or suite (optional)", "Suite 4");
     type("City", "Calgary");
@@ -175,6 +179,7 @@ describe("Sign up: address, single price summary, logo and colours", () => {
     await screen.findByText("prairie-capital is available.");
     next();
     type("Your name", "Pat Lee");
+    type("Your job title", "Owner");
     type("Email", "pat@prairie.example");
     type("Mobile phone", "403 555 0100");
     next();

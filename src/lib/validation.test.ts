@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { DARK_TEXT, contrastRatio, darkenForWhiteText, lightenForDarkText } from "./contrast";
 import { FALLBACK_CATALOG } from "./plans";
 import {
-  EMPTY_FORM, codeFormatError, formatNaPhone, normalizePostal, oneLineAddress, suggestCode, validNaPhone, validateStep, type SignupForm,
+  EMPTY_FORM, codeFormatError, normaliseBusinessNumber, formatNaPhone, normalizePostal, oneLineAddress, suggestCode, validNaPhone, validateStep, type SignupForm,
 } from "./validation";
 
 const c = FALLBACK_CATALOG;
@@ -15,6 +15,9 @@ const good: SignupForm = {
   address_line1: "100 Main St",
   city: "Calgary",
   postal_code: "T2P 1A1",
+  business_number: "123456789",
+  business_type: "corporation",
+  contact_title: "Owner",
   company_code: "prairie-capital",
   contact_name: "Pat Lee",
   contact_email: "pat@prairie.example",
@@ -34,8 +37,18 @@ describe("validateStep", () => {
 
   it("requires company details and a province from the chosen country", () => {
     const e = validateStep("company", { ...EMPTY_FORM, country: "US", province_state: "AB" }, c, "idle");
-    expect(Object.keys(e).sort()).toEqual(["address_line1", "city", "company_name", "legal_name", "postal_code", "province_state"]);
+    expect(Object.keys(e).sort()).toEqual(["address_line1", "business_number", "business_type", "city", "company_name", "legal_name", "postal_code", "province_state"]);
     expect(e.province_state).toMatch(/state/);
+  });
+
+  it("KS_WEBSITE_TWILIO_AUTO: asks for the business number (CRA or EIN) and the kind of business", () => {
+    expect(validateStep("company", { ...good, business_number: "12345" }, c, "idle").business_number).toMatch(/9-digit CRA business number/);
+    expect(validateStep("company", { ...good, business_number: "123456789RC0001" }, c, "idle")).toEqual({});
+    expect(validateStep("company", { ...good, country: "US", province_state: "NY", postal_code: "10001", business_number: "12-3456789" }, c, "idle")).toEqual({});
+    expect(validateStep("company", { ...good, business_type: "" }, c, "idle").business_type).toBe("Choose the kind of business.");
+    expect(validateStep("contact", { ...good, contact_title: " " }, c, "idle").contact_title).toBe("Enter your job title.");
+    expect(normaliseBusinessNumber("US", "123456789")).toBe("12-3456789");
+    expect(normaliseBusinessNumber("CA", "123 456 789")).toBe("123456789");
   });
 
   it("checks the website loosely", () => {
