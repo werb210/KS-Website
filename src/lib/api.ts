@@ -43,6 +43,10 @@ export type SignupPayload = {
   postal_code: string;
   mailing_address: string;
   website?: string;
+  /** KS_WEBSITE_TWILIO_AUTO - KS-Ops v18. */
+  business_number?: string;
+  business_type?: string;
+  contact_title?: string;
   contact_name: string;
   contact_email: string;
   contact_phone: string;

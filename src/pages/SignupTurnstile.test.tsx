@@ -57,6 +57,8 @@ const next = () => fireEvent.click(screen.getByRole("button", { name: "Next" }))
 async function fillToReview() {
   type("Company name", "Prairie Capital");
   type("Legal name", "Prairie Capital Inc.");
+  type("Business number", "123456789"); // KS_WEBSITE_TWILIO_AUTO
+  type("Kind of business", "corporation");
   type("Province or territory", "AB");
   type("Street address", "100 Main St");
   type("City", "Calgary");
@@ -66,6 +68,7 @@ async function fillToReview() {
   next();
   await screen.findByRole("heading", { name: "Contact" });
   type("Your name", "Pat Lee");
+  type("Your job title", "Owner");
   type("Email", "pat@prairie.example");
   type("Mobile phone", "403 555 0100");
   next();

@@ -13,6 +13,11 @@ export type SignupForm = {
   city: string;
   postal_code: string;
   website: string;
+  /** KS_WEBSITE_TWILIO_AUTO - for texting registration with the phone carriers: CRA business number or US EIN, the
+   *  kind of business, and the contact's job title. */
+  business_number: string;
+  business_type: string;
+  contact_title: string;
   company_code: string;
   contact_name: string;
   contact_email: string;
@@ -55,6 +60,9 @@ export const EMPTY_FORM: SignupForm = {
   city: "",
   postal_code: "",
   website: "",
+  business_number: "",
+  business_type: "",
+  contact_title: "",
   company_code: "",
   contact_name: "",
   contact_email: "",
@@ -102,6 +110,9 @@ export const FIELD_STEP: Record<string, StepKey> = {
   city: "company",
   postal_code: "company",
   website: "company",
+  business_number: "company",
+  business_type: "company",
+  contact_title: "contact",
   company_code: "code",
   contact_name: "contact",
   contact_email: "contact",
@@ -170,6 +181,23 @@ export function phoneDigits(v: string): string {
   return v.replace(/\D/g, "");
 }
 
+// KS_WEBSITE_TWILIO_AUTO - the same choices and checks as KS-Ops (src/licensees/validation.ts).
+export const BUSINESS_TYPES: ReadonlyArray<{ value: string; label: string }> = [
+  { value: "corporation", label: "Corporation" },
+  { value: "llc", label: "Limited liability company (LLC)" },
+  { value: "partnership", label: "Partnership" },
+  { value: "sole_proprietor", label: "Sole proprietorship" },
+  { value: "non_profit", label: "Non-profit" },
+  { value: "cooperative", label: "Co-operative" },
+];
+
+/** A CRA business number (9 digits, optionally with its program account) or a US EIN (12-3456789); null if neither. */
+export function normaliseBusinessNumber(country: string, raw: string): string | null {
+  const v = String(raw ?? "").toUpperCase().replace(/[\s-]/g, "");
+  if (country === "US") return /^\d{9}$/.test(v) ? `${v.slice(0, 2)}-${v.slice(2)}` : null;
+  return /^\d{9}([A-Z]{2}\d{4})?$/.test(v) ? v : null;
+}
+
 export type CodeState = "idle" | "checking" | "available" | "taken" | "invalid" | "error";
 
 export function validateStep(step: StepKey, f: SignupForm, catalog: Catalog, codeState: CodeState): Errors {
@@ -193,6 +221,11 @@ export function validateStep(step: StepKey, f: SignupForm, catalog: Catalog, cod
         e.postal_code = f.country === "US" ? "Enter a ZIP code like 94105 or 94105-1234." : "Enter a postal code like T2P 1P6.";
       }
       if (f.website.trim() && !isHttpUrl(normaliseWebsite(f.website))) e.website = "Enter a web address like example.com.";
+      if (!f.business_number.trim()) e.business_number = f.country === "US" ? "Enter your EIN." : "Enter your business number.";
+      else if (!normaliseBusinessNumber(f.country, f.business_number)) {
+        e.business_number = f.country === "US" ? "Enter your 9-digit EIN, like 12-3456789." : "Enter your 9-digit CRA business number, like 123456789.";
+      }
+      if (!BUSINESS_TYPES.some((t) => t.value === f.business_type)) e.business_type = "Choose the kind of business.";
       break;
     }
     case "code": {
@@ -204,6 +237,7 @@ export function validateStep(step: StepKey, f: SignupForm, catalog: Catalog, cod
     }
     case "contact": {
       req("contact_name", "Enter your name.");
+      req("contact_title", "Enter your job title.");
       if (!EMAIL.test(f.contact_email.trim())) e.contact_email = "Enter an email address like name@company.com.";
       const d = phoneDigits(f.contact_phone);
       if (d.length < 10 || d.length > 15) e.contact_phone = "Enter a phone number with area code.";

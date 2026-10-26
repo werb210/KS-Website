@@ -34,6 +34,8 @@ async function toBranding(scan: Handler) {
   renderAt(<Signup />, "/signup");
   type("Company name", "Prairie Capital");
   type("Legal name", "Prairie Capital Inc.");
+  type("Business number", "123456789"); // KS_WEBSITE_TWILIO_AUTO
+  type("Kind of business", "corporation");
   type("Street address", "100 Main St");
   type("City", "Calgary");
   type("Province or territory", "AB");
@@ -43,6 +45,7 @@ async function toBranding(scan: Handler) {
   await screen.findByText("prairie-capital is available.");
   next();
   type("Your name", "Pat Lee");
+  type("Your job title", "Owner");
   type("Email", "pat@prairie.example");
   type("Mobile phone", "403 555 0100");
   next();

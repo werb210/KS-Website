@@ -25,6 +25,8 @@ const next = () => fireEvent.click(screen.getByRole("button", { name: "Next" }))
 async function fillToPlan() {
   type("Company name", "Prairie Capital");
   type("Legal name", "Prairie Capital Inc.");
+  type("Business number", "123456789"); // KS_WEBSITE_TWILIO_AUTO
+  type("Kind of business", "corporation");
   type("Province or territory", "AB");
   type("Street address", "100 Main St");
   type("City", "Calgary");
@@ -36,6 +38,7 @@ async function fillToPlan() {
   next();
   await screen.findByRole("heading", { name: "Contact" });
   type("Your name", "Pat Lee");
+  type("Your job title", "Owner");
   type("Email", "pat@prairie.example");
   type("Mobile phone", "403 555 0100");
   next();
@@ -70,6 +73,8 @@ describe("Sign-up", () => {
     setup({ "company-code-available": () => ({ body: { available: false } }) });
     type("Company name", "Prairie Capital");
     type("Legal name", "Prairie Capital Inc.");
+    type("Business number", "123456789"); // KS_WEBSITE_TWILIO_AUTO
+    type("Kind of business", "corporation");
     type("Province or territory", "AB");
     type("Street address", "100 Main St");
     type("City", "Calgary");
@@ -85,6 +90,8 @@ describe("Sign-up", () => {
     setup();
     type("Company name", "Acme Lending");
     type("Legal name", "A Co Ltd");
+    type("Business number", "123456789"); // KS_WEBSITE_TWILIO_AUTO
+    type("Kind of business", "corporation");
     type("Province or territory", "ON");
     type("Street address", "1 King St");
     type("City", "Toronto");
@@ -93,6 +100,7 @@ describe("Sign-up", () => {
     await screen.findByText("acme-lending is available.");
     next();
     type("Your name", "Pat");
+    type("Your job title", "Owner");
     type("Email", "pat@a.example");
     type("Mobile phone", "4165550100");
     next();
@@ -322,8 +330,10 @@ describe("Sign-up", () => {
         "accept_privacy", "accept_terms", "billing_interval", "company_code", "company_name", "contact_email", "contact_name",
         "contact_phone", "country", "extra_storage_blocks", "legal_name", "mailing_address", "payment_method", "plan", "province_state",
         "seats", "support_level", "website_url", "primary_color", "accent_color", "address_line1", "city", "postal_code",
+        "business_number", "business_type", "contact_title", // KS_WEBSITE_TWILIO_AUTO
       ].sort(),
     );
+    expect(body).toMatchObject({ business_number: "123456789", business_type: "corporation", contact_title: "Owner" });
   });
 
   it("offers bank debit by default and card as the alternative, and sends the choice", async () => {

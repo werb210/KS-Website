@@ -26,6 +26,8 @@ import {
   STEPS,
   normalisePostalOrSelf,
   normaliseWebsite,
+  normaliseBusinessNumber,
+  BUSINESS_TYPES,
   oneLineAddress,
   suggestCode,
   validateStep,
@@ -65,6 +67,9 @@ export function buildPayload(f: SignupForm, turnstileToken: string): SignupPaylo
     postal_code: normalisePostalOrSelf(f.country, f.postal_code),
     mailing_address: oneLineAddress(f),
     website: f.website.trim() ? normaliseWebsite(f.website) : undefined,
+    business_number: f.business_number.trim() ? normaliseBusinessNumber(f.country, f.business_number) ?? f.business_number.trim() : undefined,
+    business_type: opt(f.business_type),
+    contact_title: opt(f.contact_title),
     contact_name: f.contact_name.trim(),
     contact_email: f.contact_email.trim(),
     contact_phone: f.contact_phone.trim(),
@@ -524,8 +529,39 @@ export default function Signup() {
                   </span>
                 )}
               </fieldset>
-              <Field id="website" label="Website (optional)" error={errorFor("website")}>
+              <Field id="website" label="Website (optional)" hint="Phone carriers ask for it before they approve your text messages." error={errorFor("website")}>
                 {(a) => <input {...a} type="url" inputMode="url" placeholder="example.com" value={f.website} onChange={(e) => update("website", e.target.value)} />}
+              </Field>
+              <Field
+                id="business_number"
+                label={f.country === "US" ? "EIN (employer identification number)" : "Business number"}
+                hint={f.country === "US" ? "9 digits. Phone carriers need it to approve your text messages." : "Your 9-digit CRA business number. Phone carriers need it to approve your text messages."}
+                error={errorFor("business_number")}
+              >
+                {(a) => (
+                  <input
+                    {...a}
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={20}
+                    placeholder={f.country === "US" ? "12-3456789" : "123456789"}
+                    value={f.business_number}
+                    onChange={(e) => update("business_number", e.target.value)}
+                    onBlur={() => update("business_number", normaliseBusinessNumber(f.country, f.business_number) ?? f.business_number)}
+                  />
+                )}
+              </Field>
+              <Field id="business_type" label="Kind of business" error={errorFor("business_type")}>
+                {(a) => (
+                  <select {...a} value={f.business_type} onChange={(e) => update("business_type", e.target.value)}>
+                    <option value="">Choose…</option>
+                    {BUSINESS_TYPES.map((t) => (
+                      <option key={t.value} value={t.value}>
+                        {t.label}
+                      </option>
+                    ))}
+                  </select>
+                )}
               </Field>
             </>
           )}
@@ -568,6 +604,9 @@ export default function Signup() {
               <p className="muted">The main contact for your account. We'll send sign-in details and invoices here.</p>
               <Field id="contact_name" label="Your name" error={errorFor("contact_name")}>
                 {(a) => <input {...a} type="text" autoComplete="name" value={f.contact_name} onChange={(e) => update("contact_name", e.target.value)} />}
+              </Field>
+              <Field id="contact_title" label="Your job title" hint="For example Owner or President. You sign for the business with the phone carriers." error={errorFor("contact_title")}>
+                {(a) => <input {...a} type="text" autoComplete="organization-title" maxLength={80} value={f.contact_title} onChange={(e) => update("contact_title", e.target.value)} />}
               </Field>
               <Field id="contact_email" label="Email" error={errorFor("contact_email")}>
                 {(a) => <input {...a} type="email" autoComplete="email" value={f.contact_email} onChange={(e) => update("contact_email", e.target.value)} />}
@@ -740,11 +779,15 @@ export default function Signup() {
                     <dd>{normaliseWebsite(f.website)}</dd>
                   </>
                 )}
+                <dt>{f.country === "US" ? "EIN" : "Business number"}</dt>
+                <dd data-testid="review-business-number">
+                  {f.business_number} ({BUSINESS_TYPES.find((t) => t.value === f.business_type)?.label ?? ""})
+                </dd>
                 <dt>Company code</dt>
                 <dd>{f.company_code}</dd>
                 <dt>Contact</dt>
                 <dd>
-                  {f.contact_name}, {f.contact_email}, {f.contact_phone}
+                  {f.contact_name}{f.contact_title ? ` (${f.contact_title})` : ""}, {f.contact_email}, {f.contact_phone}
                 </dd>
                 <dt>Plan</dt>
                 <dd data-testid="review-plan">
