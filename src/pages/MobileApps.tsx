@@ -63,11 +63,13 @@ export default function MobileApps() {
               Call and text from your business number. Incoming calls show who's calling and their deal before you
               answer. Every call and text lands on the file automatically.
             </p>
-            <h3>Apple Watch and iPad</h3>
+            <h3>iPad</h3>
             <p>
-              On Growth and Pro, take and place calls from Apple Watch, and run the full staff portal on iPad: pipeline,
-              documents, fraud check and lender submissions.
+              On every plan, run the full staff portal on iPad: pipeline, documents, fraud check and lender
+              submissions.
             </p>
+            <h3>Apple Watch</h3>
+            <p>On Growth and Pro, take and place calls from Apple Watch.</p>
           </div>
           <div className="devices">
             <NativeScreen slot="iphone-dialler" alt="The iPhone dialler during a call, with the client's file on screen.">

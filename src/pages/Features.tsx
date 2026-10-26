@@ -16,7 +16,7 @@ const AREAS: Area[] = [
     items: [
       { name: "Pipeline", body: "Drag deals through your stages, see what's stuck and who owns it." },
       { name: "Contacts and companies", body: "Borrowers, referrers and lenders with every call, text, email and document in one timeline." },
-      { name: "Tasks and calendar", body: "Follow-ups that don't get forgotten, synced with your Office 365 or Google calendar." },
+      { name: "Tasks and calendar", body: "Follow-ups that don't get forgotten, synced with your Microsoft 365 or Google calendar." },
       { name: "Reports", body: "Funded volume, conversion by source, team activity and commissions.", plan: "Growth" },
     ],
   },
@@ -24,11 +24,13 @@ const AREAS: Area[] = [
     title: "Communications",
     intro: "Every conversation, on the file.",
     items: [
-      { name: "Email sync", body: "Office 365 and Google mail linked to the right contact automatically." },
+      { name: "Email sync", body: "Outlook (Microsoft 365) inbox sync: mail is linked to the right contact automatically. Gmail can send for now; reading a Gmail inbox comes later." },
       { name: "Business texting", body: "Two-way texts from your business number, saved to the file." },
-      { name: "Message templates", body: "Saved replies for the questions you answer every day.", plan: "Growth" },
-      { name: "Toll-free number", body: "A toll-free main line for your website and ads.", plan: "Growth" },
-      { name: "Multiple business lines", body: "Separate numbers for teams, brands or regions.", plan: "Pro" },
+      { name: "Message templates and snippets", body: "Saved replies for the questions you answer every day, and #shortcuts you drop into any message.", plan: "Growth" },
+      { name: "Automations", body: "Workflows that send messages, create tasks and move deals when something happens.", plan: "Growth" },
+      { name: "Business phone number", body: "A local business line, set up for you when your system is created." },
+      { name: "Toll-free number", body: "A toll-free main line for your website and ads, set up for you.", plan: "Growth" },
+      { name: "Multiple business lines and direct lines", body: "Separate numbers for teams, brands or regions, and a direct line for each person, picked and set up in a click.", plan: "Pro" },
     ],
   },
   {
@@ -39,7 +41,7 @@ const AREAS: Area[] = [
       { name: "Client mini-portal", body: "Borrowers check status, answer requests and upload what's missing without calling you." },
       { name: "Referrer portal", body: "Partners send you deals and see how they're going.", plan: "Growth" },
       { name: "Broker portal", body: "Partner brokers sign your broker agreement, upload client files and agree the commission split.", plan: "Growth" },
-      { name: "Lender portal (lenders can send you deals they can't place)", body: "Lenders review the files you send them in one place, and send you deals they can't place themselves." },
+      { name: "Lender portal", body: "Lenders keep their details and products current, and send you deals they can't place themselves. The lender package goes to each lender by email or API." },
       {
         name: "Personal Guarantee Insurance (PGI)",
         body: `Offer PGI to your clients to close more deals and earn extra commission. All you need to do is... nothing. One checkbox, and ${PRODUCT_NAME} pays you.`,
@@ -52,7 +54,7 @@ const AREAS: Area[] = [
     intro: "From upload to submission.",
     items: [
       { name: "Document collection with OCR", body: "Statements and financials are read on upload and checked for missing pages." },
-      { name: "Lender submissions", body: "Build a package once and send it to the lenders you choose. You bring your own lenders." },
+      { name: "Lender submissions", body: "Build a package once and send it to each lender you choose by email or API. You bring your own lenders." },
       { name: "Storage", body: "Pooled storage per seat, with extra space available when you need it." },
     ],
   },
@@ -61,9 +63,11 @@ const AREAS: Area[] = [
     intro: "Your office in your pocket.",
     items: [
       { name: "iPhone dialler", body: "Calls and texts from your business number with the file on screen." },
-      { name: "Call recording and AI summaries", body: "Recorded calls with a short written summary saved to the deal.", plan: "Growth" },
+      { name: "Call recording", body: "Every call is recorded, on every plan." },
+      { name: "Call playback and AI summaries", body: "Play recorded calls back and get a short written summary saved to the deal.", plan: "Growth" },
       { name: "Voicemail transcription", body: "Read voicemails instead of listening to them.", plan: "Growth" },
-      { name: "Apple Watch and iPad apps", body: "Take calls on your wrist; run the staff portal on an iPad.", plan: "Growth" },
+      { name: "iPad app", body: "Run the full staff portal on an iPad." },
+      { name: "Apple Watch app", body: "Take and place calls on your wrist.", plan: "Growth" },
     ],
   },
   {
