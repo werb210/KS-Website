@@ -69,33 +69,54 @@ export type Catalog = {
   currency: string;
 };
 
-const STARTER_FEATURES: PlanFeature[] = [
-  { key: "contacts", label: "Contacts" },
-  { key: "pipeline", label: "Pipeline" },
-  { key: "client_portal", label: "Branded client portal and application wizard" },
-  { key: "iphone_dialler", label: "iPhone dialler" },
-  { key: "office_sync", label: "Office 365 / Google sync" },
-  { key: "ai_assistant", label: "AI assistant" },
-  { key: "lender_portal", label: "Lender portal (lenders can send you deals they can't place)" },
+// KS_WEBSITE_PLAN_FIXES - the same keys, labels, plan levels and order as KS-server src/plans/catalogue.ts and KS-Ops
+// src/pricing.ts (pgi_referrals and the 15 fraud checks included); each plan includes the ones before it.
+// src/lib/plansDrift.test.ts compares them.
+export const FALLBACK_FEATURES: ReadonlyArray<PlanFeature & { plan: PlanKey }> = [
+  { key: "contacts", label: "Contacts", plan: "starter" },
+  { key: "pipeline", label: "Pipeline", plan: "starter" },
+  { key: "client_portal", label: "Branded client portal and application wizard", plan: "starter" },
+  { key: "iphone_dialler", label: "iPhone dialler", plan: "starter" },
+  { key: "ipad_app", label: "iPad staff portal app", plan: "starter" },
+  { key: "office_sync", label: "Email sync: Outlook (Microsoft 365) inbox sync; Gmail sends only for now", plan: "starter" },
+  { key: "ai_assistant", label: "AI assistant", plan: "starter" },
+  { key: "lender_portal", label: "Lender portal (lenders keep their details and products current and send you deals they can't place)", plan: "starter" },
+  { key: "pgi_referrals", label: "Personal Guarantee Insurance referrals (20% referral fee)", plan: "starter" },
+  { key: "call_recording", label: "Call recording on every plan (playback on Growth and Pro)", plan: "starter" },
+  { key: "call_recording_playback", label: "Call recording playback", plan: "growth" },
+  { key: "call_summaries", label: "AI call summaries", plan: "growth" },
+  { key: "voicemail_transcription", label: "Voicemail transcription", plan: "growth" },
+  { key: "watch_app", label: "Apple Watch app", plan: "growth" },
+  { key: "templates", label: "Message templates and snippets", plan: "growth" },
+  { key: "automations", label: "Automations (workflows)", plan: "growth" },
+  { key: "referrer_portal", label: "Referrer portal", plan: "growth" },
+  { key: "broker_portal", label: "Broker portal", plan: "growth" },
+  { key: "full_reports", label: "Reports", plan: "growth" },
+  { key: "visitor_tracking", label: "Website visitor tracking", plan: "growth" },
+  { key: "toll_free_number", label: "Toll-free number", plan: "growth" },
+  { key: "multiple_lines", label: "Multiple business lines and a direct line for each person", plan: "pro" },
+  { key: "ad_attribution", label: "Ad attribution", plan: "pro" },
+  { key: "api_access", label: "API access", plan: "pro" },
+  { key: "sso", label: "Single sign-on", plan: "pro" },
+  { key: "fraud_1", label: "Document tamper scan", plan: "starter" },
+  { key: "fraud_2", label: "Bank statement math check", plan: "starter" },
+  { key: "fraud_4", label: "Duplicate document check", plan: "starter" },
+  { key: "fraud_5", label: "Revenue vs bank deposits", plan: "starter" },
+  { key: "fraud_6", label: "Business reality check", plan: "growth" },
+  { key: "fraud_7", label: "Phone and email risk", plan: "growth" },
+  { key: "fraud_8", label: "ID checks", plan: "growth" },
+  { key: "fraud_9", label: "Device and location check", plan: "pro" },
+  { key: "fraud_10", label: "Application behaviour signals", plan: "pro" },
+  { key: "fraud_11", label: "Loan stacking detector", plan: "pro" },
+  { key: "fraud_12", label: "Fraud network map", plan: "pro" },
+  { key: "fraud_13", label: "Shared fraud watchlist", plan: "pro" },
+  { key: "fraud_14", label: "Inside-job alerts", plan: "pro" },
+  { key: "fraud_15", label: "Call voice check", plan: "pro" },
+  { key: "fraud_16", label: "Fraud score and lender pre-screen", plan: "pro" },
 ];
-const GROWTH_FEATURES: PlanFeature[] = [
-  { key: "call_recording", label: "Call recording" },
-  { key: "call_summaries", label: "AI call summaries" },
-  { key: "voicemail_transcription", label: "Voicemail transcription" },
-  { key: "watch_ipad_apps", label: "Apple Watch and iPad apps" },
-  { key: "templates", label: "Message templates" },
-  { key: "referrer_portal", label: "Referrer portal" },
-  { key: "broker_portal", label: "Broker portal" },
-  { key: "full_reports", label: "Reports" },
-  { key: "visitor_tracking", label: "Website visitor tracking" },
-  { key: "toll_free_number", label: "Toll-free number" },
-];
-const PRO_FEATURES: PlanFeature[] = [
-  { key: "multiple_lines", label: "Multiple business lines" },
-  { key: "ad_attribution", label: "Ad attribution" },
-  { key: "api_access", label: "API access" },
-  { key: "sso", label: "Single sign-on" },
-];
+const PLAN_RANK: Record<PlanKey, number> = { starter: 0, growth: 1, pro: 2 };
+const featuresUpTo = (plan: PlanKey): PlanFeature[] =>
+  FALLBACK_FEATURES.filter((f) => PLAN_RANK[f.plan] <= PLAN_RANK[plan]).map(({ key, label }) => ({ key, label }));
 
 /** KS-Ops' limits (MAX_SEATS, MAX_STORAGE_BLOCKS), used when an older catalog does not send them. */
 export const MAX_SEATS = 1000;
@@ -116,7 +137,7 @@ export const FALLBACK_CATALOG: Catalog = {
       min_seats: 1,
       max_seats: MAX_SEATS,
       allowances: { minutes_per_seat: 50, texts_per_seat: 100, assistant_chats: 200, storage_gb_per_seat: 10 },
-      features: [...STARTER_FEATURES],
+      features: featuresUpTo("starter"),
     },
     {
       key: "growth",
@@ -127,7 +148,7 @@ export const FALLBACK_CATALOG: Catalog = {
       min_seats: 1,
       max_seats: MAX_SEATS,
       allowances: { minutes_per_seat: 500, texts_per_seat: 500, assistant_chats: 1000, storage_gb_per_seat: 25 },
-      features: [...STARTER_FEATURES, ...GROWTH_FEATURES],
+      features: featuresUpTo("growth"),
     },
     {
       key: "pro",
@@ -138,7 +159,7 @@ export const FALLBACK_CATALOG: Catalog = {
       min_seats: 2,
       max_seats: MAX_SEATS,
       allowances: { minutes_per_seat: 1500, texts_per_seat: 1500, assistant_chats: null, storage_gb_per_seat: 50 },
-      features: [...STARTER_FEATURES, ...GROWTH_FEATURES, ...PRO_FEATURES],
+      features: featuresUpTo("pro"),
     },
   ],
   support_levels: [
