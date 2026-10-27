@@ -154,7 +154,7 @@ export default function Compare() {
   const ours = quote(plan, SEATS, "annual", undefined);
   const oursMonthly = quote(plan, SEATS, "monthly", undefined);
   // KS_WEBSITE_COMPARE_MATCH - the add-on price from the live catalogue once it sends one, else KS-Ops' bundled figure.
-  const addonPrice = (catalog as { marketing_addon?: { price?: number } }).marketing_addon?.price ?? KEYSTONE_MATCH.addonPrice;
+  const addonPrice = catalog.marketing_addon?.price ?? KEYSTONE_MATCH.addonPrice;
   const oursTotal = ours.monthlyTotal + addonPrice;
   const oursMonthlyTotal = oursMonthly.monthlyTotal + addonPrice;
 

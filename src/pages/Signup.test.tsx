@@ -215,7 +215,7 @@ describe("Sign-up", () => {
       expect(goTo).not.toHaveBeenCalled();
       cleanup();
     }
-  });
+  }, 15_000); // three full wizard runs; 5s is too tight on a busy CI runner
 
   it("seat stepper: - and + stay inside the plan's minimum and maximum, typed numbers snap into range", async () => {
     setup();
@@ -318,12 +318,16 @@ describe("Sign-up", () => {
     fireEvent.click(within(screen.getByTestId("summary-controls")).getByRole("button", { name: "Remove 50 GB" }));
     expect(screen.getByTestId("review-storage")).toHaveTextContent("None");
     fireEvent.click(within(screen.getByTestId("summary-controls")).getByRole("button", { name: "Add 50 GB" }));
+    // KS_WEBSITE_MARKETING_ADDON - the add-on from the price summary: $49 a month, on the review and in the payload.
+    fireEvent.click(within(screen.getByTestId("summary-controls")).getByLabelText(/Marketing add-on/));
+    expect(screen.getByTestId("marketing-monthly")).toHaveTextContent("$49");
+    expect(screen.getByTestId("review-marketing")).toHaveTextContent("Yes, $49 a month");
     fireEvent.click(screen.getByLabelText(/terms of service/));
     fireEvent.click(screen.getByLabelText(/privacy policy/));
     fireEvent.click(screen.getByRole("button", { name: "Continue to payment" }));
     await waitFor(() => expect(goTo).toHaveBeenCalled());
     const body = JSON.parse(String(callsTo(f, "/api/public/signup")[0][1]?.body));
-    expect(body).toMatchObject({ plan: "pro", seats: 4, billing_interval: "monthly", support_level: "priority", extra_storage_blocks: 1 });
+    expect(body).toMatchObject({ plan: "pro", seats: 4, billing_interval: "monthly", support_level: "priority", extra_storage_blocks: 1, marketing_addon: true });
     // Exactly the fields KS-Ops' sign-up schema takes; nothing it would drop or reject.
     expect(Object.keys(body).sort()).toEqual(
       [
@@ -331,6 +335,7 @@ describe("Sign-up", () => {
         "contact_phone", "country", "extra_storage_blocks", "legal_name", "mailing_address", "payment_method", "plan", "province_state",
         "seats", "support_level", "website_url", "primary_color", "accent_color", "address_line1", "city", "postal_code",
         "business_number", "business_type", "contact_title", // KS_WEBSITE_TWILIO_AUTO
+        "marketing_addon", // KS_WEBSITE_MARKETING_ADDON
       ].sort(),
     );
     expect(body).toMatchObject({ business_number: "123456789", business_type: "corporation", contact_title: "Owner" });

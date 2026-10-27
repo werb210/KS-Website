@@ -16,7 +16,7 @@ export const CHECKED = "2026-10-26";
 export const CHECKED_LABEL = "October 26, 2026";
 
 /** Features being built now. A "soon" row must name one of these. */
-export const BEING_BUILT = ["marketing_addon", "knowledge_base", "office_connect"] as const;
+export const BEING_BUILT = ["knowledge_base", "office_connect"] as const;
 export type BeingBuilt = (typeof BEING_BUILT)[number];
 
 export type Mark = "yes" | "addon" | "limited" | "no" | "unknown";
@@ -98,8 +98,8 @@ export const OURS: Record<RowId, OurCell> = {
   email_sync: { v: "yes", note: "Gmail can send; Gmail inbox sync later" },
   booking: { v: "yes", note: "With reminders" },
   campaigns: { v: "yes" },
-  visitor_tracking: { v: "yes", note: "Growth and Pro" },
-  lead_scoring: { v: "soon", building: "marketing_addon", note: "Marketing add-on" },
+  visitor_tracking: { v: "yes", note: "30 days on Starter, 90 on Growth, 12 months on Pro or with the Marketing add-on" },
+  lead_scoring: { v: "yes", note: "Marketing add-on" },
   reports: { v: "yes", note: "Every report on Growth and Pro" },
   commissions: { v: "yes", note: "Growth and Pro" },
   ai_assistant: { v: "yes" },
@@ -139,7 +139,8 @@ export type Price = {
   src: string;
 };
 
-/** Keystone's own price for the match: Growth + Marketing add-on. Mirrors KS-Ops src/pricing.ts MARKETING_ADDON. */
+/** Keystone's own price for the match: Growth + Marketing add-on. The page uses the live catalogue's marketing_addon
+ *  price; this is the fallback, kept equal to KS-Ops MARKETING_ADDON by src/lib/plansDrift.test.ts. */
 export const KEYSTONE_MATCH = {
   plan: "growth",
   addonName: "Marketing add-on",
