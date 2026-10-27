@@ -2,6 +2,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import { CONTACT_EMAIL, PRODUCT_NAME } from "../config";
 import { Mark } from "./Mark";
+import { SalesAssistant } from "./SalesAssistant"; // KS_WEBSITE_KB_v1
 
 const NAV = [
   { to: "/features", label: "Features" },
@@ -96,6 +97,7 @@ export function Layout({ children }: { children: ReactNode }) {
             <h2>Company</h2>
             <ul>
               <li><Link to="/faq">FAQ</Link></li>
+              <li><Link to="/help">Help articles</Link></li>
               <li><Link to="/contact">Contact</Link></li>
               <li><Link to="/terms">Terms of service</Link></li>
               <li><Link to="/privacy">Privacy policy</Link></li>
@@ -108,6 +110,7 @@ export function Layout({ children }: { children: ReactNode }) {
           </p>
         </div>
       </footer>
+      <SalesAssistant />
     </>
   );
 }

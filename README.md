@@ -34,7 +34,7 @@ App screenshots: real screens of the client app and staff portal from their demo
 
 ## Pages
 
-Home, Features, Pricing, Mobile apps, Security, FAQ, Contact, Terms (draft), Privacy (draft), Sign up,
+Home, Features, Pricing, Mobile apps, Security, FAQ, Help articles (`/help`, `/help/:slug`, KS_WEBSITE_KB_v1), Contact, Terms (draft), Privacy (draft), Sign up,
 `/signup/success`, `/signup/cancelled`.
 
 Sign-up branding step: "Use my website" posts the brokerage's address to KS-Ops `POST /api/public/brand-scan`, which
@@ -44,3 +44,13 @@ Fonts (`fonts.googleapis.com` styles, `fonts.gstatic.com` fonts) for the font pr
 
 Pricing and sign-up read `GET /api/public/plans`; if that fails they use the bundled copy in `src/lib/plans.ts`.
 Keep that copy in step with KS-Ops.
+
+## Maya, the website assistant (KS_WEBSITE_KB_v1)
+
+A "Questions? Ask Maya" button on every page opens Keystone's sales assistant (KS-Ops `POST /api/public/assistant/chat`).
+It answers from the live plan catalogue, the public help articles and the page the visitor is on, links the articles it
+used, and offers: try the demo (`/try`), sign up, pricing, book a live demo, or talk to a person. The last two open a lead
+form (name, email, brokerage, team size, optional phone, a consent box) sent to `POST /api/public/assistant/lead`, which
+puts the lead in the Keystone CRM and emails sales. No cookies: the chat is kept in the tab's sessionStorage. The panel
+moves up by `--cookie-banner-height` if a cookie banner is added. Help articles come from `GET /api/public/kb/...` and
+are cleaned again in the browser (`src/lib/safeHtml.ts`). No new settings: it uses `VITE_OPS_URL`.
