@@ -586,3 +586,54 @@ table.compare-table thead th.compare-us { color: var(--accent-ink); }
   table.compare-table tbody td { padding-top: 0.15rem; }
   table.compare-table .compare-cell--3, table.compare-table td.compare-col--3, table.compare-table th.compare-col--3 { display: none; }
 }
+/* KS_WEBSITE_KB_v1 - Maya (the website assistant) and the help articles. Dark ink on light surfaces; white on the
+   accent colour only (contrast over 4.5:1). The launcher and panel sit above a cookie banner when one sets
+   --cookie-banner-height. */
+.ka-launch {
+  position: fixed; right: 16px; bottom: calc(16px + var(--cookie-banner-height, 0px)); z-index: 60;
+  border-radius: 999px; box-shadow: 0 6px 20px rgba(22, 38, 58, 0.25);
+}
+.ka-panel {
+  position: fixed; z-index: 61; right: 16px; bottom: calc(16px + var(--cookie-banner-height, 0px));
+  width: min(26rem, calc(100vw - 32px)); height: min(40rem, calc(100vh - 32px - var(--cookie-banner-height, 0px)));
+  display: flex; flex-direction: column; background: var(--surface); color: var(--ink);
+  border: 1px solid var(--mortar); border-radius: var(--radius-m); box-shadow: 0 12px 40px rgba(22, 38, 58, 0.28);
+}
+@media (max-width: 560px) {
+  .ka-panel { right: 0; bottom: 0; width: 100vw; height: calc(100dvh - var(--cookie-banner-height, 0px)); border-radius: 0; }
+}
+.ka-panel__head { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; padding: 0.6rem 0.9rem; border-bottom: 1px solid var(--mortar); }
+.ka-panel__head h2 { margin: 0; font-size: var(--step-1); }
+.ka-body { flex: 1; overflow-y: auto; padding: 0.9rem; display: flex; flex-direction: column; gap: 0.6rem; }
+.ka-hello { color: var(--ink-soft); margin: 0; }
+.ka-msg { max-width: 92%; padding: 0.55rem 0.8rem; border-radius: var(--radius-m); line-height: 1.5; margin: 0; }
+.ka-msg p { margin: 0; }
+.ka-msg--user { align-self: flex-end; background: var(--accent); color: #fff; }
+.ka-msg--assistant { align-self: flex-start; background: var(--paper); color: var(--ink); border: 1px solid var(--mortar); }
+.ka-msg--assistant a { color: var(--accent-ink); }
+.ka-cites { margin-top: 0.4rem; font-size: var(--step--1); }
+.ka-cites ul { margin: 0.2rem 0 0; padding-left: 1.1rem; }
+.ka-actions, .ka-quick, .ka-row { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.5rem; }
+.ka-actions .btn, .ka-quick .btn { min-height: 40px; padding: 0.4rem 0.8rem; font-size: var(--step--1); }
+.ka-quick { padding: 0 0.9rem 0.8rem; margin-top: 0; }
+.ka-ask { display: flex; gap: 0.5rem; padding: 0.7rem 0.9rem; border-top: 1px solid var(--mortar); }
+.ka-ask input { flex: 1; min-height: 44px; padding: 0.5rem 0.7rem; border: 1.5px solid #7d8b99; border-radius: var(--radius-s); font: inherit; color: var(--ink); background: #fff; }
+.ka-lead { background: var(--paper); border: 1px solid var(--mortar); border-radius: var(--radius-m); padding: 0.8rem; }
+.ka-lead__intro { margin: 0 0 0.6rem; }
+.ka-lead .field { margin-bottom: 0.8rem; }
+.ka-consent label { font-weight: 400; display: flex; gap: 0.5rem; align-items: flex-start; }
+.ka-consent input { margin-top: 0.3rem; }
+.ka-thanks { background: var(--accent-soft); color: var(--accent-ink); padding: 0.6rem 0.8rem; border-radius: var(--radius-m); margin: 0; }
+.help-list { list-style: none; padding: 0; margin: 0 0 1.5rem; }
+.help-list li { padding: 0.5rem 0; border-bottom: 1px solid var(--mortar-soft); }
+.help-list a { font-weight: 600; }
+.help-group h2 { font-size: var(--step-1); margin: 1.5rem 0 0.4rem; }
+.help-back { margin: 2rem 0 0; }
+.help-body { max-width: var(--measure); line-height: 1.65; padding-bottom: 3rem; }
+.help-body blockquote { margin: 1rem 0; padding: 0.7rem 1rem; background: var(--accent-soft); color: var(--ink); border-left: 4px solid var(--accent); border-radius: var(--radius-s); }
+.help-body blockquote p { margin: 0; }
+.help-body img { max-width: 100%; height: auto; border: 1px solid var(--mortar); border-radius: var(--radius-s); }
+.help-body .kb-table { overflow-x: auto; }
+.help-body table { border-collapse: collapse; margin: 1rem 0; font-size: var(--step--1); }
+.help-body th, .help-body td { border: 1px solid var(--mortar); padding: 0.4rem 0.6rem; text-align: left; vertical-align: top; }
+.help-body code { background: var(--mortar-soft); padding: 0.05rem 0.3rem; border-radius: 3px; }
