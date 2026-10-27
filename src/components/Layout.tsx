@@ -7,6 +7,7 @@ const NAV = [
   { to: "/features", label: "Features" },
   { to: "/fraud-protection", label: "Fraud protection" },
   { to: "/pricing", label: "Pricing" },
+  { to: "/compare", label: "Compare" },
   { to: "/mobile-apps", label: "Mobile apps" },
   { to: "/security", label: "Security" },
   { to: "/faq", label: "FAQ" },
@@ -86,6 +87,7 @@ export function Layout({ children }: { children: ReactNode }) {
               <li><Link to="/features">Features</Link></li>
               <li><Link to="/fraud-protection">Fraud protection</Link></li>
               <li><Link to="/pricing">Pricing</Link></li>
+              <li><Link to="/compare">Compare CRMs</Link></li>
               <li><Link to="/mobile-apps">Mobile apps</Link></li>
               <li><Link to="/security">Security and data</Link></li>
             </ul>

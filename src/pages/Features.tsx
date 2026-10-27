@@ -3,8 +3,7 @@ import { FeatureRequest } from "../components/FeatureRequest";
 import { PgiTip } from "../components/PgiTip";
 import { PRODUCT_NAME } from "../config";
 import { usePageMeta } from "../hooks/usePageMeta";
-import { Screenshot } from "../components/Screenshot";
-import type { ScreenName } from "../lib/screens";
+import { ScreenGallery, type GalleryItem } from "../components/ScreenGallery";
 
 type Item = { name: string; body: string; plan?: "Growth" | "Pro"; pgiTip?: boolean };
 type Area = { title: string; intro: string; items: Item[] };
@@ -98,7 +97,9 @@ const AREAS: Area[] = [
   },
 ];
 
-const GALLERY: Array<{ name: ScreenName; caption: string }> = [
+const THUMB_SIZES = "(max-width: 599px) 92vw, (max-width: 1023px) 46vw, 340px";
+
+const GALLERY: GalleryItem[] = [
   { name: "portal-documents", caption: "Documents read on upload, with tampered statements flagged." },
   { name: "portal-financials", caption: "Figures from the financial statements, ready to review." },
   { name: "portal-banking", caption: "Bank statement analysis with a three-month trend." },
@@ -128,11 +129,8 @@ export default function Features() {
           A look inside
         </h2>
         <p className="muted">Real screens from the staff portal, on a sample application.</p>
-        <div className="shots-grid">
-          {GALLERY.map((g) => (
-            <Screenshot key={g.name} name={g.name} sizes="(max-width: 700px) 92vw, (max-width: 1100px) 46vw, 520px" caption={g.caption} />
-          ))}
-        </div>
+        <p className="muted small">Select a screen to see it full size.</p>
+        <ScreenGallery label="Staff portal screenshots" items={GALLERY.map((g) => ({ ...g, sizes: THUMB_SIZES }))} />
         </div>
       </section>
       <div className="wrap">

@@ -500,3 +500,89 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
   .summary-details, .tip__button, .btn--small, .toggle button { min-height: 44px; }
   .tip__close { width: 44px; height: 44px; }
 }
+
+/* KS_WEBSITE_GALLERY_v1 - screenshot thumbnails (src/components/ScreenGallery.tsx): 3 across on a desktop, 2 on a
+   tablet, 1 on a phone. Each opens full size in a lightbox. */
+.gallery { list-style: none; margin: 1.75rem 0 1rem; padding: 0; }
+.gallery__figure { margin: 0; }
+.gallery--grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2rem 1.5rem; }
+.gallery--grid .gallery__item { max-width: none; }
+.gallery--single .gallery__item { max-width: 480px; margin-inline: auto; }
+@media (max-width: 1023px) { .gallery--grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 599px) { .gallery--grid { grid-template-columns: minmax(0, 1fr); } }
+.gallery__thumb {
+  display: block; position: relative; width: 100%; padding: 0; margin: 0; border: 0; background: none;
+  cursor: zoom-in; border-radius: var(--radius-s); color: inherit; font: inherit;
+}
+.gallery__thumb:focus-visible { outline: 3px solid var(--focus); outline-offset: 4px; }
+.gallery__zoom {
+  position: absolute; right: 0.5rem; bottom: 0.5rem; padding: 0.2rem 0.55rem; border-radius: 999px;
+  background: rgba(22, 38, 58, 0.86); color: #fff; font-size: var(--step--1); font-weight: 600; line-height: 1.5;
+  opacity: 0; transition: opacity 120ms ease-out;
+}
+.gallery__thumb:hover .gallery__zoom, .gallery__thumb:focus-visible .gallery__zoom { opacity: 1; }
+@media (hover: none) { .gallery__zoom { opacity: 1; } }
+.gallery figcaption { margin-top: 0.6rem; font-size: var(--step--1); color: var(--ink-soft); text-align: center; line-height: 1.45; }
+
+.lightbox {
+  position: fixed; inset: 0; z-index: 100; display: grid; place-items: center;
+  background: rgba(10, 18, 28, 0.93); padding: 1rem;
+}
+.lightbox__dialog {
+  display: flex; flex-direction: column; gap: 0.75rem; width: min(100%, 1600px); max-height: 100%;
+  color: #fff;
+}
+.lightbox__bar, .lightbox__nav { display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; }
+.lightbox__count { margin: 0; font-size: var(--step--1); color: #e6edf3; }
+.lightbox__btn {
+  min-height: 44px; min-width: 44px; padding: 0.45rem 1rem; border-radius: var(--radius-s);
+  border: 1.5px solid #c9d4de; background: #16263a; color: #fff; font: 600 var(--step--1) var(--font-body); cursor: pointer;
+}
+.lightbox__btn:hover { background: #24384f; }
+.lightbox__btn:focus-visible { outline: 3px solid #8fb6ff; outline-offset: 2px; }
+.lightbox__figure { margin: 0; display: flex; flex-direction: column; align-items: center; min-height: 0; }
+.lightbox__img { display: block; width: auto; height: auto; max-width: 100%; max-height: calc(100vh - 11rem); object-fit: contain; }
+.lightbox__figure figcaption { margin-top: 0.6rem; color: #fff; font-size: var(--step-0); text-align: center; max-width: 60ch; }
+@media (prefers-reduced-motion: reduce) { .gallery__zoom { transition: none; } }
+.gallery.shots-pair { max-width: 52rem; margin-inline: auto; }
+
+/* KS_WEBSITE_COMPARE_v1 - /compare (src/pages/Compare.tsx). */
+.compare-controls { display: flex; flex-wrap: wrap; gap: 1rem 1.5rem; margin: 0.5rem 0 0.75rem; }
+.compare-pick { margin: 0; min-width: min(100%, 17rem); }
+.compare-phone-hint { display: none; }
+table.compare-table { min-width: 0; table-layout: fixed; }
+.compare-feature-col { width: 34%; }
+table.compare-table th, table.compare-table td { padding: 0.65rem 0.75rem; overflow-wrap: break-word; }
+table.compare-table thead th { font-family: var(--font-display); font-size: var(--step-0); vertical-align: bottom; }
+table.compare-table thead th.compare-us { color: var(--accent-ink); }
+.compare-area th { background: var(--mortar-soft); color: var(--ink); font-family: var(--font-display); font-weight: 650; }
+.compare-cell { color: var(--ink); }
+.compare-cell--yes { color: var(--ok); font-weight: 700; }
+.compare-cell--soon .compare-soon { display: inline-block; padding: 0.05rem 0.5rem; border-radius: 999px; background: var(--ochre-soft); color: var(--ink); font-weight: 600; }
+.compare-cell--no { color: var(--stone); }
+.compare-cell--addon, .compare-cell--limited { color: var(--ink); font-weight: 600; }
+.compare-cell--unknown { color: var(--stone); }
+.compare-note { display: block; margin-top: 0.2rem; font-weight: 400; color: var(--ink-soft); font-size: var(--step--1); line-height: 1.4; }
+.compare-price td strong { font: 700 var(--step-1) / 1.2 var(--font-display); color: var(--ink); }
+.compare-price th, .compare-price td { background: var(--paper); }
+.compare-ref { margin-left: 0.15rem; font-weight: 400; }
+.compare-ref a { color: var(--accent-ink); }
+.compare-legend { margin-top: 1rem; color: var(--ink-soft); }
+.compare-sources ol { font-size: var(--step--1); padding-left: 1.6rem; color: var(--ink-soft); }
+.compare-sources li { margin-bottom: 0.3rem; overflow-wrap: anywhere; }
+.compare-sources li:target { background: var(--ochre-soft); }
+.compare-why { padding-left: 1.4rem; display: grid; gap: 0.9rem; max-width: var(--measure); }
+/* On a phone: our column and one other, each feature's name on its own line above the two answers. */
+@media (max-width: 639px) {
+  .compare-pick--3, .compare-col--3 { display: none; }
+  .compare-phone-hint { display: block; }
+  table.compare-table, table.compare-table thead, table.compare-table tbody { display: block; }
+  table.compare-table colgroup { display: none; }
+  table.compare-table tr { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); border-bottom: 1px solid var(--mortar-soft); }
+  table.compare-table th, table.compare-table td { display: block; padding: 0.55rem 0.75rem; border-bottom: 0; overflow-wrap: break-word; }
+  table.compare-table thead th:first-child { display: none; }
+  table.compare-table tbody th[scope="row"], table.compare-table .compare-area th { grid-column: 1 / -1; padding-bottom: 0.15rem; }
+  table.compare-table tbody th[scope="row"] { font-weight: 600; }
+  table.compare-table tbody td { padding-top: 0.15rem; }
+  table.compare-table .compare-cell--3, table.compare-table td.compare-col--3, table.compare-table th.compare-col--3 { display: none; }
+}

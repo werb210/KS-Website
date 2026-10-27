@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { FeatureRequest } from "../components/FeatureRequest";
 import { Arch } from "../components/Arch";
 import { PgiTip } from "../components/PgiTip";
-import { Screenshot } from "../components/Screenshot";
+import { ScreenGallery } from "../components/ScreenGallery";
 import { PRODUCT_NAME } from "../config";
 import { usePageMeta } from "../hooks/usePageMeta";
 
@@ -72,10 +72,14 @@ export default function Home() {
             These are the actual apps on a sample file: your staff work the deal in the portal while your client
             applies and follows along from their phone.
           </p>
-          <div className="shots-pair">
-            <Screenshot name="portal-pipeline" sizes="(max-width: 900px) 92vw, 800px" caption="Staff portal: the sales pipeline." />
-            <Screenshot name="client-portal" sizes="(max-width: 900px) 60vw, 300px" caption="Client app: the borrower's own portal." />
-          </div>
+          <ScreenGallery
+            layout="pair"
+            label="Screenshots of the staff portal and client app"
+            items={[
+              { name: "portal-pipeline", sizes: "(max-width: 700px) 92vw, 640px", caption: "Staff portal: the sales pipeline." },
+              { name: "client-portal", sizes: "(max-width: 700px) 60vw, 220px", caption: "Client app: the borrower's own portal." },
+            ]}
+          />
         </div>
       </section>
 
