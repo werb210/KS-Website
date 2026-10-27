@@ -5,6 +5,7 @@ export const ROUTES = [
   "/",
   "/features",
   "/pricing",
+  "/compare",
   "/mobile-apps",
   "/security",
   "/fraud-protection",

@@ -261,6 +261,10 @@ export default function Pricing() {
               </tbody>
             </table>
           </div>
+          <p style={{ marginTop: "1.5rem" }}>
+            Weighing us against Salesforce, HubSpot or a lending CRM?{" "}
+            <Link to="/compare">See how {PRODUCT_NAME} compares</Link>, with the monthly cost for a 5-person brokerage.
+          </p>
           <p style={{ marginTop: "2rem" }}>
             <Link className="btn" to="/signup">
               Start sign-up

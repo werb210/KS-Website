@@ -5,6 +5,7 @@ import Home from "./pages/Home";
 
 const Features = lazy(() => import("./pages/Features"));
 const Pricing = lazy(() => import("./pages/Pricing"));
+const Compare = lazy(() => import("./pages/Compare"));
 const MobileApps = lazy(() => import("./pages/MobileApps"));
 const Security = lazy(() => import("./pages/Security"));
 const FraudProtection = lazy(() => import("./pages/FraudProtection"));
@@ -27,6 +28,7 @@ export default function App() {
           <Route path="/" element={<Home />} />
           <Route path="/features" element={<Features />} />
           <Route path="/pricing" element={<Pricing />} />
+          <Route path="/compare" element={<Compare />} />
           <Route path="/mobile-apps" element={<MobileApps />} />
           <Route path="/security" element={<Security />} />
           <Route path="/fraud-protection" element={<FraudProtection />} />

@@ -1,7 +1,8 @@
 import { Link } from "react-router-dom";
 import { PRODUCT_NAME } from "../config";
 import { usePageMeta } from "../hooks/usePageMeta";
-import { NativeScreen, Screenshot } from "../components/Screenshot";
+import { NativeScreen } from "../components/Screenshot";
+import { ScreenGallery } from "../components/ScreenGallery";
 
 function Phone({ title, rows }: { title: string; rows: string[] }) {
   return (
@@ -47,11 +48,15 @@ export default function MobileApps() {
               installed.
             </p>
           </div>
-          <div className="shots-phones">
-            <Screenshot name="client-wizard" sizes="(max-width: 600px) 30vw, 220px" caption="The application, step 3 of 6." />
-            <Screenshot name="client-portal" sizes="(max-width: 600px) 30vw, 220px" caption="The client's own portal." />
-            <Screenshot name="client-calculator" sizes="(max-width: 600px) 30vw, 220px" caption="A loan calculator on the More tab." />
-          </div>
+          <ScreenGallery
+            layout="phones"
+            label="Client app screenshots"
+            items={[
+              { name: "client-wizard", sizes: "(max-width: 600px) 30vw, 220px", caption: "The application, step 3 of 6." },
+              { name: "client-portal", sizes: "(max-width: 600px) 30vw, 220px", caption: "The client's own portal." },
+              { name: "client-calculator", sizes: "(max-width: 600px) 30vw, 220px", caption: "A loan calculator on the More tab." },
+            ]}
+          />
         </div>
       </section>
       <section className="section section--tight" aria-labelledby="staff-apps-h">
@@ -87,7 +92,11 @@ export default function MobileApps() {
           </div>
         </div>
         <div className="wrap" style={{ marginTop: "2.5rem" }}>
-          <Screenshot name="ipad-documents" sizes="(max-width: 800px) 92vw, 720px" caption="The staff portal on iPad." className="shot--center" />
+          <ScreenGallery
+            layout="single"
+            label="iPad screenshot"
+            items={[{ name: "ipad-documents", sizes: "(max-width: 600px) 92vw, 480px", caption: "The staff portal on iPad." }]}
+          />
         </div>
       </section>
       <section className="section section--surface">
