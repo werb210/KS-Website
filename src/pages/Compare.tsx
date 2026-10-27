@@ -8,15 +8,18 @@ import {
   CHECKED_LABEL,
   COMPETITORS,
   DEFAULT_COMPARE,
+  KEYSTONE_MATCH,
   LEFT_OUT,
   OURS,
   ROWS,
   competitor,
+  priceTotals,
   sourceOf,
   type Competitor,
   type CompetitorCell,
   type Mark,
   type OurCell,
+  type PriceTotals,
 } from "../data/compare";
 
 const SEATS = 5;
@@ -45,7 +48,7 @@ function numberSources(shown: Competitor[]) {
       index.set(key, order.length);
     }
   };
-  for (const c of shown) add(c, c.price.src);
+  for (const c of shown) for (const l of c.price.lines) add(c, l.src);
   for (const r of ROWS) for (const c of shown) add(c, c.cells[r.id].src);
   return { order, num: (c: Competitor, id: string) => index.get(`${c.id}:${id}`) ?? 0 };
 }
@@ -57,6 +60,46 @@ function SourceRef({ n, label }: { n: number; label: string }) {
         {n}
       </a>
     </sup>
+  );
+}
+
+/** "CAD $1,819" or "CAD $182 + USD $49", for one field of the per-currency totals. */
+const sumText = (totals: PriceTotals, field: "monthly" | "firstYear" | "oneTime") =>
+  totals.byCurrency
+    .filter((t) => t[field] > 0)
+    .map((t) => money(t[field], t.currency))
+    .join(" + ");
+
+function CompetitorPrice({ c, num, col }: { c: Competitor; num: (c: Competitor, id: string) => number; col: number }) {
+  const p = c.price;
+  const totals = priceTotals(p);
+  const from = totals.from ? "From " : "";
+  const oneTime = sumText(totals, "oneTime");
+  return (
+    <td className={`compare-cell compare-col--${col}`} data-testid={`compare-price-${c.id}`}>
+      <strong>{totals.onRequest ? "Price on request" : `${from}${sumText(totals, "monthly")}`}</strong>
+      {!totals.onRequest && <span className="compare-per"> a month{p.billing ? `, ${p.billing}` : ""}</span>}
+      <ul className="compare-lines">
+        {p.lines.map((l) => (
+          <li key={l.item}>
+            {l.item}:{" "}
+            <span className="compare-line-price">
+              {l.monthly == null ? "price not published" : `${l.from ? "from " : ""}${money(l.monthly, l.currency)} a month`}
+              {l.oneTime != null && ` + ${money(l.oneTime, l.currency)} one-time`}
+            </span>
+            <SourceRef n={num(c, l.src)} label={sourceOf(c, l.src)?.title ?? c.name} />
+          </li>
+        ))}
+      </ul>
+      {!totals.onRequest && (
+        <span className="compare-first-year" data-testid={`compare-first-year-${c.id}`}>
+          First year: {from}
+          {sumText(totals, "firstYear")}
+          {oneTime ? ` (12 months + ${oneTime} one-time)` : " (12 months)"}
+        </span>
+      )}
+      {p.note && <span className="compare-note">{p.note}.</span>}
+    </td>
   );
 }
 
@@ -97,7 +140,7 @@ function CompetitorCellView({ c, cell, n, col }: { c: Competitor; cell: Competit
 export default function Compare() {
   usePageMeta(
     `${PRODUCT_NAME} compared with other CRMs`,
-    `${PRODUCT_NAME} side by side with Salesforce, HubSpot, Zoho, Pipedrive and lending CRMs used by commercial-lending brokers: features and the monthly cost for a 5-person brokerage.`,
+    `${PRODUCT_NAME} side by side with Salesforce, HubSpot, Zoho, Pipedrive and lending CRMs used by commercial-lending brokers: features, and what a 5-person brokerage pays each vendor to match ${PRODUCT_NAME} with marketing.`,
     "/compare",
   );
   const { catalog } = useCatalog();
@@ -110,6 +153,10 @@ export default function Compare() {
   const plan = catalog.plans.find((p) => p.key === OUR_PLAN) ?? catalog.plans[0];
   const ours = quote(plan, SEATS, "annual", undefined);
   const oursMonthly = quote(plan, SEATS, "monthly", undefined);
+  // KS_WEBSITE_COMPARE_MATCH - the add-on price from the live catalogue once it sends one, else KS-Ops' bundled figure.
+  const addonPrice = (catalog as { marketing_addon?: { price?: number } }).marketing_addon?.price ?? KEYSTONE_MATCH.addonPrice;
+  const oursTotal = ours.monthlyTotal + addonPrice;
+  const oursMonthlyTotal = oursMonthly.monthlyTotal + addonPrice;
 
   function choose(slot: 0 | 1, id: string) {
     setPicked((prev) => {
@@ -177,38 +224,40 @@ export default function Compare() {
             <tbody>
               <tr className="compare-price">
                 <th scope="row">
-                  Monthly cost for {SEATS} seats
-                  <span className="compare-note">List prices, in each vendor's own currency</span>
-                </th>
-                <td className="compare-cell">
-                  <strong>{money(ours.monthlyTotal, catalog.currency)}</strong>
+                  Cost for {SEATS} seats with marketing, to match {PRODUCT_NAME}
                   <span className="compare-note">
-                    {plan.name}, billed annually ({money(oursMonthly.monthlyTotal, catalog.currency)} billed monthly).{" "}
-                    {plan.onboarding_fee > 0 ? `${money(plan.onboarding_fee, catalog.currency)} one-time onboarding. ` : ""}
-                    Includes {formatNumber(plan.allowances.minutes_per_seat * SEATS)} call minutes and{" "}
-                    {formatNumber(plan.allowances.texts_per_seat * SEATS)} texts a month.
+                    {PRODUCT_NAME} {plan.name} with the {KEYSTONE_MATCH.addonName}, against the fewest products each
+                    vendor sells for the same jobs: marketing email at scale, sequences, bulk texting, lead scoring, email
+                    A/B tests, Google Ads conversion sync, and calling and texting. List prices, in Canadian dollars
+                    wherever the vendor shows them.
+                  </span>
+                </th>
+                <td className="compare-cell" data-testid="compare-price-keystone">
+                  <strong>{money(oursTotal, catalog.currency)}</strong>
+                  <span className="compare-per"> a month, billed annually</span>
+                  <ul className="compare-lines">
+                    <li>
+                      {plan.name}, {SEATS} seats: {money(ours.monthlyTotal, catalog.currency)} a month
+                      {plan.onboarding_fee > 0 && ` + ${money(plan.onboarding_fee, catalog.currency)} one-time onboarding`}
+                    </li>
+                    <li>
+                      {KEYSTONE_MATCH.addonName}: {money(addonPrice, catalog.currency)} a month
+                    </li>
+                  </ul>
+                  <span className="compare-first-year" data-testid="compare-first-year-keystone">
+                    First year: {money(oursTotal * 12 + plan.onboarding_fee, catalog.currency)}
+                    {plan.onboarding_fee > 0 ? ` (12 months + ${money(plan.onboarding_fee, catalog.currency)} one-time)` : " (12 months)"}
+                  </span>
+                  <span className="compare-note">
+                    {money(oursMonthlyTotal, catalog.currency)} a month if billed monthly. Includes{" "}
+                    {formatNumber(plan.allowances.minutes_per_seat * SEATS)} call minutes and{" "}
+                    {formatNumber(plan.allowances.texts_per_seat * SEATS)} texts a month. The add-on adds{" "}
+                    {KEYSTONE_MATCH.addonIncludes}.
                   </span>
                 </td>
-                {shown.map((c, i) => {
-                  const p = c.price;
-                  return (
-                    <td className={`compare-cell compare-col--${i + 2}`} key={c.id} data-testid={`compare-price-${c.id}`}>
-                      <strong>{p.fiveSeatMonthly == null ? "Quote only" : money(p.fiveSeatMonthly, p.currency)}</strong>
-                      <SourceRef n={num(c, p.src)} label={sourceOf(c, p.src)?.title ?? c.name} />
-                      <span className="compare-note">
-                        {p.fiveSeatMonthly != null && (
-                          <>
-                            {p.tier}
-                            {p.perSeat != null && `, ${money(p.perSeat, p.currency)} per seat`}
-                            {p.billing && `, ${p.billing}`}.{" "}
-                          </>
-                        )}
-                        {p.oneTime != null && `${money(p.oneTime, p.currency)} one-time. `}
-                        {p.note && `${p.note}.`}
-                      </span>
-                    </td>
-                  );
-                })}
+                {shown.map((c, i) => (
+                  <CompetitorPrice key={c.id} c={c} num={num} col={i + 2} />
+                ))}
               </tr>
               {ROWS.map((r, i) => (
                 <Fragment key={r.id}>
@@ -234,7 +283,7 @@ export default function Compare() {
 
         <div className="compare-legend small">
           <p>
-            <strong>✓</strong> included in the plan priced above. <strong>Add-on</strong>: sold separately or through a
+            <strong>✓</strong> included in the edition the source describes. <strong>Add-on</strong>: sold separately or through a
             marketplace app. <strong>Limited</strong>: part of it, as the note says. <strong>✗</strong>: not in that plan
             on the vendor's public site; marketplace apps or custom work may add it. <strong>Not stated</strong>: we
             couldn't confirm it either way from the vendor's public pages. <strong>Coming soon</strong>: being built now
@@ -242,8 +291,10 @@ export default function Compare() {
           </p>
           <p className="source-note" role="note">
             Competitor information from their public websites as of {CHECKED_LABEL}; check their sites for current
-            details. Prices are list prices before tax and aren't converted between currencies. {PRODUCT_NAME} prices
-            are in Canadian dollars. <Link to="/pricing">See all {PRODUCT_NAME} plans</Link>.
+            details. Prices are list prices before tax and aren't converted between currencies; we use Canadian dollars
+            wherever the vendor shows them. "From" means a starting price, or that the vendor doesn't publish the price
+            of a product in the list. {PRODUCT_NAME} prices are in Canadian dollars.{" "}
+            <Link to="/pricing">See all {PRODUCT_NAME} plans</Link>.
           </p>
         </div>
 

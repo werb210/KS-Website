@@ -564,7 +564,13 @@ table.compare-table thead th.compare-us { color: var(--accent-ink); }
 .compare-cell--unknown { color: var(--stone); }
 .compare-note { display: block; margin-top: 0.2rem; font-weight: 400; color: var(--ink-soft); font-size: var(--step--1); line-height: 1.4; }
 .compare-price td strong { font: 700 var(--step-1) / 1.2 var(--font-display); color: var(--ink); }
-.compare-price th, .compare-price td { background: var(--paper); }
+.compare-price th, .compare-price td { background: var(--paper); vertical-align: top; }
+/* KS_WEBSITE_COMPARE_MATCH - line-by-line price breakdown. */
+.compare-per { font-size: var(--step--1); color: var(--ink-soft); }
+.compare-lines { margin: 0.45rem 0 0; padding-left: 1.05rem; font-size: var(--step--1); line-height: 1.4; color: var(--ink); }
+.compare-lines li { margin-bottom: 0.3rem; }
+.compare-line-price { font-weight: 600; }
+.compare-first-year { display: block; margin-top: 0.35rem; font-weight: 700; font-size: var(--step--1); color: var(--ink); }
 .compare-ref { margin-left: 0.15rem; font-weight: 400; }
 .compare-ref a { color: var(--accent-ink); }
 .compare-legend { margin-top: 1rem; color: var(--ink-soft); }

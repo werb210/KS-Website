@@ -1,4 +1,4 @@
-import { BEING_BUILT, CHECKED, COMPETITORS, DEFAULT_COMPARE, OURS, ROWS, competitor, sourceOf } from "./compare";
+import { BEING_BUILT, CHECKED, COMPETITORS, DEFAULT_COMPARE, OURS, ROWS, competitor, priceTotals, sourceOf } from "./compare";
 
 describe("comparison data", () => {
   it("never shows a feature we lack: our column is only ever yes, or coming soon for something being built", () => {
@@ -17,15 +17,38 @@ describe("comparison data", () => {
     expect(new Set(ROWS.map((r) => r.id)).size).toBe(ROWS.length);
   });
 
-  it("every competitor price has a source URL and a checked date; a missing price is Quote only", () => {
+  it("every line of every competitor price has a source URL and a checked date", () => {
     for (const c of COMPETITORS) {
-      const src = sourceOf(c, c.price.src);
-      expect(src, `${c.id} price source`).toBeDefined();
-      expect(src!.url, c.id).toMatch(/^https:\/\//);
-      expect(src!.checked, c.id).toBe(CHECKED);
-      if (c.price.fiveSeatMonthly == null) expect(c.price.tier, c.id).toBe("Quote only");
-      if (c.price.perSeat != null) expect(c.price.fiveSeatMonthly, c.id).toBe(c.price.perSeat * 5);
+      expect(c.price.lines.length, c.id).toBeGreaterThan(0);
+      for (const id of [c.price.src, ...c.price.lines.map((l) => l.src)]) {
+        const src = sourceOf(c, id);
+        expect(src, `${c.id} price source ${id}`).toBeDefined();
+        expect(src!.url, c.id).toMatch(/^https:\/\//);
+        expect(src!.checked, c.id).toBe(CHECKED);
+      }
     }
+  });
+
+  it("totals add up per currency; an unpublished line makes the total a from figure", () => {
+    const hubspot = priceTotals(competitor("hubspot")!.price);
+    expect(hubspot.from).toBe(false);
+    expect(hubspot.byCurrency).toEqual([{ currency: "CAD", monthly: 1819, oneTime: 5650, firstYear: 1819 * 12 + 5650 }]);
+
+    const zoho = priceTotals(competitor("zoho")!.price);
+    expect(zoho.byCurrency.map((t) => [t.currency, t.monthly])).toEqual([["CAD", 182], ["USD", 49]]);
+    expect(zoho.from).toBe(true);
+
+    const salesforce = priceTotals(competitor("salesforce")!.price);
+    expect(salesforce.byCurrency[0]).toMatchObject({ currency: "USD", monthly: 1775, firstYear: 21300 });
+    expect(salesforce.from).toBe(true);
+
+    const centrex = priceTotals(competitor("centrex")!.price);
+    expect(centrex.onRequest).toBe(true);
+    expect(centrex.byCurrency).toEqual([]);
+  });
+
+  it("prices in CAD wherever the vendor shows CAD", () => {
+    for (const id of ["hubspot", "pipedrive"]) for (const l of competitor(id)!.price.lines) expect(l.currency, id).toBe("CAD");
   });
 
   it("every competitor value names a source with a URL and a checked date", () => {
