@@ -17,7 +17,7 @@ describe("/compare", () => {
     const heads = Array.from(table.querySelectorAll("thead th")).map((h) => h.textContent);
     expect(heads).toEqual(["Feature", "Keystone", "Salesforce Sales Cloud", "HubSpot Sales Hub"]);
     expect(screen.getByTestId("compare-price-salesforce")).toHaveTextContent("USD $500");
-    expect(screen.getByTestId("compare-price-hubspot")).toHaveTextContent("USD $450");
+    expect(screen.getByTestId("compare-price-hubspot")).toHaveTextContent("CAD $585");
     // Growth, 5 seats, billed annually: 5 x $119.
     expect(within(table).getByText("CAD $595")).toBeInTheDocument();
     expect(screen.getByText(new RegExp(`as of ${CHECKED_LABEL}; check their sites for current details`))).toBeInTheDocument();
@@ -28,7 +28,7 @@ describe("/compare", () => {
     renderAt(<Compare />, "/compare");
     await user.selectOptions(screen.getByLabelText("And with"), "pipedrive");
     expect(screen.getByTestId("compare-head-3")).toHaveTextContent("Pipedrive");
-    expect(screen.getByTestId("compare-price-pipedrive")).toHaveTextContent("USD $295");
+    expect(screen.getByTestId("compare-price-pipedrive")).toHaveTextContent("CAD $395");
     await user.selectOptions(screen.getByLabelText("Compare with"), "centrex");
     expect(screen.getByTestId("compare-head-2")).toHaveTextContent("Centrex");
     expect(screen.getByTestId("compare-price-centrex")).toHaveTextContent("Quote only");

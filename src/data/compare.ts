@@ -155,9 +155,10 @@ export const COMPETITORS: Competitor[] = [
     kind: "general",
     rank: 1,
     why: "The most widely used CRM overall, and named in broker CRM round-ups for its flexibility. Brokers usually customise it for lending.",
-    price: { tier: "Pro Suite", currency: "USD", perSeat: 100, fiveSeatMonthly: 500, billing: "billed annually", note: "API access is $25 per user a month extra on this plan", src: "price" },
+    price: { tier: "Pro Suite", currency: "USD", perSeat: 100, fiveSeatMonthly: 500, billing: "billed annually", note: "Salesforce's Canadian site lists prices in USD. API access is USD $25 per user a month extra on this plan", src: "ca" },
     sources: [
       s("price", "Salesforce: Sales Cloud pricing", "https://www.salesforce.com/products/sales-cloud-pricing/"),
+      s("ca", "Salesforce Canada: Sales Cloud pricing (USD)", "https://www.salesforce.com/ca/sales/pricing/"),
       s("portal", "Salesforce: Self-Service (customer portal) pricing", "https://www.salesforce.com/products/customer-self-service-pricing/"),
       s("usage", "Lendflow: CRMs for commercial loan brokers", LENDFLOW),
     ],
@@ -199,9 +200,10 @@ export const COMPETITORS: Competitor[] = [
     kind: "general",
     rank: 2,
     why: "Very common with small brokerages for lead generation and follow-up; has a free tier. Named in broker CRM round-ups.",
-    price: { tier: "Professional", currency: "USD", perSeat: 90, fiveSeatMonthly: 450, billing: "billed annually", oneTime: 1500, note: "One-time onboarding fee", src: "price" },
+    price: { tier: "Professional", currency: "CAD", perSeat: 117, fiveSeatMonthly: 585, billing: "billed annually (CAD $650 a month paid monthly)", oneTime: 1950, note: "Canadian pricing from HubSpot's price calculator; CAD $1,950 one-time onboarding. Marketing Hub Professional, needed for marketing email at scale, is CAD $1,034 a month more on an annual commitment.", src: "cad" },
     sources: [
       s("price", "HubSpot: Sales Hub pricing", "https://www.hubspot.com/pricing/sales"),
+      s("cad", "HubSpot: price calculator in CAD (Sales Hub Professional, 5 seats)", "https://www.hubspot.com/pricing/bundle?products=sales-hub-professional_5"),
       s("guide", "HubSpot: Sales Hub pricing guide", "https://blog.hubspot.com/sales/hubspot-sales-hub-pricing"),
       s("product", "HubSpot: Sales Hub features", "https://www.hubspot.com/products/sales"),
       s("portal", "HubSpot: Set up a customer portal", "https://knowledge.hubspot.com/inbox/set-up-a-customer-portal"),
@@ -291,7 +293,7 @@ export const COMPETITORS: Competitor[] = [
     kind: "general",
     rank: 4,
     why: "A simple visual pipeline that many small brokerages start on. Named in broker CRM round-ups.",
-    price: { tier: "Premium", currency: "USD", perSeat: 59, fiveSeatMonthly: 295, billing: "billed annually", note: "The first plan with built-in e-signatures", src: "price" },
+    price: { tier: "Premium", currency: "CAD", perSeat: 79, fiveSeatMonthly: 395, billing: "billed annually (CAD $948 per seat a year)", note: "Canadian pricing from Pipedrive's site. The first plan with built-in e-signatures", src: "price" },
     sources: [
       s("price", "Pipedrive: Pricing", "https://www.pipedrive.com/en/pricing"),
       s("calls", "Pipedrive: How can I make calls in Pipedrive?", "https://support.pipedrive.com/en/article/how-can-i-make-calls-in-pipedrive"),
