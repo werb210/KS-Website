@@ -11,15 +11,25 @@ beforeEach(() => {
 });
 
 describe("/compare", () => {
-  it("renders Keystone, Salesforce and HubSpot by default, with a 5-seat price row", () => {
+  it("renders Keystone, Salesforce and HubSpot by default, priced to match Keystone with marketing", () => {
     renderAt(<Compare />, "/compare");
     const table = screen.getByTestId("compare-table");
     const heads = Array.from(table.querySelectorAll("thead th")).map((h) => h.textContent);
     expect(heads).toEqual(["Feature", "Keystone", "Salesforce Sales Cloud", "HubSpot Sales Hub"]);
-    expect(screen.getByTestId("compare-price-salesforce")).toHaveTextContent("USD $500");
-    expect(screen.getByTestId("compare-price-hubspot")).toHaveTextContent("CAD $585");
-    // Growth, 5 seats, billed annually: 5 x $119.
-    expect(within(table).getByText("CAD $595")).toBeInTheDocument();
+    expect(within(table).getByText(/Cost for 5 seats with marketing, to match Keystone/)).toBeInTheDocument();
+    // Growth, 5 seats, billed annually (5 x $119) + the $49 Marketing add-on; $695 + $49 billed monthly; $750 onboarding.
+    const ours = screen.getByTestId("compare-price-keystone");
+    expect(within(ours).getByText("CAD $644")).toBeInTheDocument();
+    expect(ours).toHaveTextContent("CAD $744 a month if billed monthly");
+    expect(ours).toHaveTextContent("2,500 call minutes and 2,500 texts a month");
+    expect(screen.getByTestId("compare-first-year-keystone")).toHaveTextContent("First year: CAD $8,478 (12 months + CAD $750 one-time)");
+    // HubSpot: Sales Hub Pro 585 + Marketing Hub Pro 1,034 + two SMS add-ons 200; onboarding 1,950 + 3,700.
+    const hubspot = screen.getByTestId("compare-price-hubspot");
+    expect(hubspot).toHaveTextContent("CAD $1,819 a month");
+    expect(hubspot).toHaveTextContent("Marketing Hub Professional (2,000 marketing contacts): CAD $1,034 a month + CAD $3,700 one-time");
+    expect(screen.getByTestId("compare-first-year-hubspot")).toHaveTextContent("First year: CAD $27,478 (12 months + CAD $5,650 one-time)");
+    expect(screen.getByTestId("compare-price-salesforce")).toHaveTextContent("From USD $1,775 a month");
+    expect(screen.getByTestId("compare-price-salesforce")).toHaveTextContent("price not published");
     expect(screen.getByText(new RegExp(`as of ${CHECKED_LABEL}; check their sites for current details`))).toBeInTheDocument();
   });
 
@@ -28,10 +38,13 @@ describe("/compare", () => {
     renderAt(<Compare />, "/compare");
     await user.selectOptions(screen.getByLabelText("And with"), "pipedrive");
     expect(screen.getByTestId("compare-head-3")).toHaveTextContent("Pipedrive");
-    expect(screen.getByTestId("compare-price-pipedrive")).toHaveTextContent("CAD $395");
+    expect(screen.getByTestId("compare-price-pipedrive")).toHaveTextContent("From CAD $408.33 a month");
     await user.selectOptions(screen.getByLabelText("Compare with"), "centrex");
     expect(screen.getByTestId("compare-head-2")).toHaveTextContent("Centrex");
-    expect(screen.getByTestId("compare-price-centrex")).toHaveTextContent("Quote only");
+    expect(screen.getByTestId("compare-price-centrex")).toHaveTextContent("Price on request");
+    expect(screen.queryByTestId("compare-first-year-centrex")).toBeNull();
+    await user.selectOptions(screen.getByLabelText("Compare with"), "zoho");
+    expect(screen.getByTestId("compare-price-zoho")).toHaveTextContent("From CAD $182 + USD $49 a month");
   });
 
   it("picking the product already in the other column swaps the two", async () => {

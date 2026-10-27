@@ -6,7 +6,9 @@
 //   is not here at all.
 // - Every competitor value names a source, and every source has a URL and the date it was checked.
 // - Prices are list prices copied from the vendor's own public pages (or a public listing where the vendor publishes
-//   none). No price is estimated. Where nothing is published the price is "Quote only" (fiveSeatMonthly: null).
+//   none), in Canadian dollars wherever the vendor shows them. No price is estimated: a product the vendor publishes no
+//   price for is a line with monthly: null, which turns the total into a "from" figure, or "Price on request" when no
+//   line has a price.
 // - "no" means the vendor's public site doesn't show it in the plan we priced. "unknown" means we couldn't confirm
 //   either way, and the page says "Not stated".
 
@@ -108,20 +110,75 @@ export const OURS: Record<RowId, OurCell> = {
   help_centre: { v: "soon", building: "knowledge_base" },
 };
 
-export type Price = {
-  /** The plan a 5-person brokerage would realistically buy. */
-  tier: string;
-  currency: "USD" | "CAD";
-  /** List price per seat per month, or null when priced another way (or not published). */
-  perSeat: number | null;
-  /** What 5 seats cost a month at list price, or null when the vendor publishes no price. */
-  fiveSeatMonthly: number | null;
-  billing: string;
-  /** One-time fee, when the vendor publishes one. */
+// KS_WEBSITE_COMPARE_MATCH - the price row prices what a 5-person brokerage must buy from each vendor to MATCH Keystone
+// Growth + the Marketing add-on: marketing email at scale, sequences, bulk texting, lead scoring, email A/B tests,
+// Google Ads conversion sync, and calling and texting. Each line is the lowest product the vendor's own pages show
+// for that job. A line the vendor publishes no price for has monthly: null ("price not published") and makes the
+// total a "from" figure. Prices are in the vendor's own currency: Canadian dollars wherever the vendor shows them.
+export type Currency = "USD" | "CAD";
+
+export type PriceLine = {
+  /** "Sales Hub Professional, 5 seats (CAD $117 a seat)" */
+  item: string;
+  currency: Currency;
+  /** Monthly list price (billed annually unless the price says otherwise); null = not published. */
+  monthly: number | null;
+  /** The published figure is a starting price ("from"). */
+  from?: boolean;
+  /** One-time fee (onboarding), when the vendor publishes one. */
   oneTime?: number;
   note?: string;
   src: string;
 };
+
+export type Price = {
+  lines: PriceLine[];
+  /** Billing basis for the totals, e.g. "billed annually". */
+  billing: string;
+  note?: string;
+  src: string;
+};
+
+/** Keystone's own price for the match: Growth + Marketing add-on. Mirrors KS-Ops src/pricing.ts MARKETING_ADDON. */
+export const KEYSTONE_MATCH = {
+  plan: "growth",
+  addonName: "Marketing add-on",
+  /** Flat per brokerage, a month (KS-Ops MARKETING_ADDON.price_cents / 100). */
+  addonPrice: 49,
+  addonIncludes:
+    "10,000 more campaign emails a month, 1,000 bonus marketing texts, one text to up to 1,000 people at a time, unlimited sequences, lead scoring, subject-line A/B tests, full Google Ads tools (attribution, ad-waste report, Customer Match) and unlimited website lead forms with an AI chat widget and tracking script",
+} as const;
+
+export type CurrencyTotal = { currency: Currency; monthly: number; oneTime: number; firstYear: number };
+export type PriceTotals = {
+  /** One entry per currency, CAD first. Empty when nothing is published. */
+  byCurrency: CurrencyTotal[];
+  /** A starting price or an unpublished line is in the mix. */
+  from: boolean;
+  /** No line has a published price. */
+  onRequest: boolean;
+};
+
+const cents = (n: number) => Math.round(n * 100) / 100;
+
+/** Monthly total, one-time fees and first-year cost (12 months + one-time), per currency. */
+export function priceTotals(p: Price): PriceTotals {
+  const map = new Map<Currency, CurrencyTotal>();
+  for (const l of p.lines) {
+    if (l.monthly == null && l.oneTime == null) continue;
+    const t = map.get(l.currency) ?? { currency: l.currency, monthly: 0, oneTime: 0, firstYear: 0 };
+    t.monthly = cents(t.monthly + (l.monthly ?? 0));
+    t.oneTime = cents(t.oneTime + (l.oneTime ?? 0));
+    t.firstYear = cents(t.monthly * 12 + t.oneTime);
+    map.set(l.currency, t);
+  }
+  const byCurrency = [...map.values()].sort((x, y) => (x.currency === y.currency ? 0 : x.currency === "CAD" ? -1 : 1));
+  return {
+    byCurrency,
+    from: p.lines.some((l) => l.from || l.monthly == null),
+    onRequest: byCurrency.length === 0,
+  };
+}
 
 export type Competitor = {
   id: string;
@@ -155,10 +212,23 @@ export const COMPETITORS: Competitor[] = [
     kind: "general",
     rank: 1,
     why: "The most widely used CRM overall, and named in broker CRM round-ups for its flexibility. Brokers usually customise it for lending.",
-    price: { tier: "Pro Suite", currency: "USD", perSeat: 100, fiveSeatMonthly: 500, billing: "billed annually", note: "Salesforce's Canadian site lists prices in USD. API access is USD $25 per user a month extra on this plan", src: "ca" },
+    price: {
+      billing: "billed annually",
+      src: "ca",
+      lines: [
+        { item: "Sales Cloud Pro Suite, 5 seats (USD $100 a seat)", currency: "USD", monthly: 500, src: "ca" },
+        { item: "Marketing Cloud Account Engagement Growth+ (up to 10,000 contacts; includes Marketing Cloud Next Growth, lead nurturing and scoring)", currency: "USD", monthly: 1250, src: "mkt" },
+        { item: "Sales Dialer, 5 users (from USD $5 a user)", currency: "USD", monthly: 25, from: true, src: "addons" },
+        { item: "Marketing SMS: from USD $2 per 1,000 credits, plus a set-up and leased code Salesforce doesn't price publicly", currency: "USD", monthly: null, src: "mcsms" },
+      ],
+      note: "Salesforce's Canadian site lists prices in USD only, and publishes no onboarding fee. Its add-on page lists Account Engagement for the Professional edition and up",
+    },
     sources: [
       s("price", "Salesforce: Sales Cloud pricing", "https://www.salesforce.com/products/sales-cloud-pricing/"),
       s("ca", "Salesforce Canada: Sales Cloud pricing (USD)", "https://www.salesforce.com/ca/sales/pricing/"),
+      s("mkt", "Salesforce Canada: Marketing Cloud Account Engagement pricing (USD)", "https://www.salesforce.com/ca/marketing/b2b-automation/pricing/"),
+      s("addons", "Salesforce: Sales Cloud add-on pricing (Sales Dialer)", "https://www.salesforce.com/sales/pricing/add-ons/"),
+      s("mcsms", "Salesforce Canada: Marketing Cloud editions pricing (SMS credits)", "https://www.salesforce.com/ca/marketing/marketing-cloud-editions/pricing/"),
       s("portal", "Salesforce: Self-Service (customer portal) pricing", "https://www.salesforce.com/products/customer-self-service-pricing/"),
       s("usage", "Lendflow: CRMs for commercial loan brokers", LENDFLOW),
     ],
@@ -200,10 +270,21 @@ export const COMPETITORS: Competitor[] = [
     kind: "general",
     rank: 2,
     why: "Very common with small brokerages for lead generation and follow-up; has a free tier. Named in broker CRM round-ups.",
-    price: { tier: "Professional", currency: "CAD", perSeat: 117, fiveSeatMonthly: 585, billing: "billed annually (CAD $650 a month paid monthly)", oneTime: 1950, note: "Canadian pricing from HubSpot's price calculator; CAD $1,950 one-time onboarding. Marketing Hub Professional, needed for marketing email at scale, is CAD $1,034 a month more on an annual commitment.", src: "cad" },
+    price: {
+      billing: "billed annually",
+      src: "cad",
+      lines: [
+        { item: "Sales Hub Professional, 5 seats (CAD $117 a seat)", currency: "CAD", monthly: 585, oneTime: 1950, src: "cad" },
+        { item: "Marketing Hub Professional (2,000 marketing contacts)", currency: "CAD", monthly: 1034, oneTime: 3700, src: "mhp" },
+        { item: "Marketing SMS add-on (1,000 message segments a month; needed to text for marketing)", currency: "CAD", monthly: 100, src: "mhp" },
+        { item: "Sales and Service SMS add-on (two-way texting from the CRM; 1,000 segments a month)", currency: "CAD", monthly: 100, src: "cad" },
+      ],
+      note: "Canadian prices from HubSpot's price calculator; the one-time fees are HubSpot's required onboarding. Paid monthly: CAD $130 a seat and CAD $1,150 for Marketing Hub. HubSpot sends texts only from U.S. phone numbers",
+    },
     sources: [
       s("price", "HubSpot: Sales Hub pricing", "https://www.hubspot.com/pricing/sales"),
-      s("cad", "HubSpot: price calculator in CAD (Sales Hub Professional, 5 seats)", "https://www.hubspot.com/pricing/bundle?products=sales-hub-professional_5"),
+      s("cad", "HubSpot: price calculator in CAD (Marketing Hub Professional + Sales Hub Professional, 5 seats)", "https://www.hubspot.com/pricing/bundle?products=marketing-hub-professional_1&products=sales-hub-professional_5"),
+      s("mhp", "HubSpot: price calculator in CAD (Marketing Hub Professional onboarding and SMS add-on)", "https://www.hubspot.com/pricing/bundle?products=marketing-hub-professional_1"),
       s("guide", "HubSpot: Sales Hub pricing guide", "https://blog.hubspot.com/sales/hubspot-sales-hub-pricing"),
       s("product", "HubSpot: Sales Hub features", "https://www.hubspot.com/products/sales"),
       s("portal", "HubSpot: Set up a customer portal", "https://knowledge.hubspot.com/inbox/set-up-a-customer-portal"),
@@ -249,8 +330,20 @@ export const COMPETITORS: Competitor[] = [
     kind: "general",
     rank: 3,
     why: "A low-cost general CRM that tops some finance-broker CRM lists; popular with small teams.",
-    price: { tier: "Enterprise", currency: "USD", perSeat: 40, fiveSeatMonthly: 200, billing: "billed annually", src: "price" },
+    price: {
+      billing: "billed annually",
+      src: "cad",
+      lines: [
+        { item: "Zoho CRM Professional, 5 seats (CAD $31 a seat; cadences and Google Ads integration)", currency: "CAD", monthly: 155, src: "cad" },
+        { item: "Zoho Marketing Automation Professional (1,000 contacts; unlimited emails, lead scoring, email A/B tests, SMS marketing)", currency: "CAD", monthly: 27, from: true, src: "ma" },
+        { item: "Zoho Voice Standard (calls and texts for up to 10 agents; call and text charges extra)", currency: "USD", monthly: 49, from: true, src: "voice" },
+      ],
+      note: "Zoho shows CRM and Marketing Automation prices in CAD to Canadian visitors; Zoho Voice is listed in USD only. Marketing Automation's price rises with the number of contacts",
+    },
     sources: [
+      s("cad", "Zoho: CRM pricing (CAD for Canadian visitors)", "https://www.zoho.com/crm/zohocrm-pricing.html"),
+      s("ma", "Zoho: Marketing Automation pricing (CAD for Canadian visitors)", "https://www.zoho.com/marketingautomation/pricing.html"),
+      s("voice", "Zoho: Zoho Voice pricing (USD)", "https://www.zoho.com/voice/pricing.html"),
       s("price", "Zoho: CRM Enterprise edition", "https://www.zoho.com/crm/zohocrm-pricing-enterprise.html"),
       s("pro", "Zoho: CRM Professional edition", "https://www.zoho.com/crm/zohocrm-pricing-professional.html"),
       s("usage", "WifiTalents: Best finance broker CRM software", WIFI),
@@ -293,9 +386,18 @@ export const COMPETITORS: Competitor[] = [
     kind: "general",
     rank: 4,
     why: "A simple visual pipeline that many small brokerages start on. Named in broker CRM round-ups.",
-    price: { tier: "Premium", currency: "CAD", perSeat: 79, fiveSeatMonthly: 395, billing: "billed annually (CAD $948 per seat a year)", note: "Canadian pricing from Pipedrive's site. The first plan with built-in e-signatures", src: "price" },
+    price: {
+      billing: "billed annually",
+      src: "price",
+      lines: [
+        { item: "Premium, 5 seats (CAD $79 a seat; LeadBooster, lead scoring and sequences included)", currency: "CAD", monthly: 395, src: "price" },
+        { item: "Campaigns add-on (email marketing; the price rises with the number of contacts)", currency: "CAD", monthly: 13.33, from: true, src: "price" },
+        { item: "Calling and texting app from the Pipedrive Marketplace, priced by the app's maker", currency: "CAD", monthly: null, src: "calls" },
+      ],
+      note: "Canadian pricing from Pipedrive's site; set-up is free on plans over $400 a year. Bulk texting, email A/B tests and Google Ads conversion sync aren't stated on Pipedrive's pricing page",
+    },
     sources: [
-      s("price", "Pipedrive: Pricing", "https://www.pipedrive.com/en/pricing"),
+      s("price", "Pipedrive: Pricing (CAD for Canadian visitors)", "https://www.pipedrive.com/en/pricing"),
       s("calls", "Pipedrive: How can I make calls in Pipedrive?", "https://support.pipedrive.com/en/article/how-can-i-make-calls-in-pipedrive"),
       s("dc", "Pipedrive: How secure is my data in Pipedrive?", "https://support.pipedrive.com/en/article/how-secure-is-my-data-in-pipedrive"),
       s("usage", "Lendflow: CRMs for commercial loan brokers", LENDFLOW),
@@ -338,9 +440,20 @@ export const COMPETITORS: Competitor[] = [
     kind: "lending",
     rank: 5,
     why: "Salesforce's financial-services edition, with financial data models. Suits larger teams with an admin.",
-    price: { tier: "Sales Core", currency: "USD", perSeat: 325, fiveSeatMonthly: 1625, billing: "billed annually", src: "price" },
+    price: {
+      billing: "billed annually",
+      src: "price",
+      lines: [
+        { item: "Financial Services Cloud Sales Core, 5 seats (USD $325 a seat)", currency: "USD", monthly: 1625, src: "price" },
+        { item: "Marketing Cloud Account Engagement Growth+ (up to 10,000 contacts; includes lead nurturing and scoring)", currency: "USD", monthly: 1250, src: "mkt" },
+        { item: "Calling and marketing SMS: SMS from USD $2 per 1,000 credits plus a set-up and leased code; calling not priced for this product", currency: "USD", monthly: null, src: "mcsms" },
+      ],
+      note: "Salesforce lists prices in USD and publishes no onboarding fee",
+    },
     sources: [
       s("price", "Salesforce: Financial Services Cloud for Sales pricing", "https://www.salesforce.com/financial-services/sales-pricing/"),
+      s("mkt", "Salesforce Canada: Marketing Cloud Account Engagement pricing (USD)", "https://www.salesforce.com/ca/marketing/b2b-automation/pricing/"),
+      s("mcsms", "Salesforce Canada: Marketing Cloud editions pricing (SMS credits)", "https://www.salesforce.com/ca/marketing/marketing-cloud-editions/pricing/"),
       s("editions", "Salesforce: Financial Services Cloud for Sales & Service pricing", "https://www.salesforce.com/financial-services/sales-service-pricing/"),
       s("portal", "Salesforce: Self-Service (customer portal) pricing", "https://www.salesforce.com/products/customer-self-service-pricing/"),
       s("usage", "Lendflow: CRMs for commercial loan brokers", LENDFLOW),
@@ -383,7 +496,12 @@ export const COMPETITORS: Competitor[] = [
     kind: "lending",
     rank: 6,
     why: "A CRM built for business-loan, MCA, equipment-leasing and factoring brokers; one of the longest-standing in the niche.",
-    price: { tier: "Quote only", currency: "USD", perSeat: null, fiveSeatMonthly: null, billing: "", note: "Pricing on request", src: "pricing" },
+    price: {
+      billing: "",
+      src: "pricing",
+      lines: [{ item: "Centrex CRM, including its email and text blasts and phone-system integrations", currency: "USD", monthly: null, src: "pricing" }],
+      note: "Centrex doesn't publish prices",
+    },
     sources: [
       s("crm", "Centrex: CRM software", "https://centrexsoftware.com/crm-software/"),
       s("pricing", "Software Advice: Centrex (pricing on request)", "https://www.softwareadvice.com/loan-origination/centrex-profile/"),
@@ -428,7 +546,15 @@ export const COMPETITORS: Competitor[] = [
     kind: "lending",
     rank: 7,
     why: "A loan origination system with a broker edition, used by private and commercial lenders and the brokers who work with them.",
-    price: { tier: "Pro (5 users included)", currency: "USD", perSeat: null, fiveSeatMonthly: 600, billing: "billed annually", note: "Flat monthly price for up to 5 users", src: "price" },
+    price: {
+      billing: "billed annually",
+      src: "price",
+      lines: [
+        { item: "Pro, up to 5 users (bulk email marketing included)", currency: "USD", monthly: 600, src: "price" },
+        { item: "Calling, texting, lead scoring, email A/B tests and Google Ads sync: not stated on LendingWise's pricing page", currency: "USD", monthly: null, src: "price" },
+      ],
+      note: "Includes 2 hours of implementation help",
+    },
     sources: [s("price", "LendingWise: Pricing information", "https://help.lendingwise.com/knowledge/pricing-information")],
     cells: {
       contacts: y("price", "Contact manager"),
@@ -468,8 +594,19 @@ export const COMPETITORS: Competitor[] = [
     kind: "lending",
     rank: 8,
     why: "A Salesforce-based system built for merchant cash advance and small-business finance brokers.",
-    price: { tier: "Broker", currency: "USD", perSeat: 75, fiveSeatMonthly: 375, billing: "as published by the vendor", note: "Runs in your own Salesforce; the vendor's page doesn't say whether Salesforce licences are extra", src: "price" },
+    price: {
+      billing: "as published",
+      src: "price",
+      lines: [
+        { item: "Cloudsquare Broker, 5 users (from USD $75 a user; dialling and text follow-up included)", currency: "USD", monthly: 375, from: true, src: "price" },
+        { item: "Salesforce licences, 5 users: Cloudsquare runs in your own Salesforce and doesn't say which edition it needs", currency: "USD", monthly: null, src: "sf" },
+        { item: "Marketing Cloud Account Engagement Growth+ (up to 10,000 contacts; includes lead nurturing and scoring)", currency: "USD", monthly: 1250, src: "mkt" },
+      ],
+      note: "Prices in USD. Neither vendor publishes an onboarding fee",
+    },
     sources: [
+      s("sf", "Salesforce Canada: Sales Cloud pricing (USD)", "https://www.salesforce.com/ca/sales/pricing/"),
+      s("mkt", "Salesforce Canada: Marketing Cloud Account Engagement pricing (USD)", "https://www.salesforce.com/ca/marketing/b2b-automation/pricing/"),
       s("home", "Cloudsquare: Home page", "https://cloudsquare.io/"),
       s("price", "Cloudsquare: Centrex pricing guide (states the Cloudsquare Broker price)", "https://cloudsquare.io/centrex-software-pricing/"),
       s("listing", "Capterra: Cloudsquare Broker", "https://www.capterra.com/p/180221/BrokerSuite/"),
