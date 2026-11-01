@@ -17,6 +17,7 @@ const AREAS: Area[] = [
       { name: "Contacts and companies", body: "Borrowers, referrers and lenders with every call, text, email and document in one timeline." },
       { name: "Tasks and calendar", body: "Follow-ups that don't get forgotten, synced with your Microsoft 365 or Google calendar." },
       { name: "Reports", body: "Funded volume, conversion by source, team activity and commissions.", plan: "Growth" },
+      { name: "Revenue forecast", body: "Commission forecast per person and team by month or quarter: weighted pipeline, commit and best case, next to each person's goals.", plan: "Growth" },
     ],
   },
   {
@@ -38,6 +39,7 @@ const AREAS: Area[] = [
     items: [
       { name: "6-step application wizard", body: "Business, owners, funding needs, financials, documents, sign, shown with your branding. Clients can use it as an app on iPhone or Android, or as a website in any browser: their choice." },
       { name: "Client mini-portal", body: "Borrowers check status, answer requests and upload what's missing without calling you." },
+      { name: "ID and selfie verification", body: "Applicants and guarantors verify with a photo of their government ID and a selfie in the client app. Canada and the US. Some checks are included each month.", plan: "Growth" },
       { name: "Referrer portal", body: "Partners send you deals and see how they're going.", plan: "Growth" },
       { name: "Broker portal", body: "Partner brokers sign your broker agreement, upload client files and agree the commission split.", plan: "Growth" },
       { name: "Lender portal", body: "Lenders keep their details and products current, and send you deals they can't place themselves. The lender package goes to each lender by email or API." },
@@ -54,6 +56,7 @@ const AREAS: Area[] = [
     items: [
       { name: "Document collection with OCR", body: "Statements and financials are read on upload and checked for missing pages." },
       { name: "Lender submissions", body: "Build a package once and send it to each lender you choose by email or API. You bring your own lenders." },
+      { name: "Quotes", body: "Turn the lender offers on a file into one branded quote: payment, fees and total cost of borrowing side by side. The client opens it in the client app and accepts the one they want.", plan: "Growth" },
       { name: "Storage", body: "Pooled storage per seat, with extra space available when you need it." },
     ],
   },

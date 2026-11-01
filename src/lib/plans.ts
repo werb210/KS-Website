@@ -87,10 +87,13 @@ export type Catalog = {
   support_levels: SupportLevel[];
   /** Extra storage sold in blocks, per month. max_blocks = most the sign-up accepts. */
   extra_storage: { block_gb: number; price: number; max_blocks: number };
-  overage: { minute: number; text: number; signing?: number; campaign_email_block?: number; campaign_email_block_size?: number };
+  /** id_check: KS_WEBSITE_KYC - each ID check over the month's included number (older catalogues leave it out). */
+  overage: { minute: number; text: number; signing?: number; campaign_email_block?: number; campaign_email_block_size?: number; id_check?: number };
   /** KS_WEBSITE_MARKETING_ADDON - older catalogues leave these out; the fallback's are used then. */
   marketing_addon?: MarketingAddon;
   signings?: { included: number; price: number; per: string };
+  /** KS_WEBSITE_KYC - ID checks included each month per brokerage, by plan. */
+  id_checks?: { included: Record<PlanKey, number>; trial_included: number; price: number };
   trial: {
     days: number;
     plan: PlanKey;
@@ -136,6 +139,9 @@ export const FALLBACK_FEATURES: ReadonlyArray<PlanFeature & { plan: PlanKey }> =
   { key: "payment_links", label: "Payment links and bank debit for fees (your own Stripe account)", plan: "growth" },
   { key: "call_scripts", label: "Call scripts (playbooks)", plan: "growth" },
   { key: "custom_pipelines", label: "Extra pipelines with custom stages (Growth 3, Pro unlimited)", plan: "growth" },
+  { key: "id_verification", label: "ID and selfie verification of applicants and guarantors (some checks included each month)", plan: "growth" },
+  { key: "quotes", label: "Quotes: compare lender offers for the client, branded PDF and acceptance in the client app", plan: "growth" },
+  { key: "forecasting", label: "Revenue forecast: weighted pipeline, commit and best case per rep and team, against goals", plan: "growth" },
   { key: "multiple_lines", label: "Multiple business lines and a direct line for each person", plan: "pro" },
   { key: "ad_attribution", label: "Google Ads tools: attribution, ad-waste report, Customer Match, Monday ads email and AI ads suggestions", plan: "pro" },
   { key: "api_access", label: "API access", plan: "pro" },
@@ -253,7 +259,7 @@ export const FALLBACK_CATALOG: Catalog = {
     },
   ],
   extra_storage: { block_gb: 50, price: 10, max_blocks: MAX_STORAGE_BLOCKS },
-  overage: { minute: 0.04, text: 0.03, signing: 2.5, campaign_email_block: 10, campaign_email_block_size: 10000 },
+  overage: { minute: 0.04, text: 0.03, signing: 2.5, campaign_email_block: 10, campaign_email_block_size: 10000, id_check: 4 },
   // KS_WEBSITE_MARKETING_ADDON - the same as KS-Ops /api/public/plans (src/lib/plansDrift.test.ts compares the numbers).
   marketing_addon: {
     key: "marketing",
@@ -282,6 +288,7 @@ export const FALLBACK_CATALOG: Catalog = {
     ],
   },
   signings: { included: 4, price: 2.5, per: "brokerage" },
+  id_checks: { included: { starter: 0, growth: 10, pro: 30 }, trial_included: 5, price: 4 },
   trial: { days: 14, plan: "pro", for: ["starter", "growth"], bonus_minutes_per_seat: 100, bonus_texts_per_seat: 100 },
   currency: "CAD",
 };

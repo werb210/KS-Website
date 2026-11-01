@@ -327,6 +327,12 @@ export default function Pricing() {
             <li>
               <strong>Texts</strong> beyond your pooled allowance: {money(c.overage.text)} a text
             </li>
+            {c.id_checks ? (
+              <li>
+                <strong>ID checks</strong> (ID and selfie verification, Growth and Pro): {c.id_checks.included.growth} a month
+                included on Growth and {c.id_checks.included.pro} on Pro, then {money(c.id_checks.price)} a check
+              </li>
+            ) : null}
             <li>
               <strong>E-signings</strong>: {formatNumber(signings.included)} a month are included with every plan. Each signing
               after that is {money(signings.price)}, added to next month's bill. A signing is one signature request sent to one
