@@ -39,6 +39,7 @@ const AREAS: Area[] = [
     items: [
       { name: "6-step application wizard", body: "Business, owners, funding needs, financials, documents, sign, shown with your branding. Clients can use it as an app on iPhone or Android, or as a website in any browser: their choice." },
       { name: "Client mini-portal", body: "Borrowers check status, answer requests and upload what's missing without calling you." },
+      { name: "ID and selfie verification", body: "Applicants and guarantors verify with a photo of their government ID and a selfie in the client app. Canada and the US. Some checks are included each month.", plan: "Growth" },
       { name: "Referrer portal", body: "Partners send you deals and see how they're going.", plan: "Growth" },
       { name: "Broker portal", body: "Partner brokers sign your broker agreement, upload client files and agree the commission split.", plan: "Growth" },
       { name: "Lender portal", body: "Lenders keep their details and products current, and send you deals they can't place themselves. The lender package goes to each lender by email or API." },
