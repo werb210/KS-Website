@@ -28,6 +28,8 @@ export type SignupForm = {
   support_level: string;
   /** Extra 50 GB storage blocks bought on top of the plan's allowance. */
   extra_storage_blocks: number;
+  /** KS_WEBSITE_MARKETING_ADDON - the Marketing add-on, flat per brokerage. */
+  marketing_addon: boolean;
   /** Bank debit (Canadian pre-authorized debit) by default, or card. */
   payment_method: PaymentMethod;
   /** An uploaded logo, read in the browser (null = none). */
@@ -72,6 +74,7 @@ export const EMPTY_FORM: SignupForm = {
   billing_interval: "annual",
   support_level: "email",
   extra_storage_blocks: 0,
+  marketing_addon: false,
   payment_method: "acss_debit",
   logo_file: null,
   primary_color: "#1f4e79",

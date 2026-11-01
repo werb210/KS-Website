@@ -56,6 +56,8 @@ export type SignupPayload = {
   support_level: string;
   /** Extra 50 GB storage blocks, 0 to the catalog's max_blocks. */
   extra_storage_blocks: number;
+  /** KS_WEBSITE_MARKETING_ADDON */
+  marketing_addon: boolean;
   /** "acss_debit" (Canadian pre-authorized debit, the default) or "card". */
   payment_method: PaymentMethod;
   primary_color?: string;

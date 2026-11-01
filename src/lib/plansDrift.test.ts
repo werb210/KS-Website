@@ -5,6 +5,7 @@
 import { readFile } from "node:fs/promises";
 import { describe, expect, it } from "vitest";
 import { FALLBACK_CATALOG, FALLBACK_FEATURES } from "./plans";
+import { KEYSTONE_MATCH } from "../data/compare";
 
 type Def = { key: string; label: string; plan: string };
 
@@ -13,6 +14,17 @@ export function parseFeatureDefs(source: string): Def[] {
   const out: Def[] = [];
   const re = /\{\s*key:\s*"([^"]+)",\s*label:\s*"((?:[^"\\]|\\.)*)",\s*plan:\s*"(starter|growth|pro)"\s*\}/g;
   for (const m of source.matchAll(re)) out.push({ key: m[1], label: m[2].replace(/\\"/g, '"'), plan: m[3] });
+  return out;
+}
+
+/** KS-Ops `starter: { campaign_emails: 500, text_to_many: 50, sequences: 2, visitor_history_days: 30, lead_forms: 1 },` */
+export function parseMarketingLimits(source: string): Record<string, Record<string, number | null>> {
+  const block = /MARKETING_LIMITS[^=]*=\s*\{([\s\S]*?)\n\};/.exec(source)?.[1] ?? "";
+  const out: Record<string, Record<string, number | null>> = {};
+  for (const m of block.matchAll(/(starter|growth|pro): \{([^}]*)\}/g)) {
+    out[m[1]] = Object.fromEntries(m[2].split(",").map((kv) => kv.split(":").map((x) => x.trim())).filter((kv) => kv[0])
+      .map(([k, v]) => [k, v === "null" ? null : Number(v.replace(/_/g, ""))]));
+  }
   return out;
 }
 
@@ -68,6 +80,29 @@ describe("fallback plan catalogue", () => {
     expect(mine.find((f) => f.key === "sso")?.plan).toBe("pro");
     expect(mine.find((f) => f.key === "api_access")?.plan).toBe("pro");
   });
+
+  // KS_WEBSITE_MARKETING_ADDON - the Marketing add-on, each plan's marketing limits and the signing allowance must
+  // match KS-Ops src/pricing.ts too (the numbers the pricing page and sign-up show).
+  it("matches KS-Ops's marketing limits, Marketing add-on and signings", async (ctx) => {
+    const ops = SOURCES[1];
+    const text = await load(ops);
+    if (text === null) return ctx.skip();
+    const limits = parseMarketingLimits(text);
+    expect(Object.keys(limits), "KS-Ops: no marketing limits parsed").toEqual(["starter", "growth", "pro"]);
+    for (const p of FALLBACK_CATALOG.plans) expect(p.marketing, p.key).toEqual(limits[p.key]);
+    const num = (re: RegExp) => Number((re.exec(text)?.[1] ?? "NaN").replace(/_/g, ""));
+    const addon = FALLBACK_CATALOG.marketing_addon!;
+    expect(addon.price * 100).toBe(num(/MARKETING_ADDON = \{[\s\S]*?price_cents: ([\d_]+)/));
+    expect(KEYSTONE_MATCH.addonPrice, "the /compare page's add-on price").toBe(addon.price);
+    expect(addon.extra_campaign_emails).toBe(num(/MARKETING_ADDON = \{[\s\S]*?extra_campaign_emails: ([\d_]+)/));
+    expect(addon.bonus_marketing_texts).toBe(num(/MARKETING_ADDON = \{[\s\S]*?bonus_marketing_texts: ([\d_]+)/));
+    expect(addon.text_to_many).toBe(num(/MARKETING_ADDON = \{[\s\S]*?text_to_many: ([\d_]+)/));
+    expect(addon.marketing_seats).toBe(num(/MARKETING_ADDON = \{[\s\S]*?marketing_seats: ([\d_]+)/));
+    expect(FALLBACK_CATALOG.signings!.included).toBe(num(/SIGNINGS = \{ included: (\d+)/));
+    expect(FALLBACK_CATALOG.signings!.price * 100).toBe(num(/SIGNINGS = \{[^}]*overage_cents: (\d+)/));
+    expect(FALLBACK_CATALOG.overage.signing! * 100).toBe(num(/OVERAGE_CENTS = \{[^}]*signing: (\d+)/));
+    expect(FALLBACK_CATALOG.overage.campaign_email_block! * 100).toBe(num(/OVERAGE_CENTS = \{[^}]*campaign_email_block: (\d+)/));
+  }, 20_000);
 
   for (const src of SOURCES) {
     it(`matches ${src.name} exactly (keys, labels, plan levels, order)`, async (ctx) => {

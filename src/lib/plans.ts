@@ -21,6 +21,34 @@ export type PlanAllowances = {
   /** null = unlimited */
   assistant_chats: number | null;
   storage_gb_per_seat: number;
+  /** KS_WEBSITE_MARKETING_ADDON - per brokerage, a month (older catalogues leave them out). */
+  campaign_emails?: number;
+  signings?: number;
+};
+
+/** KS_WEBSITE_MARKETING_ADDON - what a plan can do in marketing (null = unlimited / full history). */
+export type MarketingLimits = {
+  campaign_emails: number;
+  text_to_many: number;
+  sequences: number | null;
+  visitor_history_days: number | null;
+  lead_forms: number | null;
+};
+
+export type MarketingAddon = {
+  key: string;
+  name: string;
+  price: number;
+  per: string;
+  extra_campaign_emails: number;
+  bonus_marketing_texts: number;
+  text_to_many: number;
+  sequences: number | null;
+  visitor_history_days: number | null;
+  lead_forms: number | null;
+  marketing_seats: number;
+  included_in_trials: boolean;
+  adds: string[];
 };
 
 export type PlanFeature = { key: string; label: string };
@@ -37,6 +65,8 @@ export type Plan = {
   allowances: PlanAllowances;
   /** Cumulative: every feature the plan includes. */
   features: PlanFeature[];
+  /** KS_WEBSITE_MARKETING_ADDON */
+  marketing?: MarketingLimits;
 };
 
 export type SupportLevel = {
@@ -57,7 +87,10 @@ export type Catalog = {
   support_levels: SupportLevel[];
   /** Extra storage sold in blocks, per month. max_blocks = most the sign-up accepts. */
   extra_storage: { block_gb: number; price: number; max_blocks: number };
-  overage: { minute: number; text: number };
+  overage: { minute: number; text: number; signing?: number; campaign_email_block?: number; campaign_email_block_size?: number };
+  /** KS_WEBSITE_MARKETING_ADDON - older catalogues leave these out; the fallback's are used then. */
+  marketing_addon?: MarketingAddon;
+  signings?: { included: number; price: number; per: string };
   trial: {
     days: number;
     plan: PlanKey;
@@ -84,6 +117,8 @@ export const FALLBACK_FEATURES: ReadonlyArray<PlanFeature & { plan: PlanKey }> =
   { key: "pgi_referrals", label: "Personal Guarantee Insurance referrals (20% referral fee)", plan: "starter" },
   { key: "custom_fields", label: "Custom fields", plan: "starter" },
   { key: "call_recording", label: "Call recording on every plan (playback on Growth and Pro)", plan: "starter" },
+  { key: "marketing", label: "Marketing to your own client list: email and text campaigns, sequences, templates and a website lead form", plan: "starter" },
+  { key: "ads_results", label: "Google Ads and LinkedIn Ads results, Google Analytics connection", plan: "starter" },
   { key: "call_recording_playback", label: "Call recording playback", plan: "growth" },
   { key: "teams", label: "Teams and record visibility", plan: "growth" },
   { key: "call_summaries", label: "AI call summaries", plan: "growth" },
@@ -94,14 +129,19 @@ export const FALLBACK_FEATURES: ReadonlyArray<PlanFeature & { plan: PlanKey }> =
   { key: "referrer_portal", label: "Referrer portal", plan: "growth" },
   { key: "broker_portal", label: "Broker portal", plan: "growth" },
   { key: "full_reports", label: "Reports", plan: "growth" },
-  { key: "visitor_tracking", label: "Website visitor tracking", plan: "growth" },
+  { key: "visitor_tracking", label: "Website visitor tracking (30 days on Starter, 90 days on Growth, 12 months on Pro)", plan: "starter" },
+  { key: "session_replay", label: "Session replay of website visits", plan: "growth" },
   { key: "toll_free_number", label: "Toll-free number", plan: "growth" },
   { key: "nps_survey", label: "Post-funding survey and review requests", plan: "growth" },
+  { key: "payment_links", label: "Payment links and bank debit for fees (your own Stripe account)", plan: "growth" },
+  { key: "call_scripts", label: "Call scripts (playbooks)", plan: "growth" },
+  { key: "custom_pipelines", label: "Extra pipelines with custom stages (Growth 3, Pro unlimited)", plan: "growth" },
   { key: "multiple_lines", label: "Multiple business lines and a direct line for each person", plan: "pro" },
-  { key: "ad_attribution", label: "Ad attribution", plan: "pro" },
+  { key: "ad_attribution", label: "Google Ads tools: attribution, ad-waste report, Customer Match, Monday ads email and AI ads suggestions", plan: "pro" },
   { key: "api_access", label: "API access", plan: "pro" },
   { key: "sso", label: "Single sign-on", plan: "pro" },
   { key: "webhooks", label: "Webhooks and Zapier", plan: "pro" },
+  { key: "call_queues", label: "Call queues", plan: "pro" },
   { key: "fraud_1", label: "Document tamper scan", plan: "starter" },
   { key: "fraud_2", label: "Bank statement math check", plan: "starter" },
   { key: "fraud_4", label: "Duplicate document check", plan: "starter" },
@@ -140,7 +180,8 @@ export const FALLBACK_CATALOG: Catalog = {
       onboarding_fee: 0,
       min_seats: 1,
       max_seats: MAX_SEATS,
-      allowances: { minutes_per_seat: 50, texts_per_seat: 100, assistant_chats: 200, storage_gb_per_seat: 10 },
+      allowances: { minutes_per_seat: 50, texts_per_seat: 100, assistant_chats: 200, storage_gb_per_seat: 10, campaign_emails: 500, signings: 4 },
+      marketing: { campaign_emails: 500, text_to_many: 50, sequences: 2, visitor_history_days: 30, lead_forms: 1 },
       features: featuresUpTo("starter"),
     },
     {
@@ -151,7 +192,8 @@ export const FALLBACK_CATALOG: Catalog = {
       onboarding_fee: 750,
       min_seats: 1,
       max_seats: MAX_SEATS,
-      allowances: { minutes_per_seat: 500, texts_per_seat: 500, assistant_chats: 1000, storage_gb_per_seat: 25 },
+      allowances: { minutes_per_seat: 500, texts_per_seat: 500, assistant_chats: 1000, storage_gb_per_seat: 25, campaign_emails: 1000, signings: 4 },
+      marketing: { campaign_emails: 1000, text_to_many: 250, sequences: 5, visitor_history_days: 90, lead_forms: 1 },
       features: featuresUpTo("growth"),
     },
     {
@@ -162,7 +204,8 @@ export const FALLBACK_CATALOG: Catalog = {
       onboarding_fee: 2000,
       min_seats: 2,
       max_seats: MAX_SEATS,
-      allowances: { minutes_per_seat: 1500, texts_per_seat: 1500, assistant_chats: null, storage_gb_per_seat: 50 },
+      allowances: { minutes_per_seat: 1500, texts_per_seat: 1500, assistant_chats: null, storage_gb_per_seat: 50, campaign_emails: 2500, signings: 4 },
+      marketing: { campaign_emails: 2500, text_to_many: 500, sequences: 10, visitor_history_days: 365, lead_forms: 1 },
       features: featuresUpTo("pro"),
     },
   ],
@@ -209,7 +252,35 @@ export const FALLBACK_CATALOG: Catalog = {
     },
   ],
   extra_storage: { block_gb: 50, price: 10, max_blocks: MAX_STORAGE_BLOCKS },
-  overage: { minute: 0.04, text: 0.03 },
+  overage: { minute: 0.04, text: 0.03, signing: 2.5, campaign_email_block: 10, campaign_email_block_size: 10000 },
+  // KS_WEBSITE_MARKETING_ADDON - the same as KS-Ops /api/public/plans (src/lib/plansDrift.test.ts compares the numbers).
+  marketing_addon: {
+    key: "marketing",
+    name: "Marketing add-on",
+    price: 49,
+    per: "brokerage",
+    extra_campaign_emails: 10000,
+    bonus_marketing_texts: 1000,
+    text_to_many: 1000,
+    sequences: null,
+    visitor_history_days: null,
+    lead_forms: null,
+    marketing_seats: 3,
+    included_in_trials: true,
+    adds: [
+      "10,000 campaign emails a month on top of your plan's, then $10 per 10,000 on next month's bill",
+      "1,000 bonus marketing texts a month",
+      "Send one text to up to 1,000 people at a time",
+      "Unlimited sequences running at once",
+      "Unlimited website lead forms, plus an AI chat widget and tracking script for your own website",
+      "Full visitor history and session replay",
+      "Full Google Ads tools: attribution, ad-waste report, Customer Match, Monday ads email and AI ads suggestions",
+      "Lead scoring",
+      "Subject-line A/B test and send-time choice",
+      "Campaign report with applications and funded deals by campaign",
+    ],
+  },
+  signings: { included: 4, price: 2.5, per: "brokerage" },
   trial: { days: 14, plan: "pro", for: ["starter", "growth"], bonus_minutes_per_seat: 100, bonus_texts_per_seat: 100 },
   currency: "CAD",
 };
@@ -271,6 +342,21 @@ function normalise(c: Catalog): Catalog {
       max_blocks: Math.max(0, Math.floor(Number(c.extra_storage.max_blocks))) || MAX_STORAGE_BLOCKS,
     },
   };
+}
+
+/** KS_WEBSITE_MARKETING_ADDON - the add-on from the catalogue, or the bundled one for an older catalogue. */
+export function marketingAddonOf(c: Pick<Catalog, "marketing_addon">): MarketingAddon {
+  return c.marketing_addon ?? FALLBACK_CATALOG.marketing_addon!;
+}
+
+/** A plan's marketing limits, or the bundled ones for an older catalogue. */
+export function marketingOf(plan: Pick<Plan, "key" | "marketing">): MarketingLimits {
+  return plan.marketing ?? FALLBACK_CATALOG.plans.find((p) => p.key === plan.key)?.marketing ?? FALLBACK_CATALOG.plans[0].marketing!;
+}
+
+/** E-signings included a month and the price of each one over. */
+export function signingsOf(c: Pick<Catalog, "signings">): { included: number; price: number } {
+  return c.signings ?? FALLBACK_CATALOG.signings!;
 }
 
 export type CatalogResult = { catalog: Catalog; source: "live" | "fallback" };

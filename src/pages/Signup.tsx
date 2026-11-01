@@ -15,7 +15,7 @@ import { submitSignup, type BrandScanResult, type SignupPayload } from "../lib/a
 import { useDemoContact } from "../lib/prefill";
 import { goTo } from "../lib/navigate";
 import type { BillingInterval, Catalog, PlanKey, SupportLevel } from "../lib/plans";
-import { MAX_SEATS, PAYMENT_METHODS, findPlan, findSupport, hasLiveHelp, isPaymentMethod, trialPlans } from "../lib/plans";
+import { MAX_SEATS, PAYMENT_METHODS, findPlan, findSupport, hasLiveHelp, isPaymentMethod, marketingAddonOf, trialPlans } from "../lib/plans";
 import { clampInt, formatMoney, formatNumber, seatRange, signupQuote } from "../lib/pricing";
 import { regionsFor } from "../lib/regions";
 import { DRAFT_KEY, LAST_SIGNUP_KEY, load, remove, save } from "../lib/storage";
@@ -47,6 +47,8 @@ function initialForm(params: URLSearchParams): SignupForm {
   if (Number.isInteger(seats) && seats > 0 && seats <= MAX_SEATS) f.seats = seats;
   if (!Number.isInteger(f.extra_storage_blocks) || f.extra_storage_blocks < 0) f.extra_storage_blocks = 0;
   if (!isPaymentMethod(f.payment_method)) f.payment_method = EMPTY_FORM.payment_method;
+  // KS_WEBSITE_MARKETING_ADDON - ?addon=marketing from the pricing page.
+  f.marketing_addon = f.marketing_addon === true || params.get("addon") === "marketing";
   const billing = params.get("billing");
   if (billing === "annual" || billing === "monthly") f.billing_interval = billing;
   return f;
@@ -78,6 +80,7 @@ export function buildPayload(f: SignupForm, turnstileToken: string): SignupPaylo
     billing_interval: f.billing_interval,
     support_level: f.support_level,
     extra_storage_blocks: Number(f.extra_storage_blocks) || 0,
+    marketing_addon: f.marketing_addon === true, // KS_WEBSITE_MARKETING_ADDON
     payment_method: f.payment_method,
     primary_color: opt(f.primary_color),
     accent_color: opt(f.accent_color),
@@ -98,6 +101,7 @@ type Adjust = {
   setBilling: (b: BillingInterval) => void;
   setSupport: (k: string) => void;
   setStorage: (n: number) => void;
+  setMarketing: (on: boolean) => void;
 };
 
 function seatsText(n: number) {
@@ -121,6 +125,7 @@ function PriceSummary({ c, f, adjust, showControls, onDetails }: {
   const m = (n: number) => formatMoney(n, c.currency);
   const range = seatRange(plan);
   const block = c.extra_storage;
+  const addon = marketingAddonOf(c);
   return (
     <aside className="signup__summary" aria-labelledby="summary-h" data-testid="price-summary">
       <h2 id="summary-h" style={{ fontSize: "var(--step-1)" }}>
@@ -189,6 +194,10 @@ function PriceSummary({ c, f, adjust, showControls, onDetails }: {
             decLabel={`Remove ${block.block_gb} GB`}
             incLabel={`Add ${block.block_gb} GB`}
           />
+          <label className="check" htmlFor="summary-marketing">
+            <input id="summary-marketing" type="checkbox" checked={f.marketing_addon === true} onChange={(e) => adjust.setMarketing(e.target.checked)} />
+            <span>{addon.name} (+{m(addon.price)} a month)</span>
+          </label>
           <button type="button" className="btn btn--quiet summary-details" onClick={onDetails}>
             Compare plans and support levels
           </button>
@@ -207,6 +216,12 @@ function PriceSummary({ c, f, adjust, showControls, onDetails }: {
               Extra storage, {formatNumber(q.storageBlocks * block.block_gb)} GB
             </dt>
             <dd data-testid="storage-monthly">{m(q.storageMonthly)}</dd>
+          </>
+        )}
+        {q.marketingMonthly > 0 && (
+          <>
+            <dt>{addon.name}</dt>
+            <dd data-testid="marketing-monthly">{m(q.marketingMonthly)}</dd>
           </>
         )}
         <dt className="total">Monthly total</dt>
@@ -336,6 +351,7 @@ export default function Signup() {
     setBilling: (b) => update("billing_interval", b),
     setSupport: (k) => update("support_level", k),
     setStorage: (n) => update("extra_storage_blocks", n),
+    setMarketing: (on) => update("marketing_addon", on),
   };
 
   function errorFor(k: string): string | undefined {
@@ -696,6 +712,21 @@ export default function Signup() {
                 incLabel={`Add ${c.extra_storage.block_gb} GB`}
                 unit={planQuote.storageBlocks > 0 ? `= ${formatNumber(planQuote.storageBlocks * c.extra_storage.block_gb)} GB` : "None added"}
               />
+              {/* KS_WEBSITE_MARKETING_ADDON */}
+              <fieldset className="field" data-testid="marketing-addon">
+                <legend>Marketing add-on (optional)</legend>
+                <span className="hint">
+                  Every plan can email and text its own client list. The add-on is {m(marketingAddonOf(c).price)} a month for
+                  your whole brokerage, on any plan. It is included in both free trials.
+                </span>
+                <label className="check" htmlFor="marketing_addon">
+                  <input id="marketing_addon" type="checkbox" checked={f.marketing_addon === true} onChange={(e) => update("marketing_addon", e.target.checked)} />
+                  <span>Add the Marketing add-on for {m(marketingAddonOf(c).price)} a month</span>
+                </label>
+                <ul className="tick-list small">
+                  {marketingAddonOf(c).adds.map((line) => <li key={line}>{line}</li>)}
+                </ul>
+              </fieldset>
               <fieldset className="field">
                 <legend>How you'll pay</legend>
                 <span className="hint">Bank debit is the default. You enter your bank or card details on the secure Stripe payment page.</span>
@@ -801,6 +832,8 @@ export default function Signup() {
                 <dd data-testid="review-storage">
                   {planQuote.storageBlocks > 0 ? `${formatNumber(planQuote.storageBlocks * c.extra_storage.block_gb)} GB` : "None"}
                 </dd>
+                <dt>Marketing add-on</dt>
+                <dd data-testid="review-marketing">{f.marketing_addon ? `Yes, ${m(planQuote.marketingMonthly)} a month` : "No"}</dd>
                 <dt>Payment</dt>
                 <dd data-testid="review-payment">
                   {PAYMENT_METHODS.find((pm) => pm.key === f.payment_method)?.name ?? "Bank debit"}

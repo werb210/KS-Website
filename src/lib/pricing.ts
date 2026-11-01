@@ -1,4 +1,5 @@
 import type { BillingInterval, Catalog, Plan, SupportLevel } from "./plans";
+import { marketingAddonOf } from "./plans";
 
 /** Seats actually billed: whole number, at least 1 and at least the plan minimum (pro = 2). */
 export function billableSeats(plan: Pick<Plan, "min_seats">, seats: number): number {
@@ -40,6 +41,8 @@ export type Quote = {
   supportExtraSeats: number;
   storageBlocks: number;
   storageMonthly: number;
+  /** KS_WEBSITE_MARKETING_ADDON - the Marketing add-on, flat per brokerage (0 when not added). */
+  marketingMonthly: number;
   /** Storage the plan includes for the billed seats, in GB (extra blocks not counted). */
   includedStorageGb: number;
   monthlyTotal: number;
@@ -58,6 +61,7 @@ export function quote(
   billing: BillingInterval,
   support: SupportLevel | undefined,
   storage?: { blocks: number; block_price: number },
+  marketingAddonPrice = 0,
 ): Quote {
   const seats = billableSeats(plan, seatsRequested);
   const price = seatPrice(plan, billing);
@@ -65,7 +69,8 @@ export function quote(
   const sup = supportMonthly(support, seats);
   const storageBlocks = storage ? clampInt(storage.blocks, 0, Number.MAX_SAFE_INTEGER) : 0;
   const storageMonthly = storage ? round2(storageBlocks * storage.block_price) : 0;
-  const monthlyTotal = round2(seatsMonthly + sup + storageMonthly);
+  const marketingMonthly = round2(Math.max(0, Number(marketingAddonPrice) || 0));
+  const monthlyTotal = round2(seatsMonthly + sup + storageMonthly + marketingMonthly);
   const monthsUpFront = billing === "annual" ? 12 : 1;
   const recurringCharge = round2(monthlyTotal * monthsUpFront);
   const supportExtraSeats = support && support.covered_seats != null ? Math.max(0, seats - support.covered_seats) : 0;
@@ -79,6 +84,7 @@ export function quote(
     supportExtraSeats,
     storageBlocks,
     storageMonthly,
+    marketingMonthly,
     includedStorageGb: seats * (plan.allowances?.storage_gb_per_seat ?? 0),
     monthlyTotal,
     onboardingFee: plan.onboarding_fee,
@@ -89,14 +95,15 @@ export function quote(
   };
 }
 
-/** The sign-up quote: plan, seats, billing, support and extra storage, priced as KS-Ops prices them. */
+/** The sign-up quote: plan, seats, billing, support, extra storage and the Marketing add-on, priced as KS-Ops prices them. */
 export function signupQuote(
   c: Catalog,
   plan: Plan,
-  f: { seats: number; billing_interval: BillingInterval; support_level: string; extra_storage_blocks: number },
+  f: { seats: number; billing_interval: BillingInterval; support_level: string; extra_storage_blocks: number; marketing_addon?: boolean },
 ): Quote {
   const support = c.support_levels.find((s) => s.key === f.support_level);
-  return quote(plan, f.seats, f.billing_interval, support, { blocks: f.extra_storage_blocks, block_price: c.extra_storage.price });
+  return quote(plan, f.seats, f.billing_interval, support, { blocks: f.extra_storage_blocks, block_price: c.extra_storage.price },
+    f.marketing_addon ? marketingAddonOf(c).price : 0);
 }
 
 export function round2(n: number): number {
