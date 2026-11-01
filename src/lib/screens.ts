@@ -16,7 +16,8 @@ export const SCREEN_ALT: Record<ScreenName, string> = {
   "portal-fraud": "The fraud check: a score out of 100 with plain-English reasons, and tamper and statement-math results for each document.",
   "portal-lenders": "Lender matches for an application, with each lender's funding range and likelihood.",
   "portal-calculator": "The loan calculator: payment, total interest and a payment schedule for the requested amount.",
-  "ipad-documents": "The staff portal on an iPad, showing an application's documents.",
+  "ipad-documents": "The staff portal on an iPad, showing an application's documents: bank statements read on upload, with three months on file.",
+  "ipad-pipeline": "The staff portal on an iPad: the sales pipeline with applications in Received, In Review and Documents Required.",
 };
 
 const files = import.meta.glob("../assets/screens/*.{avif,webp,png}", { eager: true, query: "?url", import: "default" }) as Record<string, string>;

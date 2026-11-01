@@ -354,3 +354,76 @@ export async function scanWebsiteBrand(url: string, signal?: AbortSignal): Promi
   }
   return body as BrandScanResult;
 }
+
+// KS_WEBSITE_ROADMAP_v1 - the public roadmap (KS-Ops /api/public/roadmap). Ideas are reviewed by Keystone staff before
+// they show; the list never contains who asked or voted.
+export type RoadmapStatus = "requested" | "planned" | "in_progress" | "shipped";
+export type RoadmapItem = { id: string; title: string; summary: string; area: string; status: RoadmapStatus; votes: number; shipped_at: string | null };
+
+export async function fetchRoadmap(signal?: AbortSignal): Promise<RoadmapItem[] | null> {
+  try {
+    const res = await fetch(opsUrl("/api/public/roadmap"), { signal, headers: { Accept: "application/json" } });
+    if (!res.ok) return null;
+    const body = (await res.json()) as { items?: unknown };
+    return Array.isArray(body.items) ? (body.items as RoadmapItem[]) : null;
+  } catch {
+    return null;
+  }
+}
+
+export type RoadmapIdeaPayload = {
+  title: string;
+  details?: string;
+  name: string;
+  email: string;
+  brokerage?: string;
+  consent: boolean;
+  turnstile_token?: string;
+  /** Honeypot. People never see it; it must stay empty. */
+  website_url: string;
+};
+
+export async function suggestFeature(payload: RoadmapIdeaPayload): Promise<BetaSignupResult> {
+  let res: Response;
+  try {
+    res = await fetch(opsUrl("/api/public/roadmap/ideas"), {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify(payload),
+    });
+  } catch {
+    return { ok: false, status: 0, errors: {}, message: "We couldn't reach the roadmap service. Check your connection and try again." };
+  }
+  let body: Record<string, unknown> = {};
+  try {
+    body = (await res.json()) as Record<string, unknown>;
+  } catch {
+    body = {};
+  }
+  const message = typeof body.message === "string" ? body.message : "";
+  if (res.ok) return { ok: true, message: message || "Thanks - we read every idea. Once it's reviewed, it shows on the roadmap." };
+  const errors: Record<string, string> = {};
+  if (body.errors && typeof body.errors === "object") {
+    for (const [k, v] of Object.entries(body.errors as Record<string, unknown>)) errors[k] = typeof v === "string" ? v : "Check this field.";
+  }
+  let fallback = "That didn't go through. Try again in a minute, or contact us.";
+  if (res.status === 429) fallback = "Too many ideas from here in a short time. Wait a little and try again.";
+  else if (Object.keys(errors).length) fallback = "Some details need fixing. They're marked below.";
+  return { ok: false, status: res.status, errors, message: message || fallback };
+}
+
+/** +1 (or take it back). Returns the new count, or null when it didn't go through. */
+export async function voteRoadmap(id: string, voterId: string, on: boolean): Promise<number | null> {
+  try {
+    const res = await fetch(opsUrl(`/api/public/roadmap/items/${encodeURIComponent(id)}/${on ? "vote" : "unvote"}`), {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify({ voter_id: voterId }),
+    });
+    if (!res.ok) return null;
+    const body = (await res.json()) as { votes?: unknown };
+    return typeof body.votes === "number" ? body.votes : null;
+  } catch {
+    return null;
+  }
+}

@@ -64,14 +64,71 @@ const RECORDS: Point[] = [
   },
 ];
 
+// KS_WEBSITE_OVERHAUL - the texting, calling and privacy rules KS-server enforces (src/services/smsConsent.ts,
+// src/routes/smsInboundWebhook.ts, src/phone/textingState.ts, src/modules/automation/, src/privacy/, KS-Client's
+// Quebec consent mode).
+const MESSAGING: Point[] = [
+  {
+    title: "Texting consent (CASL)",
+    body: "Marketing texts only go to people who gave express consent, or implied consent that hasn't expired: 2 years after a transaction, 6 months after an enquiry. Anyone who opted out is skipped, and bulk marketing texts go to Canadian mobiles only.",
+  },
+  {
+    title: "STOP means stop",
+    body: "A reply of STOP, UNSUBSCRIBE or similar opts the person out of texts straight away and is confirmed; START opts them back in. Opt-outs are honoured even from blocked numbers.",
+  },
+  {
+    title: "Quiet hours in your time zone",
+    body: "Automations and sequences hold texts and emails until the allowed hours, counted in your brokerage's own time zone.",
+  },
+  {
+    title: "Registered US texting",
+    body: "Texts to US mobiles go from your own toll-free line once its verification is approved, or your US business line once A2P 10DLC registration is approved. Until then they wait instead of going out unregistered. Canadian texts are never held.",
+  },
+  {
+    title: "Call-recording notice",
+    body: "Calls are recorded on every plan, and outside callers hear a notice before a recorded call connects.",
+  },
+  {
+    title: "Blocked numbers",
+    body: "An Admin can block a number. A blocked caller never rings your staff, and their texts are ignored and logged.",
+  },
+];
+
+const PRIVACY: Point[] = [
+  {
+    title: "Privacy requests (PIPEDA and Law 25)",
+    body: "Admins record access, correction and deletion requests against a contact, with a 30-day due date. Access exports what's held as a file; corrections are logged with the old and new values; a deletion keeps only what the 7-year rule or a legal hold protects, and opts the person out of marketing.",
+  },
+  {
+    title: "Quebec consent",
+    body: "Your client app waits for consent before loading Google tags for visitors in Quebec, as Law 25 requires.",
+  },
+  {
+    title: "Cookie choices recorded",
+    body: "Each visitor's choice is recorded by category before visitor tracking or session replay loads. Their address is kept only as a scrambled hash.",
+  },
+  {
+    title: "Mail you never want logged",
+    body: "Admins list email addresses and domains, like a lawyer's or an accountant's, whose mail is never copied into the CRM automatically.",
+  },
+];
+
 const ACCESS: Point[] = [
   {
     title: "Signing in",
-    body: "Staff and clients sign in with a one-time code sent to their phone. Pro adds single sign-on with Microsoft work accounts.",
+    body: "No passwords: staff and clients sign in with a one-time code sent to their phone, then a passkey or Face ID on their device. Pro adds single sign-on with Microsoft or Google work accounts.",
+  },
+  {
+    title: "Required two-step sign-in",
+    body: "An Admin can require a passkey or two-step sign-in for every staff member, see where each person is signed in, and sign a device or everyone out.",
   },
   {
     title: "Roles",
     body: "Admins manage the account, users and settings, and staff work their deals. Lenders and referrers sign in to their own portals, separate from your staff portal.",
+  },
+  {
+    title: "Teams and record visibility",
+    body: "On Growth and Pro, choose who sees all records, their team's, or only their own: in lists, search, reports, exports and the assistant.",
   },
   {
     title: "Fraud checks",
@@ -89,8 +146,8 @@ const ACCESS: Point[] = [
 
 function Group({ id, title, points }: { id: string; title: string; points: Point[] }) {
   return (
-    <section aria-labelledby={id} style={{ marginBottom: "3rem" }}>
-      <h2 id={id} style={{ fontSize: "var(--step-2)" }}>
+    <section aria-labelledby={`${id}-h`} id={id} className="sec-group">
+      <h2 id={`${id}-h`}>
         {title}
       </h2>
       <div className="feature-grid">
@@ -107,19 +164,31 @@ function Group({ id, title, points }: { id: string; title: string; points: Point
 
 export default function Security() {
   usePageMeta(
-    "Security and data",
-    `How ${PRODUCT_NAME} looks after your data: Canadian hosting, a separate database per brokerage, encryption, audit logs, consent records, SIN removal after signing, data export and a 180-day hold before deletion.`,
+    "Security and compliance",
+    `How ${PRODUCT_NAME} looks after your data and enforces the rules: Canadian hosting, a separate database per brokerage, encryption, 7-year retention and legal holds, CASL texting consent and quiet hours, US texting registration, call-recording notices, privacy requests for PIPEDA and Law 25, audit logs and passkeys.`,
     "/security",
   );
   return (
     <>
       <div className="wrap page-head">
-        <h1>Security and data</h1>
-        <p>What we do to protect your brokerage's data and help you meet your compliance duties, in plain terms.</p>
+        <h1>Security and compliance</h1>
+        <p className="lede">
+          What the system enforces to protect your brokerage's data and help you meet your duties under PIPEDA, Quebec's
+          Law 25, CASL and US texting rules, in plain terms.
+        </p>
+        <nav aria-label="On this page" className="chips">
+          <a className="chip" href="#sec-hosting">Where your data lives</a>
+          <a className="chip" href="#sec-records">Records and retention</a>
+          <a className="chip" href="#sec-messaging">Texting and calling</a>
+          <a className="chip" href="#sec-privacy">Privacy and consent</a>
+          <a className="chip" href="#sec-access">Access and fraud</a>
+        </nav>
       </div>
       <div className="wrap">
         <Group id="sec-hosting" title="Where your data lives" points={HOSTING} />
-        <Group id="sec-records" title="Records, retention and privacy" points={RECORDS} />
+        <Group id="sec-records" title="Records and retention" points={RECORDS} />
+        <Group id="sec-messaging" title="Texting and calling rules" points={MESSAGING} />
+        <Group id="sec-privacy" title="Privacy and consent" points={PRIVACY} />
         <Group id="sec-access" title="Access and fraud" points={ACCESS} />
         <p>
           More on the checks in <Link to="/fraud-protection">fraud protection</Link>.

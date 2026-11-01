@@ -1,27 +1,30 @@
 import { Link } from "react-router-dom";
 
-/** "We build what you need" call-out shown on Home, Features and Pricing. */
+/** "We build what you need" call-out shown on Home, Features and Pricing. KS_WEBSITE_ROADMAP_v1: ideas go to the
+ * public roadmap, where other brokers +1 them. */
 export function FeatureRequest() {
   return (
     <section className="section section--surface" aria-labelledby="feature-request-h">
-      <div className="wrap">
-        <h2 id="feature-request-h">Don't see a feature your business needs?</h2>
-        <p style={{ maxWidth: "60ch" }}>
-          We can add it. We add new features all the time, and we shape the system around the way our customers
-          work. Tell us your idea and we'll turn it into reality.
-        </p>
-        <p style={{ marginTop: "1.5rem" }}>
-          <Link className="btn" to="/contact">
+      <div className="wrap split split--center">
+        <div>
+          <h2 id="feature-request-h">Don't see a feature your business needs?</h2>
+          <p>
+            Tell us. Ideas from brokers go on the public roadmap, other brokers +1 the ones they want, and we build in the
+            open: you can see what's requested, planned, being built and shipped.
+          </p>
+        </div>
+        <div className="actions">
+          <Link className="btn" to="/roadmap#suggest">
             Tell us your idea
-          </Link>{" "}
+          </Link>
+          <Link className="btn btn--quiet" to="/roadmap">
+            See the roadmap
+          </Link>
           {/* KS_WEBSITE_BETA_v1 */}
           <Link className="btn btn--ghost" to="/beta">
             Join our beta programme
           </Link>
-        </p>
-        <p className="small muted" style={{ maxWidth: "60ch" }}>
-          Want to try new features first? Beta members get early access and help shape what we build.
-        </p>
+        </div>
       </div>
     </section>
   );
