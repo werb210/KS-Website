@@ -1,6 +1,6 @@
 import { PRODUCT_NAME } from "../config";
 
-const STONES = ["Pipeline", "Contacts", "Dialler", "Calendar", null, "Documents", "Client portal", "Lenders", "Assistant"];
+const STONES = ["Pipeline", "Compliance", "Dialler", "Fraud checks", null, "Documents", "Client portal", "Lenders", "Assistant"];
 
 const CX = 210;
 const CY = 250;
@@ -34,7 +34,7 @@ export function Arch() {
       className="arch"
       viewBox="0 0 420 290"
       role="img"
-      aria-label={`An arch built from the parts of ${PRODUCT_NAME}: pipeline, contacts, dialler, calendar, documents, client portal, lenders and assistant, held together by the keystone.`}
+      aria-label={`An arch built from the parts of ${PRODUCT_NAME}: pipeline, compliance, dialler, fraud checks, documents, client portal, lenders and assistant, held together by the keystone.`}
     >
       {STONES.map((label, i) => {
         // Stones run from the left foot (180°) to the right foot (0°).

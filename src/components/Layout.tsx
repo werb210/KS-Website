@@ -4,25 +4,89 @@ import { CONTACT_EMAIL, PRODUCT_NAME } from "../config";
 import { Mark } from "./Mark";
 import { SalesAssistant } from "./SalesAssistant"; // KS_WEBSITE_KB_v1
 
+// KS_WEBSITE_OVERHAUL - four links and two actions in the bar; everything else is one tap away in the menu (on a phone)
+// and in the footer. The rest of the pages are linked from the pages that need them.
 const NAV = [
+  { to: "/why-keystone", label: "Why Keystone" },
   { to: "/features", label: "Features" },
-  { to: "/fraud-protection", label: "Fraud protection" },
   { to: "/pricing", label: "Pricing" },
-  { to: "/compare", label: "Compare" },
-  { to: "/mobile-apps", label: "Mobile apps" },
   { to: "/security", label: "Security" },
+];
+
+/** Shown in the phone menu under the main links. */
+const MORE = [
+  { to: "/try", label: "Try it yourself" },
+  { to: "/compare", label: "Compare CRMs" },
+  { to: "/fraud-protection", label: "Fraud protection" },
+  { to: "/mobile-apps", label: "Mobile apps" },
+  { to: "/roadmap", label: "Roadmap" },
   { to: "/faq", label: "FAQ" },
   { to: "/contact", label: "Contact" },
 ];
 
+const FOOTER: Array<{ title: string; links: Array<{ to: string; label: string }> }> = [
+  {
+    title: "Product",
+    links: [
+      { to: "/features", label: "Features" },
+      { to: "/fraud-protection", label: "Fraud protection" },
+      { to: "/security", label: "Security and compliance" },
+      { to: "/mobile-apps", label: "Mobile apps" },
+      { to: "/roadmap", label: "Roadmap" },
+    ],
+  },
+  {
+    title: "Deciding",
+    links: [
+      { to: "/why-keystone", label: "Why switch" },
+      { to: "/compare", label: "Compare CRMs" },
+      { to: "/pricing", label: "Pricing" },
+      { to: "/try", label: "Try it yourself" },
+      { to: "/faq", label: "FAQ" },
+    ],
+  },
+  {
+    title: "Company",
+    links: [
+      { to: "/help", label: "Help articles" },
+      { to: "/contact", label: "Contact" },
+      { to: "/beta", label: "Beta programme" },
+      { to: "/terms", label: "Terms of service" },
+      { to: "/privacy", label: "Privacy policy" },
+    ],
+  },
+];
+
 export function Layout({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
-  const { pathname } = useLocation();
+  const { pathname, hash } = useLocation();
 
   useEffect(() => {
     setOpen(false);
-    window.scrollTo?.(0, 0);
-  }, [pathname]);
+    if (!hash) {
+      window.scrollTo?.(0, 0);
+      return;
+    }
+    // A link to a section of another page (/roadmap#suggest): wait for the lazily loaded page, then go to it.
+    let tries = 0;
+    let timer = 0;
+    const find = () => {
+      const el = document.getElementById(decodeURIComponent(hash.slice(1)));
+      if (el) el.scrollIntoView?.();
+      else if (tries++ < 40) timer = window.setTimeout(find, 50);
+    };
+    find();
+    return () => window.clearTimeout(timer);
+  }, [pathname, hash]);
+
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open]);
 
   return (
     <>
@@ -35,32 +99,39 @@ export function Layout({ children }: { children: ReactNode }) {
             <Mark />
             <span>{PRODUCT_NAME}</span>
           </Link>
-          <button
-            type="button"
-            className="btn btn--quiet menu-toggle"
-            aria-expanded={open}
-            aria-controls="site-nav"
-            onClick={() => setOpen((o) => !o)}
-          >
-            {open ? "Close menu" : "Menu"}
-          </button>
           <nav id="site-nav" className="site-nav" aria-label="Main" data-open={open}>
-            <ul>
+            <ul className="site-nav__main">
               {NAV.map((n) => (
                 <li key={n.to}>
                   <NavLink to={n.to}>{n.label}</NavLink>
                 </li>
               ))}
-              <li>
-                <NavLink to="/try">Try it yourself</NavLink>
-              </li>
-              <li>
-                <Link className="btn" to="/signup">
-                  Sign up
-                </Link>
-              </li>
+            </ul>
+            <ul className="site-nav__more" aria-label="More pages">
+              {MORE.map((n) => (
+                <li key={n.to}>
+                  <NavLink to={n.to}>{n.label}</NavLink>
+                </li>
+              ))}
             </ul>
           </nav>
+          <div className="site-header__actions">
+            <Link className="btn btn--quiet btn--try" to="/try">
+              Try it
+            </Link>
+            <Link className="btn" to="/signup">
+              Sign up
+            </Link>
+            <button
+              type="button"
+              className="btn btn--quiet menu-toggle"
+              aria-expanded={open}
+              aria-controls="site-nav"
+              onClick={() => setOpen((o) => !o)}
+            >
+              {open ? "Close" : "Menu"}
+            </button>
+          </div>
         </div>
       </header>
       <main id="main" tabIndex={-1}>
@@ -69,8 +140,9 @@ export function Layout({ children }: { children: ReactNode }) {
       <footer className="site-footer">
         <div className="wrap site-footer__grid">
           <div>
-            <p className="brand" style={{ color: "#fff" }}>
-              {PRODUCT_NAME}
+            <p className="brand brand--footer">
+              <Mark color="#ffffff" />
+              <span>{PRODUCT_NAME}</span>
             </p>
             <p>
               The complete system for commercial lending and business financing brokerages. Hosted in Canada, licensed
@@ -82,30 +154,21 @@ export function Layout({ children }: { children: ReactNode }) {
               </p>
             )}
           </div>
-          <div>
-            <h2>Product</h2>
-            <ul>
-              <li><Link to="/features">Features</Link></li>
-              <li><Link to="/fraud-protection">Fraud protection</Link></li>
-              <li><Link to="/pricing">Pricing</Link></li>
-              <li><Link to="/compare">Compare CRMs</Link></li>
-              <li><Link to="/mobile-apps">Mobile apps</Link></li>
-              <li><Link to="/security">Security and data</Link></li>
-            </ul>
-          </div>
-          <div>
-            <h2>Company</h2>
-            <ul>
-              <li><Link to="/faq">FAQ</Link></li>
-              <li><Link to="/help">Help articles</Link></li>
-              <li><Link to="/contact">Contact</Link></li>
-              <li><Link to="/terms">Terms of service</Link></li>
-              <li><Link to="/privacy">Privacy policy</Link></li>
-            </ul>
-          </div>
+          {FOOTER.map((g) => (
+            <div key={g.title}>
+              <h2>{g.title}</h2>
+              <ul>
+                {g.links.map((l) => (
+                  <li key={l.to}>
+                    <Link to={l.to}>{l.label}</Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
         </div>
         <div className="wrap">
-          <p className="small" style={{ marginTop: "2rem", color: "#b9c5d0" }}>
+          <p className="small site-footer__legal">
             © {new Date().getFullYear()} {PRODUCT_NAME}. Prices in Canadian dollars unless noted.
           </p>
         </div>

@@ -7,6 +7,7 @@ import { usePageMeta } from "../hooks/usePageMeta";
 import type { BillingInterval, Catalog, Plan } from "../lib/plans";
 import { findSupport, hasLiveHelp, trialPlanNames } from "../lib/plans";
 import { formatMoney, formatNumber, quote } from "../lib/pricing";
+import { KEYSTONE_MATCH } from "../data/compare";
 
 export function BillingToggle({ value, onChange }: { value: BillingInterval; onChange: (b: BillingInterval) => void }) {
   return (
@@ -163,6 +164,29 @@ export default function Pricing() {
           </p>
         </div>
       </div>
+
+      {/* KS_WEBSITE_OVERHAUL - the Marketing add-on: flat per brokerage, on any plan (KS-Ops MARKETING_ADDON). */}
+      <section className="section section--tight" aria-labelledby="addon-h">
+        <div className="wrap split split--center">
+          <div>
+            <h2 id="addon-h">{KEYSTONE_MATCH.addonName}</h2>
+            <p>
+              Every plan can run campaigns and sequences to its own clients. For volume and the advanced tools, add the{" "}
+              {KEYSTONE_MATCH.addonName} to any plan: one flat price per brokerage, not per seat.
+            </p>
+            <p className="small muted">
+              It adds {KEYSTONE_MATCH.addonIncludes}. <Link to="/help/marketing-add-on">What the add-on includes</Link>.
+            </p>
+          </div>
+          <div className="addon-price" data-testid="addon-price">
+            <p className="plan-price">
+              {formatMoney((c as { marketing_addon?: { price?: number } }).marketing_addon?.price ?? KEYSTONE_MATCH.addonPrice, c.currency)}{" "}
+              <small>per brokerage / month</small>
+            </p>
+            <p className="small">Any plan. Ask for it from Get help in your portal, or talk to us.</p>
+          </div>
+        </div>
+      </section>
 
       <section className="section section--surface" aria-labelledby="support-h">
         <div className="wrap">

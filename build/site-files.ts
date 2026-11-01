@@ -3,6 +3,7 @@
 
 export const ROUTES = [
   "/",
+  "/why-keystone",
   "/features",
   "/pricing",
   "/compare",
@@ -12,6 +13,9 @@ export const ROUTES = [
   "/faq",
   "/contact",
   "/beta",
+  "/roadmap",
+  "/try",
+  "/help",
   "/signup",
   "/terms",
   "/privacy",
