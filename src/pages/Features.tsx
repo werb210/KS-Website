@@ -17,6 +17,7 @@ const AREAS: Area[] = [
       { name: "Contacts and companies", body: "Borrowers, referrers and lenders with every call, text, email and document in one timeline." },
       { name: "Tasks and calendar", body: "Follow-ups that don't get forgotten, synced with your Microsoft 365 or Google calendar." },
       { name: "Reports", body: "Funded volume, conversion by source, team activity and commissions.", plan: "Growth" },
+      { name: "Revenue forecast", body: "Commission forecast per person and team by month or quarter: weighted pipeline, commit and best case, next to each person's goals.", plan: "Growth" },
     ],
   },
   {
@@ -54,6 +55,7 @@ const AREAS: Area[] = [
     items: [
       { name: "Document collection with OCR", body: "Statements and financials are read on upload and checked for missing pages." },
       { name: "Lender submissions", body: "Build a package once and send it to each lender you choose by email or API. You bring your own lenders." },
+      { name: "Quotes", body: "Turn the lender offers on a file into one branded quote: payment, fees and total cost of borrowing side by side. The client opens it in the client app and accepts the one they want.", plan: "Growth" },
       { name: "Storage", body: "Pooled storage per seat, with extra space available when you need it." },
     ],
   },
