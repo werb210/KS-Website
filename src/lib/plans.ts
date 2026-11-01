@@ -122,6 +122,10 @@ export const FALLBACK_FEATURES: ReadonlyArray<PlanFeature & { plan: PlanKey }> =
   { key: "call_recording", label: "Call recording on every plan (playback on Growth and Pro)", plan: "starter" },
   { key: "marketing", label: "Marketing to your own client list: email and text campaigns, sequences, templates and a website lead form", plan: "starter" },
   { key: "ads_results", label: "Google Ads and LinkedIn Ads results, Google Analytics connection", plan: "starter" },
+  // KS_BROKER_TOOLS - Broker deal tools (KS-server KS_BROKER_TOOLS): 1-3 every plan.
+  { key: "funding_conditions", label: "Funding conditions checklist", plan: "starter" },
+  { key: "invoice_reading", label: "Vendor invoice reading", plan: "starter" },
+  { key: "sales_tax", label: "Canadian sales tax in quotes and calculators", plan: "starter" },
   { key: "call_recording_playback", label: "Call recording playback", plan: "growth" },
   { key: "teams", label: "Teams and record visibility", plan: "growth" },
   { key: "call_summaries", label: "AI call summaries", plan: "growth" },
@@ -145,6 +149,11 @@ export const FALLBACK_FEATURES: ReadonlyArray<PlanFeature & { plan: PlanKey }> =
   // KS_ACTIVE_CONTRACTS - synced with ks-ops src/pricing.ts.
   { key: "active_contracts", label: "Active contracts: renewals, re-engagement queues and commission tracking", plan: "growth" },
   { key: "lender_api", label: "Lender API connections (submit by API, sync status, offers and conditions)", plan: "growth" },
+  // KS_BROKER_TOOLS - Broker deal tools growth and up.
+  { key: "credit_lines", label: "Approved credit lines per client", plan: "growth" },
+  { key: "rate_cards", label: "Lender rate cards and deal structuring", plan: "growth" },
+  { key: "credit_scorecards", label: "Credit scorecards and pre-decision rules", plan: "growth" },
+  { key: "contract_templates", label: "Contracts from Word templates", plan: "growth" },
   { key: "multiple_lines", label: "Multiple business lines and a direct line for each person", plan: "pro" },
   { key: "ad_attribution", label: "Google Ads tools: attribution, ad-waste report, Customer Match, Monday ads email and AI ads suggestions", plan: "pro" },
   { key: "api_access", label: "API access", plan: "pro" },
@@ -152,6 +161,8 @@ export const FALLBACK_FEATURES: ReadonlyArray<PlanFeature & { plan: PlanKey }> =
   { key: "webhooks", label: "Webhooks and Zapier", plan: "pro" },
   { key: "call_queues", label: "Call queues", plan: "pro" },
   { key: "custom_roles", label: "Custom roles and permissions", plan: "pro" },
+  // KS_BROKER_TOOLS - Vendor and dealer portal, pro.
+  { key: "vendor_portal", label: "Vendor and dealer portal with point-of-sale quoting", plan: "pro" },
   { key: "fraud_1", label: "Document tamper scan", plan: "starter" },
   { key: "fraud_2", label: "Bank statement math check", plan: "starter" },
   { key: "fraud_4", label: "Duplicate document check", plan: "starter" },
