@@ -91,6 +91,7 @@ const AREAS: Area[] = [
     items: [
       { name: "Your branding", body: "Your name, logo and colours across the portal, apps and emails." },
       { name: "Roles", body: "Admins manage the account and settings; staff work their deals." },
+      { name: "Custom roles and permissions", body: "Build your own roles: choose what each can view, create, edit, delete and export, and whether it sees all records, its team's or only its own.", plan: "Pro" },
       { name: "Single sign-on", body: "Staff sign in with their Microsoft work account.", plan: "Pro" },
       { name: "API access", body: "Connect your own tools to your data.", plan: "Pro" },
     ],
