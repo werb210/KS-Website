@@ -122,6 +122,9 @@ export const FALLBACK_FEATURES: ReadonlyArray<PlanFeature & { plan: PlanKey }> =
   { key: "call_recording", label: "Call recording on every plan (playback on Growth and Pro)", plan: "starter" },
   { key: "marketing", label: "Marketing to your own client list: email and text campaigns, sequences, templates and a website lead form", plan: "starter" },
   { key: "ads_results", label: "Google Ads and LinkedIn Ads results, Google Analytics connection", plan: "starter" },
+  // KS_BROKER_TOOLS - broker deal tools 1-3, every plan.
+  { key: "funding_conditions", label: "Funding conditions checklist", plan: "starter" },
+  { key: "sales_tax", label: "Canadian sales tax in quotes and calculators", plan: "starter" },
   { key: "call_recording_playback", label: "Call recording playback", plan: "growth" },
   { key: "teams", label: "Teams and record visibility", plan: "growth" },
   { key: "call_summaries", label: "AI call summaries", plan: "growth" },
@@ -152,6 +155,7 @@ export const FALLBACK_FEATURES: ReadonlyArray<PlanFeature & { plan: PlanKey }> =
   { key: "webhooks", label: "Webhooks and Zapier", plan: "pro" },
   { key: "call_queues", label: "Call queues", plan: "pro" },
   { key: "custom_roles", label: "Custom roles and permissions", plan: "pro" },
+  // KS_BROKER_TOOLS - Vendor and dealer portal, pro.
   { key: "fraud_1", label: "Document tamper scan", plan: "starter" },
   { key: "fraud_2", label: "Bank statement math check", plan: "starter" },
   { key: "fraud_4", label: "Duplicate document check", plan: "starter" },
