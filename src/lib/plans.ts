@@ -159,6 +159,7 @@ export const FALLBACK_FEATURES: ReadonlyArray<PlanFeature & { plan: PlanKey }> =
   { key: "sso", label: "Single sign-on", plan: "pro" },
   { key: "webhooks", label: "Webhooks and Zapier", plan: "pro" },
   { key: "call_queues", label: "Call queues", plan: "pro" },
+  { key: "vendor_portal", label: "Vendor and dealer portal: point-of-sale quotes, apply links, deal status, invoice upload and vendor fees", plan: "pro" },
   { key: "custom_roles", label: "Custom roles and permissions", plan: "pro" },
   // KS_BROKER_TOOLS - Vendor and dealer portal, pro.
   { key: "fraud_1", label: "Document tamper scan", plan: "starter" },
