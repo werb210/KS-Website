@@ -92,7 +92,7 @@ export const OURS: Record<RowId, OurCell> = {
   esign: { v: "yes", note: "Uses SignNow" },
   fraud: { v: "yes", note: "More checks on Growth and Pro" },
   lender_match: { v: "yes", note: "With the lenders you work with" },
-  submission: { v: "yes", note: "By email or download link" },
+  submission: { v: "yes", note: "By email, download link or the lender's API, with status, offers and conditions synced back (Growth and Pro)" },
   calling: { v: "yes", note: "Number set up for you; minutes included" },
   sms: { v: "yes", note: "Texts included" },
   email_sync: { v: "yes", note: "Gmail can send; Gmail inbox sync later" },

@@ -57,6 +57,8 @@ const AREAS: Area[] = [
       { name: "Document collection with OCR", body: "Statements and financials are read on upload and checked for missing pages." },
       { name: "Lender submissions", body: "Build a package once and send it to each lender you choose by email or API. You bring your own lenders." },
       { name: "Quotes", body: "Turn the lender offers on a file into one branded quote: payment, fees and total cost of borrowing side by side. The client opens it in the client app and accepts the one they want.", plan: "Growth" },
+      // KS_WEBSITE_LENDER_API
+      { name: "Lender API connections", body: "Connect a lender's broker API with your own broker key: submit the package by API and get the lender's status, offers, conditions and document requests back on the file automatically. Email stays the fallback. Growth and Pro." },
       { name: "Storage", body: "Pooled storage per seat, with extra space available when you need it." },
     ],
   },
