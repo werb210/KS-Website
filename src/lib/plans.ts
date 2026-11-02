@@ -125,6 +125,7 @@ export const FALLBACK_FEATURES: ReadonlyArray<PlanFeature & { plan: PlanKey }> =
   // KS_BROKER_TOOLS - broker deal tools 1-3, every plan.
   { key: "funding_conditions", label: "Funding conditions checklist", plan: "starter" },
   { key: "sales_tax", label: "Canadian sales tax in quotes and calculators", plan: "starter" },
+  { key: "invoice_reading", label: "Vendor invoice reading (vendor, line items, taxes, serial numbers and VINs)", plan: "starter" },
   { key: "call_recording_playback", label: "Call recording playback", plan: "growth" },
   { key: "teams", label: "Teams and record visibility", plan: "growth" },
   { key: "call_summaries", label: "AI call summaries", plan: "growth" },
