@@ -18,7 +18,7 @@ export function Terms() {
       <p className="muted">Draft for review by counsel. Last updated: not yet published.</p>
       <h2>Sections counsel needs to complete</h2>
       <ol>
-        <li>Parties, the licensed software and the licensee's own copy.</li>
+        <li>Parties, the licensed software and the licensee's own workspace.</li>
         <li>Seats, plans, allowances, overage, extra storage and price changes.</li>
         <li>Billing (annual and monthly), onboarding fees, taxes, refunds and late payment.</li>
         <li>The 14-day trial of Pro features on Starter and Growth.</li>
@@ -46,7 +46,7 @@ export function Privacy() {
       <ol>
         <li>Who we are and how to contact our privacy officer.</li>
         <li>What we collect on this website and at sign-up (company and contact details, payment handled by Stripe).</li>
-        <li>Our role for the data licensees store in their own copy (service provider acting for the licensee).</li>
+        <li>Our role for the data licensees store in their own workspace (service provider acting for the licensee).</li>
         <li>Where data is stored (Microsoft Azure, Canada Central) and service providers that process it.</li>
         <li>How long we keep data and how it's deleted.</li>
         <li>Cookies and analytics on this website.</li>
@@ -57,7 +57,7 @@ export function Privacy() {
       <p>
         {PRODUCT_NAME} checks loan applications for fraud on behalf of the brokerage using it. The brokerage decides which
         checks run (they depend on its plan) and is responsible for telling its applicants. The following is processed in
-        the brokerage's own copy of {PRODUCT_NAME}:
+        the brokerage's own workspace in {PRODUCT_NAME}:
       </p>
       <ul>
         <li>

@@ -87,7 +87,7 @@ export default function Home() {
         <div className="wrap">
           <h2 id="parts-h">What your team gets on day one</h2>
           <p className="lede" style={{ marginBottom: "2.5rem" }}>
-            Your own copy of the system, set up with your name, colours and logo. Your staff, your clients and your
+            Your own branded version of the system, with its own private database, set up with your name, colours and logo. Your staff, your clients and your
             lenders only ever see your brand.
           </p>
           <div className="feature-grid">
