@@ -105,7 +105,7 @@ export const OURS: Record<RowId, OurCell> = {
   ai_assistant: { v: "yes" },
   staff_mobile: { v: "yes", note: "iPhone dialler, iPad, Apple Watch (Growth and Pro)" },
   client_app: { v: "yes", note: "Listed under your own name" },
-  canada: { v: "yes", note: "Your own server and database in Canada" },
+  canada: { v: "yes", note: "Your own private database in Canada" },
   api: { v: "yes", note: "Pro" },
   help_centre: { v: "soon", building: "knowledge_base" },
 };

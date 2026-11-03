@@ -9,11 +9,11 @@ type Point = { title: string; body: string };
 const HOSTING: Point[] = [
   {
     title: "Stored in Canada",
-    body: "Your server and its database run in Microsoft Azure's Canada Central region (Toronto). This applies to brokerages in the United States too.",
+    body: "Keystone's servers and your database run in Microsoft Azure's Canada Central region (Toronto). This applies to brokerages in the United States too.",
   },
   {
-    title: "Your own copy",
-    body: "Each brokerage gets its own server and its own database. Your files are not mixed into a shared database with other brokerages.",
+    title: "Your own private database",
+    body: "Each brokerage gets its own private database, with its own login that cannot open any other brokerage's database. Your records are never mixed into a shared database with other brokerages.",
   },
   {
     title: "Encrypted in transit",
