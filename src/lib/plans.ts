@@ -114,6 +114,7 @@ export const FALLBACK_FEATURES: ReadonlyArray<PlanFeature & { plan: PlanKey }> =
   { key: "client_portal", label: "Branded client portal and application wizard", plan: "starter" },
   { key: "iphone_dialler", label: "iPhone dialler", plan: "starter" },
   { key: "ipad_app", label: "iPad staff portal app", plan: "starter" },
+  { key: "android_staff_app", label: "Android staff app (portal and phone)", plan: "starter" }, // KS_ANDROID_STAFF_v1
   { key: "office_sync", label: "Email sync: Outlook (Microsoft 365) inbox sync; Gmail sends only for now", plan: "starter" },
   { key: "ai_assistant", label: "AI assistant", plan: "starter" },
   { key: "lender_portal", label: "Lender portal (lenders keep their details and products current and send you deals they can't place)", plan: "starter" },
@@ -295,6 +296,7 @@ export const FALLBACK_CATALOG: Catalog = {
       "Unlimited website lead forms, plus an AI chat widget and tracking script for your own website",
       "Full visitor history and session replay",
       "Full Google Ads tools: attribution, ad-waste report, Customer Match, Monday ads email and AI ads suggestions",
+      "Landing pages with a lead form, built in the portal",
       "Lead scoring",
       "Subject-line A/B test and send-time choice",
       "Campaign report with applications and funded deals by campaign",
