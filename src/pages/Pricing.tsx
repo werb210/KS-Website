@@ -256,7 +256,7 @@ export default function Pricing() {
                   <td>Full tools on every plan</td>
                 </tr>
                 <tr>
-                  <th scope="row">Lead scoring, subject-line A/B test, send-time choice</th>
+                  <th scope="row">Landing pages, lead scoring, subject-line A/B test, send-time choice</th>
                   {c.plans.map((p) => <td key={p.key} className="no">—<span className="visually-hidden">Not included</span></td>)}
                   <td className="yes">Included</td>
                 </tr>
