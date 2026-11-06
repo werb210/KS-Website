@@ -210,6 +210,8 @@ describe("Sign up: address, single price summary, logo and colours", () => {
   it("uploads a logo with a preview, checks every colour, and sends them with the address parts", async () => {
     const f = await toPlan();
     next();
+    await screen.findByRole("heading", { name: "Your team" }); // KS_WEBSITE_TEAM_ROSTER
+    next();
     await screen.findByRole("heading", { name: "Branding" });
     const png = new File([new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 1, 2, 3])], "logo.png", { type: "image/png" });
     fireEvent.change(screen.getByLabelText("Logo (optional)"), { target: { files: [png] } });

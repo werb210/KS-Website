@@ -7,6 +7,8 @@ import { Field } from "../components/Field";
 import { LogoUpload } from "../components/LogoUpload";
 import { NumberStepper } from "../components/NumberStepper";
 import { Turnstile } from "../components/Turnstile";
+import { TeamRoster } from "../components/TeamRoster"; // KS_WEBSITE_TEAM_ROSTER
+import { AgreementSign } from "../components/AgreementSign"; // KS_WEBSITE_LICENCE_AGREEMENT
 import { PRODUCT_NAME, TURNSTILE_SITE_KEY } from "../config";
 import { useCatalog } from "../hooks/useCatalog";
 import { useCodeAvailability } from "../hooks/useCodeAvailability";
@@ -30,6 +32,8 @@ import {
   BUSINESS_TYPES,
   oneLineAddress,
   suggestCode,
+  e164NaPhone,
+  formatNaPhone,
   validateStep,
   type CodeState,
   type Errors,
@@ -47,6 +51,7 @@ function initialForm(params: URLSearchParams): SignupForm {
   if (Number.isInteger(seats) && seats > 0 && seats <= MAX_SEATS) f.seats = seats;
   if (!Number.isInteger(f.extra_storage_blocks) || f.extra_storage_blocks < 0) f.extra_storage_blocks = 0;
   if (!isPaymentMethod(f.payment_method)) f.payment_method = EMPTY_FORM.payment_method;
+  if (!Array.isArray(f.team)) f.team = []; // KS_WEBSITE_TEAM_ROSTER - drafts from before the team step
   // KS_WEBSITE_MARKETING_ADDON - ?addon=marketing from the pricing page.
   f.marketing_addon = f.marketing_addon === true || params.get("addon") === "marketing";
   const billing = params.get("billing");
@@ -92,7 +97,17 @@ export function buildPayload(f: SignupForm, turnstileToken: string): SignupPaylo
     accept_privacy: true,
     turnstile_token: turnstileToken || undefined,
     website_url: f.website_url,
+    // KS_WEBSITE_TEAM_ROSTER - the owner first (an Admin), then everyone else, mobiles as +1XXXXXXXXXX.
+    team: [
+      { full_name: f.contact_name.trim(), email: f.contact_email.trim(), phone: e164NaPhone(f.contact_phone) || f.contact_phone.trim(), role: "Admin" },
+      ...f.team.map((m) => ({ full_name: m.full_name.trim().replace(/\s+/g, " "), email: m.email.trim(), phone: e164NaPhone(m.phone) || m.phone.trim(), role: m.role })),
+    ],
   };
+}
+
+/** The step that owns an API error: "team.3.phone" belongs to the team step. */
+function stepOfField(k: string): StepKey | undefined {
+  return FIELD_STEP[k] ?? (k.startsWith("team.") ? "team" : undefined);
 }
 
 type Adjust = {
@@ -272,6 +287,8 @@ export default function Signup() {
   const [alert, setAlert] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState<{ message?: string } | null>(null);
+  // KS_WEBSITE_LICENCE_AGREEMENT - after the order is placed: the licence agreement, then payment.
+  const [signing, setSigning] = useState<{ id: string; token: string; checkoutUrl: string | null; message?: string } | null>(null);
   const [turnstileToken, setTurnstileToken] = useState("");
   const [turnstileReset, setTurnstileReset] = useState(0);
   const [codeTouched, setCodeTouched] = useState(Boolean(f.company_code));
@@ -400,12 +417,8 @@ export default function Signup() {
     if (res.ok) {
       save(LAST_SIGNUP_KEY, { id: res.data.licensee_id, token: res.data.signup_token, company: f.company_name });
       remove(DRAFT_KEY);
-      if (res.data.checkout_url) {
-        goTo(res.data.checkout_url);
-        return;
-      }
       setSubmitting(false);
-      setDone({ message: res.data.message });
+      setSigning({ id: res.data.licensee_id, token: res.data.signup_token, checkoutUrl: res.data.checkout_url, message: res.data.message });
       return;
     }
     setSubmitting(false);
@@ -414,13 +427,47 @@ export default function Signup() {
     setTurnstileReset((n) => n + 1);
     setApiErrors(res.errors);
     setAlert(res.message);
-    const firstField = Object.keys(res.errors).find((k) => FIELD_STEP[k]);
-    if (firstField) setStep(FIELD_STEP[firstField]);
+    const firstField = Object.keys(res.errors).find((k) => stepOfField(k));
+    if (firstField) setStep(stepOfField(firstField)!);
   }
 
   const regions = regionsFor(f.country);
   const m = (n: number) => formatMoney(n, c.currency);
   const planQuote = signupQuote(c, plan ?? c.plans[0], f);
+
+  // KS_WEBSITE_LICENCE_AGREEMENT - signed (or it could not be shown: the link is emailed after payment), then payment.
+  function afterAgreement() {
+    if (!signing) return;
+    if (signing.checkoutUrl) {
+      goTo(signing.checkoutUrl);
+      return;
+    }
+    setDone({ message: signing.message });
+    setSigning(null);
+  }
+
+  if (signing && !done) {
+    return (
+      <div className="wrap wrap--narrow page-head">
+        <ol className="steps" aria-label="Sign-up steps">
+          {STEPS.map((s) => (
+            <li key={s} data-done>
+              {STEP_LABELS[s]}
+            </li>
+          ))}
+          <li aria-current="step">Licence agreement</li>
+        </ol>
+        <h1>Your licence agreement</h1>
+        <AgreementSign
+          licenseeId={signing.id}
+          token={signing.token}
+          onSigned={afterAgreement}
+          onUnavailable={afterAgreement}
+          submitLabel={signing.checkoutUrl ? "Sign and continue to payment" : "Sign"}
+        />
+      </div>
+    );
+  }
 
   if (done) {
     return (
@@ -450,7 +497,7 @@ export default function Signup() {
     <>
       <div className="wrap page-head" style={{ paddingBottom: "1rem" }}>
         <h1>Sign up</h1>
-        <p>About five minutes. You'll pay on the next screen, and we set up your copy within one business day.</p>
+        <p>About five minutes. Then you sign the licence agreement and pay, and we set up your copy within one business day.</p>
       </div>
       <div className="wrap signup">
         <form className="signup__panel" onSubmit={onSubmit} noValidate aria-label="Sign-up">
@@ -627,8 +674,17 @@ export default function Signup() {
               <Field id="contact_email" label="Email" error={errorFor("contact_email")}>
                 {(a) => <input {...a} type="email" autoComplete="email" value={f.contact_email} onChange={(e) => update("contact_email", e.target.value)} />}
               </Field>
-              <Field id="contact_phone" label="Mobile phone" hint="You'll use it to sign in with a one-time code." error={errorFor("contact_phone")}>
-                {(a) => <input {...a} type="tel" autoComplete="tel" value={f.contact_phone} onChange={(e) => update("contact_phone", e.target.value)} />}
+              <Field id="contact_phone" label="Mobile phone" hint="A Canadian or US mobile. You'll use it to sign in with a one-time code." error={errorFor("contact_phone")}>
+                {(a) => (
+                  <input
+                    {...a}
+                    type="tel"
+                    autoComplete="tel"
+                    value={f.contact_phone}
+                    onChange={(e) => update("contact_phone", e.target.value)}
+                    onBlur={() => update("contact_phone", formatNaPhone(f.contact_phone) || f.contact_phone)}
+                  />
+                )}
               </Field>
             </>
           )}
@@ -752,6 +808,20 @@ export default function Signup() {
             </>
           )}
 
+          {step === "team" && (
+            <TeamRoster
+              owner={{ name: f.contact_name, email: f.contact_email, phone: f.contact_phone }}
+              team={f.team}
+              seats={planQuote.seats}
+              errors={{ ...apiErrors, ...errors }}
+              onChange={(team) => {
+                update("team", team);
+                setErrors({});
+                setApiErrors((e) => Object.fromEntries(Object.entries(e).filter(([k]) => !k.startsWith("team"))));
+              }}
+            />
+          )}
+
           {step === "branding" && (
             <>
               <p className="muted">Optional. You can change all of this later from your settings.</p>
@@ -826,6 +896,10 @@ export default function Signup() {
                 </dd>
                 <dt>Seats</dt>
                 <dd data-testid="review-seats">{seatsText(planQuote.seats)}</dd>
+                <dt>Team</dt>
+                <dd data-testid="review-team">
+                  {[`${f.contact_name || "You"} (Admin)`, ...f.team.map((m) => `${m.full_name.trim()} (${m.role})`)].join(", ")}
+                </dd>
                 <dt>Support</dt>
                 <dd data-testid="review-support">{findSupport(c, f.support_level)?.name}</dd>
                 <dt>Extra storage</dt>

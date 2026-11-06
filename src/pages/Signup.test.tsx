@@ -50,6 +50,8 @@ async function fillToReview(opts: { plan?: "Starter" | "Growth" | "Pro"; seats?:
   if (opts.plan) fireEvent.click(screen.getByRole("radio", { name: new RegExp(`^${opts.plan}`) }));
   if (opts.seats) type("Seats", opts.seats);
   next();
+  await screen.findByRole("heading", { name: "Your team" }); // KS_WEBSITE_TEAM_ROSTER
+  next();
   await screen.findByRole("heading", { name: "Branding" });
   next();
   await screen.findByRole("heading", { name: "Review" });
@@ -303,6 +305,8 @@ describe("Sign-up", () => {
     fireEvent.click(screen.getByRole("radio", { name: /^Priority/ }));
     fireEvent.click(screen.getByRole("button", { name: "Add 50 GB" }));
     next();
+    await screen.findByRole("heading", { name: "Your team" }); // KS_WEBSITE_TEAM_ROSTER
+    next();
     await screen.findByRole("heading", { name: "Branding" });
     next();
     await screen.findByRole("heading", { name: "Review" });
@@ -336,6 +340,7 @@ describe("Sign-up", () => {
         "seats", "support_level", "website_url", "primary_color", "accent_color", "address_line1", "city", "postal_code",
         "business_number", "business_type", "contact_title", // KS_WEBSITE_TWILIO_AUTO
         "marketing_addon", // KS_WEBSITE_MARKETING_ADDON
+        "team", // KS_WEBSITE_TEAM_ROSTER
       ].sort(),
     );
     expect(body).toMatchObject({ business_number: "123456789", business_type: "corporation", contact_title: "Owner" });
@@ -355,6 +360,8 @@ describe("Sign-up", () => {
     expect(card).not.toBeChecked();
     expect(screen.getByText(/Pre-authorized debit from a Canadian business bank account/)).toBeInTheDocument();
     fireEvent.click(card);
+    next();
+    await screen.findByRole("heading", { name: "Your team" }); // KS_WEBSITE_TEAM_ROSTER
     next();
     await screen.findByRole("heading", { name: "Branding" });
     next();
