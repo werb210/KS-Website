@@ -45,7 +45,8 @@ const AREAS: Area[] = [
       { name: "Lender portal", body: "Lenders keep their details and products current, and send you deals they can't place themselves. The lender package goes to each lender by email or API." },
       {
         name: "Personal Guarantee Insurance (PGI)",
-        body: `Offer PGI to your clients to close more deals and earn extra commission. All you need to do is... nothing. One checkbox, and ${PRODUCT_NAME} pays you.`,
+        // KS_WEBSITE_PGI_REFERRAL_FEE_v1
+        body: "Offer Personal Guarantee Insurance to your clients with one checkbox. Where permitted, your brokerage earns a flat referral fee for each qualified referral, whether or not the client buys a policy. Our insurance partner handles the rest.",
         pgiTip: true,
       },
     ],
