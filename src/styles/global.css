@@ -643,3 +643,14 @@ table.compare-table thead th.compare-us { color: var(--accent-ink); }
 .help-body table { border-collapse: collapse; margin: 1rem 0; font-size: var(--step--1); }
 .help-body th, .help-body td { border: 1px solid var(--mortar); padding: 0.4rem 0.6rem; text-align: left; vertical-align: top; }
 .help-body code { background: var(--mortar-soft); padding: 0.05rem 0.3rem; border-radius: 3px; }
+
+/* KS_WEBSITE_TEAM_ROSTER / KS_WEBSITE_LICENCE_AGREEMENT */
+.team-person { border: 1px solid var(--mortar); border-radius: var(--radius-s); padding: 0.75rem 1rem 1rem; margin-bottom: 1rem; background: #fff; }
+.team-person legend { font-weight: 700; padding: 0 0.25rem; }
+.agreement-text {
+  max-height: 24rem; overflow-y: auto; border: 1px solid var(--mortar); border-radius: var(--radius-s);
+  background: #fff; color: var(--ink); padding: 0.75rem 1rem; margin-bottom: 1rem;
+}
+.agreement-text h2 { font-size: var(--step-1); margin-top: 0; }
+.agreement-text h3 { font-size: var(--step-0); margin: 1rem 0 0.35rem; }
+.agreement-text p, .agreement-text li { font-size: var(--step--1); line-height: 1.55; }

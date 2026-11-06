@@ -51,6 +51,8 @@ async function toBranding(scan: Handler) {
   next();
   await screen.findByRole("heading", { name: "Plan" });
   next();
+  await screen.findByRole("heading", { name: "Your team" }); // KS_WEBSITE_TEAM_ROSTER
+  next();
   await screen.findByRole("heading", { name: "Branding" });
   return f;
 }

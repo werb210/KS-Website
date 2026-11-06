@@ -73,7 +73,11 @@ export type SignupPayload = {
   turnstile_token?: string;
   /** Honeypot. People never see it; it must stay empty. */
   website_url: string;
+  /** KS_WEBSITE_TEAM_ROSTER - the team, owner first (KS-Ops KS_OPS_ONBOARDING_v1); at most one person per seat. */
+  team: TeamPayloadMember[];
 };
+
+export type TeamPayloadMember = { full_name: string; email: string; phone: string; role: string };
 
 export type SignupCreated = {
   licensee_id: string;
@@ -355,4 +359,107 @@ export async function scanWebsiteBrand(url: string, signal?: AbortSignal): Promi
     throw new BrandScanFailed(typeof body.message === "string" && body.message ? body.message : "We couldn't read that website. You can fill in your branding yourself.");
   }
   return body as BrandScanResult;
+}
+
+// KS_WEBSITE_LICENCE_AGREEMENT - the Keystone Software Licence Agreement for one sign-up (KS-Ops KS_OPS_ONBOARDING_v1).
+export type AgreementSignature = { version: string; signer_name: string; signer_title: string; signed_at: string };
+export type Agreement = {
+  company_name: string;
+  legal_name: string;
+  contact_name: string;
+  contact_title: string;
+  version: string;
+  title: string;
+  html: string;
+  sha256: string;
+  signed: AgreementSignature | null;
+};
+
+const signupPath = (id: string, token: string, what: "agreement" | "team") =>
+  opsUrl(`/api/public/signup/${encodeURIComponent(id)}/${what}?token=${encodeURIComponent(token)}`);
+
+async function jsonBody(res: Response): Promise<Record<string, unknown>> {
+  try {
+    return (await res.json()) as Record<string, unknown>;
+  } catch {
+    return {};
+  }
+}
+
+function errorsOf(body: Record<string, unknown>): Record<string, string> {
+  const out: Record<string, string> = {};
+  if (body.errors && typeof body.errors === "object") {
+    for (const [k, v] of Object.entries(body.errors as Record<string, unknown>)) out[k] = typeof v === "string" ? v : "Check this field.";
+  }
+  return out;
+}
+
+/** The agreement, or null when it cannot be loaded (wrong link, or the service is unavailable). */
+export async function getAgreement(id: string, token: string, signal?: AbortSignal): Promise<Agreement | null> {
+  try {
+    const res = await fetch(signupPath(id, token, "agreement"), { signal, headers: { Accept: "application/json" } });
+    if (!res.ok) return null;
+    const b = await jsonBody(res);
+    if (typeof b.html !== "string" || typeof b.sha256 !== "string") return null;
+    return b as unknown as Agreement;
+  } catch {
+    return null;
+  }
+}
+
+export type SignResult =
+  | { ok: true; signed: AgreementSignature }
+  | { ok: false; status: number; errors: Record<string, string>; message: string; changed: boolean };
+
+export async function signAgreement(id: string, token: string, input: { signer_name: string; signer_title: string; sha256: string }): Promise<SignResult> {
+  let res: Response;
+  try {
+    res = await fetch(signupPath(id, token, "agreement"), {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify({ ...input, agree: true }),
+    });
+  } catch {
+    return { ok: false, status: 0, errors: {}, message: "We couldn't reach the sign-up service. Check your connection and try again.", changed: false };
+  }
+  const b = await jsonBody(res);
+  if (res.ok && b.signed && typeof b.signed === "object") return { ok: true, signed: b.signed as AgreementSignature };
+  const errors = errorsOf(b);
+  const message = typeof b.message === "string" ? b.message : Object.keys(errors).length ? "Some details need fixing. They're marked below." : "We couldn't record your signature. Try again.";
+  return { ok: false, status: res.status, errors, message, changed: b.error === "agreement_changed" };
+}
+
+// KS_WEBSITE_TEAM_ROSTER - the team for one sign-up, changeable until the team is invited.
+export type TeamMember = { full_name: string; email: string; phone: string; role: string; is_owner: boolean };
+export type TeamState = { company_name?: string; seats: number; locked: boolean; team: TeamMember[] };
+
+export async function getTeam(id: string, token: string, signal?: AbortSignal): Promise<TeamState | null> {
+  try {
+    const res = await fetch(signupPath(id, token, "team"), { signal, headers: { Accept: "application/json" } });
+    if (!res.ok) return null;
+    const b = await jsonBody(res);
+    return Array.isArray(b.team) ? (b as unknown as TeamState) : null;
+  } catch {
+    return null;
+  }
+}
+
+export type SaveTeamResult = { ok: true; team: TeamState } | { ok: false; status: number; errors: Record<string, string>; message: string };
+
+export async function saveTeam(id: string, token: string, team: TeamPayloadMember[]): Promise<SaveTeamResult> {
+  let res: Response;
+  try {
+    res = await fetch(signupPath(id, token, "team"), {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify({ team }),
+    });
+  } catch {
+    return { ok: false, status: 0, errors: {}, message: "We couldn't reach the sign-up service. Check your connection and try again." };
+  }
+  const b = await jsonBody(res);
+  if (res.ok && Array.isArray(b.team)) return { ok: true, team: b as unknown as TeamState };
+  const errors = errorsOf(b);
+  const message = typeof b.message === "string" ? b.message : Object.keys(errors).length ? "Some details need fixing. They're marked below." : "We couldn't save your team. Try again.";
+  return { ok: false, status: res.status, errors, message };
 }

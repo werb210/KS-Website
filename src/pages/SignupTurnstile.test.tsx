@@ -74,6 +74,8 @@ async function fillToReview() {
   next();
   await screen.findByRole("heading", { name: "Plan" });
   next();
+  await screen.findByRole("heading", { name: "Your team" }); // KS_WEBSITE_TEAM_ROSTER
+  next();
   await screen.findByRole("heading", { name: "Branding" });
   next();
   await screen.findByRole("heading", { name: "Review" });
@@ -101,7 +103,8 @@ describe("Sign-up with Turnstile", () => {
     await waitFor(() => expect(screen.getByRole("button", { name: "Continue to payment" })).toBeEnabled());
     fireEvent.click(screen.getByRole("button", { name: "Continue to payment" }));
     await screen.findByRole("heading", { name: /Thanks — we'll contact you/ });
-    const tokens = callsTo(f, "/api/public/signup").map(([, init]) => JSON.parse(String(init?.body)).turnstile_token);
+    // Only the sign-up posts (the licence agreement is read from /api/public/signup/<id>/agreement afterwards).
+    const tokens = callsTo(f, "/api/public/signup").filter(([u]) => String(u).endsWith("/api/public/signup")).map(([, init]) => JSON.parse(String(init?.body)).turnstile_token);
     expect(tokens).toHaveLength(2);
     expect(tokens[0]).toBeTruthy();
     expect(tokens[1]).toBeTruthy();
