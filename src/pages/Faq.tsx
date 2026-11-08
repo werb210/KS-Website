@@ -36,7 +36,7 @@ export default function Faq() {
     },
     {
       q: "How long does set-up take?",
-      a: "We set up your copy within one business day of payment and email your sign-in details. Growth and Pro include onboarding help to get your team, lenders and branding in place.",
+      a: "Your private copy, with its own database, is usually ready about 15 minutes after payment, and we email your sign-in details the moment it is. Growth and Pro include onboarding help to get your team, lenders and branding in place.",
     },
     {
       q: "How do my staff sign in to the apps?",

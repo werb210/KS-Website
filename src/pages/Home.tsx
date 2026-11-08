@@ -135,7 +135,7 @@ export default function Home() {
           <div>
             <h2 id="how-h">From sign-up to first call</h2>
             <p>
-              Sign up online, pay securely, and we set up your copy within one business day. You get sign-in details by
+              Sign up online, pay securely, and your private copy is usually ready in about 15 minutes. You get sign-in details by
               email. Your staff sign in to the dialler and iPad apps with their work email or mobile number; the app
               finds your brokerage automatically. Your clients can
               use your brokerage's own app on iPhone or Android, or your client portal as a website in any browser,
