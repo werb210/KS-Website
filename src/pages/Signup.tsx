@@ -497,7 +497,7 @@ export default function Signup() {
     <>
       <div className="wrap page-head" style={{ paddingBottom: "1rem" }}>
         <h1>Sign up</h1>
-        <p>About five minutes. Then you sign the licence agreement and pay, and we set up your copy within one business day.</p>
+        <p>About five minutes. Then you sign the licence agreement and pay, and your private copy is usually ready in about 15 minutes.</p>
       </div>
       <div className="wrap signup">
         <form className="signup__panel" onSubmit={onSubmit} noValidate aria-label="Sign-up">

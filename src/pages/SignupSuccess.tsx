@@ -177,7 +177,7 @@ export default function SignupSuccess() {
       </div>
       <h2>What happens next</h2>
       <ol>
-        <li>We set up your brokerage's copy{setupToken ? ", usually within the hour" : " within one business day"}.</li>
+        <li>We set up your brokerage's copy{setupToken ? ", usually within about 15 minutes" : " within one business day"}.</li>
         <li>We email your sign-in details to the contact you gave us, with links to the staff portal and apps.</li>
         <li>You sign in, add your lenders and invite your team. Growth and Pro onboarding starts with a call from us.</li>
       </ol>
