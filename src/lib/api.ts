@@ -67,6 +67,7 @@ export type SignupPayload = {
   logo_url?: string;
   /** An uploaded logo (PNG, JPG or SVG, base64), stored by KS-Ops. */
   logo_file?: { content_type: string; data_base64: string; filename?: string };
+  favicon_file?: { content_type: string; data_base64: string; filename?: string }; // KS_WEBSITE_SIGNUP_FAVICON_v1
   assistant_name?: string;
   accept_terms: true;
   accept_privacy: true;

@@ -5,6 +5,7 @@ import { ColourField } from "../components/ColourField";
 import { FontField } from "../components/FontField";
 import { Field } from "../components/Field";
 import { LogoUpload } from "../components/LogoUpload";
+import { FaviconUpload } from "../components/FaviconUpload"; // KS_WEBSITE_SIGNUP_FAVICON_v1
 import { NumberStepper } from "../components/NumberStepper";
 import { Turnstile } from "../components/Turnstile";
 import { TeamRoster } from "../components/TeamRoster"; // KS_WEBSITE_TEAM_ROSTER
@@ -45,6 +46,7 @@ function initialForm(params: URLSearchParams): SignupForm {
   const draft = load<Partial<SignupForm>>(DRAFT_KEY);
   const f: SignupForm = { ...EMPTY_FORM, ...(draft ?? {}), website_url: "" };
   if (f.logo_file && (typeof f.logo_file !== "object" || typeof f.logo_file.data_url !== "string")) f.logo_file = null;
+  if (f.favicon_file && (typeof f.favicon_file !== "object" || typeof f.favicon_file.data_url !== "string")) f.favicon_file = null;
   const plan = params.get("plan");
   if (plan === "starter" || plan === "growth" || plan === "pro") f.plan = plan;
   const seats = Number(params.get("seats"));
@@ -62,6 +64,7 @@ function initialForm(params: URLSearchParams): SignupForm {
 export function buildPayload(f: SignupForm, turnstileToken: string): SignupPayload {
   const opt = (v: string) => (v.trim() ? v.trim() : undefined);
   const logo = f.logo_file ? /^data:([^;,]+);base64,(.*)$/.exec(f.logo_file.data_url) : null;
+  const favicon = f.favicon_file ? /^data:([^;,]*);base64,(.*)$/.exec(f.favicon_file.data_url) : null; // KS_WEBSITE_SIGNUP_FAVICON_v1
   return {
     company_name: f.company_name.trim(),
     legal_name: f.legal_name.trim(),
@@ -92,6 +95,7 @@ export function buildPayload(f: SignupForm, turnstileToken: string): SignupPaylo
     background_color: opt(f.background_color),
     font_family: opt(f.font_family),
     logo_file: logo && f.logo_file ? { content_type: logo[1], data_base64: logo[2], filename: f.logo_file.name } : undefined,
+    favicon_file: favicon && f.favicon_file ? { content_type: favicon[1] || "image/x-icon", data_base64: favicon[2], filename: f.favicon_file.name } : undefined,
     assistant_name: opt(f.assistant_name),
     accept_terms: true,
     accept_privacy: true,
@@ -827,6 +831,7 @@ export default function Signup() {
               <p className="muted">Optional. You can change all of this later from your settings.</p>
               <BrandFromWebsite website={f.website} form={f} apply={applyBrand} onScanned={(r) => setWebsiteFont(r.suggestions.font)} />
               <LogoUpload value={f.logo_file} onChange={(v) => update("logo_file", v)} error={errorFor("logo_file")} />
+              <FaviconUpload value={f.favicon_file} onChange={(v) => update("favicon_file", v)} error={errorFor("favicon_file")} />
               <ColourField
                 id="primary_color"
                 label="Main brand colour"
@@ -925,6 +930,7 @@ export default function Signup() {
                   {f.background_color ? `, background ${f.background_color}` : ""}
                   {f.font_family ? `, font ${f.font_family}` : ""}
                   {f.logo_file ? `, logo ${f.logo_file.name}` : ", no logo yet"}
+                  {f.favicon_file ? `, favicon ${f.favicon_file.name}` : ""}
                   {f.assistant_name ? `, assistant named ${f.assistant_name}` : ""}
                 </dd>
               </dl>

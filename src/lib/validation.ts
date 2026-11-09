@@ -34,6 +34,7 @@ export type SignupForm = {
   payment_method: PaymentMethod;
   /** An uploaded logo, read in the browser (null = none). */
   logo_file: LogoFile | null;
+  favicon_file: LogoFile | null; // KS_WEBSITE_SIGNUP_FAVICON_v1
   primary_color: string;
   /** Accent (secondary) colour, for links and highlights. */
   accent_color: string;
@@ -62,6 +63,7 @@ export type LogoFile = { name: string; type: string; size: number; data_url: str
 
 export const MAX_LOGO_BYTES = 500 * 1024;
 export const LOGO_TYPES = ["image/png", "image/jpeg", "image/svg+xml"];
+export const FAVICON_TYPES = ["image/png", "image/svg+xml", "image/x-icon", "image/vnd.microsoft.icon"]; // KS_WEBSITE_SIGNUP_FAVICON_v1
 
 export const EMPTY_FORM: SignupForm = {
   company_name: "",
@@ -88,6 +90,7 @@ export const EMPTY_FORM: SignupForm = {
   marketing_addon: false,
   payment_method: "acss_debit",
   logo_file: null,
+  favicon_file: null,
   primary_color: "#1f4e79",
   accent_color: "#0e6655",
   background_color: "",
@@ -142,6 +145,7 @@ export const FIELD_STEP: Record<string, StepKey> = {
   team: "team",
   logo_url: "branding",
   logo_file: "branding",
+  favicon_file: "branding",
   primary_color: "branding",
   accent_color: "branding",
   background_color: "branding",
@@ -285,6 +289,10 @@ export function validateStep(step: StepKey, f: SignupForm, catalog: Catalog, cod
       if (f.logo_file) {
         if (!LOGO_TYPES.includes(f.logo_file.type)) e.logo_file = "Use a PNG, JPG or SVG file.";
         else if (f.logo_file.size > MAX_LOGO_BYTES) e.logo_file = "Use a logo file under 500 KB.";
+      }
+      if (f.favicon_file) { // KS_WEBSITE_SIGNUP_FAVICON_v1
+        if (!FAVICON_TYPES.includes(f.favicon_file.type) && !/\.ico$/i.test(f.favicon_file.name)) e.favicon_file = "Use a PNG, SVG or ICO file.";
+        else if (f.favicon_file.size > MAX_LOGO_BYTES) e.favicon_file = "Use a favicon file under 500 KB.";
       }
       if (f.primary_color && !HEX.test(f.primary_color)) e.primary_color = "Use a colour like #1f4e79.";
       if (f.accent_color && !HEX.test(f.accent_color)) e.accent_color = "Use a colour like #0e6655.";
