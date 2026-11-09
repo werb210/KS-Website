@@ -198,7 +198,7 @@ import { EMPTY_FORM as EMPTY_FAV, validateStep as validateFav } from "./validati
 describeFav("sign-up favicon", () => {
   itFav("accepts PNG and ICO and refuses JPG or large files", () => {
     const base = { ...EMPTY_FAV };
-    const c: any = { plans: [], support_levels: [] };
+    const c = { plans: [], support_levels: [] } as unknown as Parameters<typeof validateFav>[2];
     const fav = (type: string, size = 1000, name = "f.png") => ({ name, type, size, data_url: "data:image/png;base64,AAAA" });
     expectFav(validateFav("branding", { ...base, favicon_file: fav("image/png") }, c, "idle").favicon_file).toBeUndefined();
     expectFav(validateFav("branding", { ...base, favicon_file: fav("", 1000, "favicon.ico") }, c, "idle").favicon_file).toBeUndefined();
