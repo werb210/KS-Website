@@ -191,3 +191,18 @@ describe("background colours", () => {
     expect(lightenForDarkText("#f4f6f7")).toBe("#f4f6f7");
   });
 });
+
+// KS_WEBSITE_SIGNUP_FAVICON_v1
+import { describe as describeFav, expect as expectFav, it as itFav } from "vitest";
+import { EMPTY_FORM as EMPTY_FAV, validateStep as validateFav } from "./validation";
+describeFav("sign-up favicon", () => {
+  itFav("accepts PNG and ICO and refuses JPG or large files", () => {
+    const base = { ...EMPTY_FAV };
+    const c: any = { plans: [], support_levels: [] };
+    const fav = (type: string, size = 1000, name = "f.png") => ({ name, type, size, data_url: "data:image/png;base64,AAAA" });
+    expectFav(validateFav("branding", { ...base, favicon_file: fav("image/png") }, c, "idle").favicon_file).toBeUndefined();
+    expectFav(validateFav("branding", { ...base, favicon_file: fav("", 1000, "favicon.ico") }, c, "idle").favicon_file).toBeUndefined();
+    expectFav(validateFav("branding", { ...base, favicon_file: fav("image/jpeg", 1000, "f.jpg") }, c, "idle").favicon_file).toBe("Use a PNG, SVG or ICO file.");
+    expectFav(validateFav("branding", { ...base, favicon_file: fav("image/png", 600 * 1024) }, c, "idle").favicon_file).toBe("Use a favicon file under 500 KB.");
+  });
+});
