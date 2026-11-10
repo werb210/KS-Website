@@ -132,7 +132,7 @@ export default function Home() {
         <div className="wrap">
           <h2 id="parts-h">What your team gets on day one</h2>
           <p className="section-intro">
-            Your own copy of the system, set up with your name, colours and logo. Your staff, your clients and your
+            Your own branded version of the system, with its own private database, set up with your name, colours and logo. Your staff, your clients and your
             lenders only ever see your brand.
           </p>
           <div className="feature-grid">
@@ -174,21 +174,24 @@ export default function Home() {
       <section className="section" aria-labelledby="pgi-h">
         <div className="wrap pgi">
           <div>
-            <h2 id="pgi-h">Earn more on every deal with PGI</h2>
+            <h2 id="pgi-h">Offer PGI on every deal</h2>
             <p className="lede">
-              Offer PGI to your clients to close more deals and earn extra commission. All you need to do is... nothing.
-              One checkbox, and {PRODUCT_NAME} pays you.
+              {/* KS_WEBSITE_PGI_REFERRAL_FEE_v1 - our insurance partner's terms: a flat referral fee per qualified referral,
+                  paid whether or not a policy is bound, where permitted. Never "commission". */}
+              Offer Personal Guarantee Insurance to your clients with one checkbox. Where permitted, your brokerage earns a
+              flat referral fee for each qualified referral, whether or not the client buys a policy.
             </p>
             <PgiTip />
           </div>
           <div className="pgi__card">
             <p className="pgi__big">One checkbox</p>
             <p>
-              Your client ticks the PGI box in their application. The rest happens without you, and your referral
-              commission is paid to your brokerage.
+              Your client ticks the PGI box in their application. Our insurance partner handles the insurance
+              conversation and the application, so you never give insurance advice.
             </p>
             <p className="small" style={{ marginBottom: 0 }}>
-              Included on every plan.
+              Included on every plan. Not available in Quebec. Referral fees are paid where permitted, under your
+              referral agreement.
             </p>
           </div>
         </div>
@@ -199,9 +202,10 @@ export default function Home() {
           <div>
             <h2 id="how-h">From sign-up to first call</h2>
             <p>
-              Sign up online, pay securely, and we set up your copy within one business day. Bring your contacts and deals
+              Sign up online, pay securely, and your private copy is usually ready in about 15 minutes. Bring your contacts and deals
               from HubSpot, Salesforce, Pipedrive or a spreadsheet, with a dry run and undo. Your staff sign in to the
-              dialler and iPad apps with their work email or mobile number; the app finds your brokerage automatically.
+              dialler and iPad apps with their work email or mobile number; the app finds your brokerage automatically. Your clients can use your brokerage's own app on iPhone or Android,
+              or your client portal as a website in any browser, whichever they prefer.
             </p>
             <p>
               <Link to="/pricing">Plans and prices</Link>

@@ -25,17 +25,21 @@ describe("Home", () => {
     expect(document.body.textContent).not.toMatch(/working Canadian brokerage runs on/i);
   });
 
-  it("offers PGI with the approved copy and an accessible 'What is PGI?' tip without a percentage", async () => {
+  // KS_WEBSITE_PGI_REFERRAL_FEE_v1 - the insurance partner's terms: a flat referral fee per qualified referral, paid
+  // whether or not a policy binds, where permitted. Never "commission".
+  it("offers PGI with a referral fee, never a commission, and an accessible 'What is PGI?' tip without a percentage", async () => {
     renderAt(<Home />);
-    expect(screen.getByText(/Offer PGI to your clients to close more deals and earn extra commission\. All you need to do is\.\.\. nothing\. One checkbox, and Keystone pays you\./)).toBeInTheDocument();
+    expect(screen.getByText(/Where permitted, your brokerage earns a\s+flat referral fee for each qualified referral, whether or not the client buys a policy\./)).toBeInTheDocument();
+    expect(document.body.textContent).not.toMatch(/commission/i);
     const btn = screen.getByRole("button", { name: "What is PGI?" });
     expect(btn).toHaveAttribute("aria-expanded", "false");
     fireEvent.click(btn);
     const dialog = await screen.findByRole("dialog", { name: "What is PGI?" });
     expect(btn).toHaveAttribute("aria-expanded", "true");
-    expect(dialog).toHaveTextContent("protects the business owner's personal assets");
+    expect(dialog).toHaveTextContent("part of their loss");
     expect(dialog).toHaveTextContent("ticks one box");
-    expect(dialog).toHaveTextContent("referral commission");
+    expect(dialog).toHaveTextContent("flat referral fee");
+    expect(dialog).toHaveTextContent("whether or not a policy is bound");
     expect(dialog.textContent).not.toMatch(/%|percent/);
     await waitFor(() => expect(within(dialog).getByRole("button", { name: "Close" })).toHaveFocus());
     fireEvent.keyDown(document, { key: "Escape" });
@@ -205,6 +209,8 @@ describe("Sign up: address, single price summary, logo and colours", () => {
 
   it("uploads a logo with a preview, checks every colour, and sends them with the address parts", async () => {
     const f = await toPlan();
+    next();
+    await screen.findByRole("heading", { name: "Your team" }); // KS_WEBSITE_TEAM_ROSTER
     next();
     await screen.findByRole("heading", { name: "Branding" });
     const png = new File([new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 1, 2, 3])], "logo.png", { type: "image/png" });

@@ -28,10 +28,13 @@ export type SignupForm = {
   support_level: string;
   /** Extra 50 GB storage blocks bought on top of the plan's allowance. */
   extra_storage_blocks: number;
+  /** KS_WEBSITE_MARKETING_ADDON - the Marketing add-on, flat per brokerage. */
+  marketing_addon: boolean;
   /** Bank debit (Canadian pre-authorized debit) by default, or card. */
   payment_method: PaymentMethod;
   /** An uploaded logo, read in the browser (null = none). */
   logo_file: LogoFile | null;
+  favicon_file: LogoFile | null; // KS_WEBSITE_SIGNUP_FAVICON_v1
   primary_color: string;
   /** Accent (secondary) colour, for links and highlights. */
   accent_color: string;
@@ -43,12 +46,24 @@ export type SignupForm = {
   accept_terms: boolean;
   accept_privacy: boolean;
   website_url: string;
+  /** KS_WEBSITE_TEAM_ROSTER - everyone else on the team (the owner, from the contact step, is always person 1). */
+  team: TeamMemberForm[];
 };
+
+export type TeamRole = "Broker" | "Marketing" | "Admin";
+export const TEAM_ROLES: ReadonlyArray<{ value: TeamRole; label: string; detail: string }> = [
+  { value: "Broker", label: "Broker", detail: "Works deals: clients, applications, documents, lenders and calls." },
+  { value: "Marketing", label: "Marketing", detail: "Runs campaigns, lead forms and ads results." },
+  { value: "Admin", label: "Admin", detail: "Everything a broker does, plus settings, users and billing." },
+];
+export type TeamMemberForm = { full_name: string; email: string; phone: string; role: TeamRole };
+export const EMPTY_MEMBER: TeamMemberForm = { full_name: "", email: "", phone: "", role: "Broker" };
 
 export type LogoFile = { name: string; type: string; size: number; data_url: string };
 
 export const MAX_LOGO_BYTES = 500 * 1024;
 export const LOGO_TYPES = ["image/png", "image/jpeg", "image/svg+xml"];
+export const FAVICON_TYPES = ["image/png", "image/svg+xml", "image/x-icon", "image/vnd.microsoft.icon"]; // KS_WEBSITE_SIGNUP_FAVICON_v1
 
 export const EMPTY_FORM: SignupForm = {
   company_name: "",
@@ -72,8 +87,10 @@ export const EMPTY_FORM: SignupForm = {
   billing_interval: "annual",
   support_level: "email",
   extra_storage_blocks: 0,
+  marketing_addon: false,
   payment_method: "acss_debit",
   logo_file: null,
+  favicon_file: null,
   primary_color: "#1f4e79",
   accent_color: "#0e6655",
   background_color: "",
@@ -82,11 +99,12 @@ export const EMPTY_FORM: SignupForm = {
   accept_terms: false,
   accept_privacy: false,
   website_url: "",
+  team: [],
 };
 
 export type Errors = Partial<Record<keyof SignupForm | string, string>>;
 
-export const STEPS = ["company", "code", "contact", "plan", "branding", "review"] as const;
+export const STEPS = ["company", "code", "contact", "plan", "team", "branding", "review"] as const;
 export type StepKey = (typeof STEPS)[number];
 
 export const STEP_LABELS: Record<StepKey, string> = {
@@ -94,6 +112,7 @@ export const STEP_LABELS: Record<StepKey, string> = {
   code: "Company code",
   contact: "Contact",
   plan: "Plan",
+  team: "Your team",
   branding: "Branding",
   review: "Review",
 };
@@ -123,8 +142,10 @@ export const FIELD_STEP: Record<string, StepKey> = {
   support_level: "plan",
   extra_storage_blocks: "plan",
   payment_method: "plan",
+  team: "team",
   logo_url: "branding",
   logo_file: "branding",
+  favicon_file: "branding",
   primary_color: "branding",
   accent_color: "branding",
   background_color: "branding",
@@ -239,8 +260,12 @@ export function validateStep(step: StepKey, f: SignupForm, catalog: Catalog, cod
       req("contact_name", "Enter your name.");
       req("contact_title", "Enter your job title.");
       if (!EMAIL.test(f.contact_email.trim())) e.contact_email = "Enter an email address like name@company.com.";
-      const d = phoneDigits(f.contact_phone);
-      if (d.length < 10 || d.length > 15) e.contact_phone = "Enter a phone number with area code.";
+      // KS_WEBSITE_TEAM_ROSTER - the owner signs in with a code texted to this mobile, like the rest of the team.
+      if (!validNaPhone(f.contact_phone)) e.contact_phone = MOBILE_ERROR;
+      break;
+    }
+    case "team": {
+      Object.assign(e, teamErrors(f.team, { email: f.contact_email, phone: f.contact_phone }, Number(f.seats) || 1));
       break;
     }
     case "plan": {
@@ -265,6 +290,10 @@ export function validateStep(step: StepKey, f: SignupForm, catalog: Catalog, cod
         if (!LOGO_TYPES.includes(f.logo_file.type)) e.logo_file = "Use a PNG, JPG or SVG file.";
         else if (f.logo_file.size > MAX_LOGO_BYTES) e.logo_file = "Use a logo file under 500 KB.";
       }
+      if (f.favicon_file) { // KS_WEBSITE_SIGNUP_FAVICON_v1
+        if (!FAVICON_TYPES.includes(f.favicon_file.type) && !/\.ico$/i.test(f.favicon_file.name)) e.favicon_file = "Use a PNG, SVG or ICO file.";
+        else if (f.favicon_file.size > MAX_LOGO_BYTES) e.favicon_file = "Use a favicon file under 500 KB.";
+      }
       if (f.primary_color && !HEX.test(f.primary_color)) e.primary_color = "Use a colour like #1f4e79.";
       if (f.accent_color && !HEX.test(f.accent_color)) e.accent_color = "Use a colour like #0e6655.";
       if (f.background_color && !HEX.test(f.background_color)) e.background_color = "Use a colour like #f4f6f7, or leave it empty.";
@@ -278,6 +307,45 @@ export function validateStep(step: StepKey, f: SignupForm, catalog: Catalog, cod
       break;
     }
   }
+  return e;
+}
+
+export const MOBILE_ERROR = "Enter a Canadian or US mobile number with area code, like (403) 555-0123.";
+
+/** The mobile as KS-Ops stores it (+1XXXXXXXXXX), or "" when it is not a Canadian or US number. */
+export function e164NaPhone(raw: string): string {
+  if (!validNaPhone(raw)) return "";
+  const d = raw.replace(/\D/g, "");
+  return `+1${d.length === 11 ? d.slice(1) : d}`;
+}
+
+/**
+ * KS_WEBSITE_TEAM_ROSTER - the same rules as KS-Ops (src/onboarding/team.ts): a full name, an email and a Canadian or US
+ * mobile for each person, a role, nobody twice, and no more people than seats (the owner is person 1 and takes a seat).
+ * Errors are keyed "team.<person>.<field>", with the owner as person 1.
+ */
+export function teamErrors(team: TeamMemberForm[], owner: { email: string; phone: string }, seats: number): Errors {
+  const e: Errors = {};
+  if (team.length + 1 > seats) {
+    e.team = `You have ${seats} ${seats === 1 ? "seat" : "seats"}, so you can add up to ${seats - 1} ${seats - 1 === 1 ? "person" : "people"} besides yourself. Add seats on the Plan step or remove someone.`;
+  }
+  const emails = new Map<string, number>([[owner.email.trim().toLowerCase(), 1]]);
+  const phones = new Map<string, number>([[e164NaPhone(owner.phone), 1]]);
+  team.forEach((m, i) => {
+    const n = i + 2;
+    const key = (k: string) => `team.${n}.${k}`;
+    if (m.full_name.trim().replace(/\s+/g, " ").length < 2) e[key("full_name")] = "Enter their full name.";
+    const email = m.email.trim().toLowerCase();
+    if (!EMAIL.test(email)) e[key("email")] = "Enter an email address like name@company.com.";
+    else if (emails.has(email)) e[key("email")] = `Person ${emails.get(email)} already uses this email.`;
+    else emails.set(email, n);
+    const phone = e164NaPhone(m.phone);
+    if (!phone) e[key("phone")] = MOBILE_ERROR;
+    else if (phones.has(phone)) e[key("phone")] = `Person ${phones.get(phone)} already uses this mobile number.`;
+    else phones.set(phone, n);
+    if (!TEAM_ROLES.some((r) => r.value === m.role)) e[key("role")] = "Choose Broker, Marketing or Admin.";
+  });
+  if (Object.keys(e).length && !e.team) e.team = "Check the people marked below.";
   return e;
 }
 

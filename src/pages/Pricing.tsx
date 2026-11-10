@@ -5,9 +5,8 @@ import { PRODUCT_NAME } from "../config";
 import { useCatalog } from "../hooks/useCatalog";
 import { usePageMeta } from "../hooks/usePageMeta";
 import type { BillingInterval, Catalog, Plan } from "../lib/plans";
-import { findSupport, hasLiveHelp, trialPlanNames } from "../lib/plans";
+import { findSupport, hasLiveHelp, marketingAddonOf, marketingOf, signingsOf, trialPlanNames } from "../lib/plans";
 import { formatMoney, formatNumber, quote } from "../lib/pricing";
-import { KEYSTONE_MATCH } from "../data/compare";
 
 export function BillingToggle({ value, onChange }: { value: BillingInterval; onChange: (b: BillingInterval) => void }) {
   return (
@@ -30,10 +29,13 @@ function newFeatures(c: Catalog, plan: Plan) {
   return { previous: prev, list: plan.features.filter((f) => !prevKeys.has(f.key)) };
 }
 
-function PlanColumn({ c, plan, seats, billing, supportKey }: {
-  c: Catalog; plan: Plan; seats: number; billing: BillingInterval; supportKey: string;
+function PlanColumn({ c, plan, seats, billing, supportKey, withMarketing }: {
+  c: Catalog; plan: Plan; seats: number; billing: BillingInterval; supportKey: string; withMarketing: boolean;
 }) {
-  const q = quote(plan, seats, billing, findSupport(c, supportKey));
+  const addon = marketingAddonOf(c);
+  const q = quote(plan, seats, billing, findSupport(c, supportKey), undefined, withMarketing ? addon.price : 0);
+  const mk = marketingOf(plan);
+  const signings = signingsOf(c);
   const money = (n: number) => formatMoney(n, c.currency);
   const a = plan.allowances;
   const { previous, list } = newFeatures(c, plan);
@@ -50,6 +52,7 @@ function PlanColumn({ c, plan, seats, billing, supportKey }: {
       <div className="plan-total" aria-live="polite">
         <strong>{money(q.monthlyTotal)}</strong> a month for {q.seats} {q.seats === 1 ? "seat" : "seats"}
         {q.supportMonthly > 0 && <> including {money(q.supportMonthly)} support</>}
+        {q.marketingMonthly > 0 && <>{q.supportMonthly > 0 ? " and" : " including"} the {money(q.marketingMonthly)} Marketing add-on</>}
         {q.seatsAdjusted && <> ({plan.name} starts at {plan.min_seats} seats)</>}
         <br />
         {plan.onboarding_fee > 0 ? `One-time onboarding ${money(plan.onboarding_fee)}` : "No onboarding fee"}
@@ -63,6 +66,12 @@ function PlanColumn({ c, plan, seats, billing, supportKey }: {
         <dd>{a.assistant_chats == null ? "Unlimited" : `${formatNumber(a.assistant_chats)} a month`}</dd>
         <dt>Storage</dt>
         <dd>{a.storage_gb_per_seat} GB per seat</dd>
+        <dt>Campaign emails</dt>
+        <dd>
+          {formatNumber(mk.campaign_emails + (withMarketing ? addon.extra_campaign_emails : 0))} a month
+        </dd>
+        <dt>E-signings</dt>
+        <dd>{formatNumber(signings.included)} a month</dd>
       </dl>
       <div className="plan-col__features">
         <p className="small" style={{ fontWeight: 600, marginBottom: "0.5rem" }}>
@@ -74,7 +83,7 @@ function PlanColumn({ c, plan, seats, billing, supportKey }: {
           ))}
         </ul>
       </div>
-      <Link className={plan.key === "growth" ? "btn" : "btn btn--ghost"} to={`/signup?plan=${plan.key}&seats=${q.seats}&billing=${billing}`}>
+      <Link className={plan.key === "growth" ? "btn" : "btn btn--ghost"} to={`/signup?plan=${plan.key}&seats=${q.seats}&billing=${billing}${withMarketing ? "&addon=marketing" : ""}`}>
         Choose {plan.name}
       </Link>
     </section>
@@ -91,6 +100,11 @@ export default function Pricing() {
   const [billing, setBilling] = useState<BillingInterval>("annual");
   const [seats, setSeats] = useState(5);
   const [supportKey, setSupportKey] = useState("email");
+  const [withMarketing, setWithMarketing] = useState(false);
+  const addon = marketingAddonOf(c);
+  const signings = signingsOf(c);
+  const limitText = (v: number | null, unit = "") => (v === null ? "Unlimited" : `${formatNumber(v)}${unit}`);
+  const historyText = (d: number | null) => (d === null ? "Full history" : d >= 365 ? "12 months" : `${d} days`);
   const seatsId = useId();
   const supportId = useId();
   const money = (n: number) => formatMoney(n, c.currency);
@@ -141,11 +155,15 @@ export default function Pricing() {
               ))}
             </select>
           </div>
+          <label className="check" style={{ margin: 0, alignSelf: "end" }}>
+            <input type="checkbox" checked={withMarketing} onChange={(e) => setWithMarketing(e.target.checked)} />
+            <span>Add the Marketing add-on ({money(addon.price)}/month)</span>
+          </label>
         </div>
 
         <div className="plan-columns">
           {c.plans.map((p) => (
-            <PlanColumn key={p.key} c={c} plan={p} seats={seats} billing={billing} supportKey={supportKey} />
+            <PlanColumn key={p.key} c={c} plan={p} seats={seats} billing={billing} supportKey={supportKey} withMarketing={withMarketing} />
           ))}
         </div>
         {source === "fallback" && (
@@ -165,26 +183,95 @@ export default function Pricing() {
         </div>
       </div>
 
-      {/* KS_WEBSITE_OVERHAUL - the Marketing add-on: flat per brokerage, on any plan (KS-Ops MARKETING_ADDON). */}
-      <section className="section section--tight" aria-labelledby="addon-h">
-        <div className="wrap split split--center">
-          <div>
-            <h2 id="addon-h">{KEYSTONE_MATCH.addonName}</h2>
-            <p>
-              Every plan can run campaigns and sequences to its own clients. For volume and the advanced tools, add the{" "}
-              {KEYSTONE_MATCH.addonName} to any plan: one flat price per brokerage, not per seat.
-            </p>
-            <p className="small muted">
-              It adds {KEYSTONE_MATCH.addonIncludes}. <Link to="/help/marketing-add-on">What the add-on includes</Link>.
-            </p>
+      {/* KS_WEBSITE_MARKETING_ADDON */}
+      <section className="section" aria-labelledby="marketing-h" data-testid="marketing-section">
+        <div className="wrap">
+          <h2 id="marketing-h">Marketing on every plan, more with the add-on</h2>
+          <p className="muted">
+            Every plan can email and text its own client list. The Marketing add-on is {money(addon.price)} a month for your
+            whole brokerage, on any plan, and it never takes anything away. No charge per contact: market to as many past
+            clients as you have. Both free trials include it.
+          </p>
+          <div className="table-scroll">
+            <table className="data">
+              <caption className="visually-hidden">Marketing by plan, and with the Marketing add-on</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Marketing</th>
+                  {c.plans.map((p) => (
+                    <th scope="col" key={p.key}>{p.name}</th>
+                  ))}
+                  <th scope="col">With the add-on (any plan)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <th scope="row">Campaign emails a month</th>
+                  {c.plans.map((p) => <td key={p.key}>{formatNumber(marketingOf(p).campaign_emails)}</td>)}
+                  <td>
+                    {formatNumber(addon.extra_campaign_emails)} more, then {money(c.overage.campaign_email_block ?? 10)} per{" "}
+                    {formatNumber(c.overage.campaign_email_block_size ?? 10000)}
+                  </td>
+                </tr>
+                <tr>
+                  <th scope="row">Text campaigns</th>
+                  {c.plans.map((p) => <td key={p.key}>Plan texts</td>)}
+                  <td>Plus {formatNumber(addon.bonus_marketing_texts)} bonus marketing texts a month</td>
+                </tr>
+                <tr>
+                  <th scope="row">Send one text to many</th>
+                  {c.plans.map((p) => <td key={p.key}>{formatNumber(marketingOf(p).text_to_many)} per send</td>)}
+                  <td>{formatNumber(addon.text_to_many)} per send</td>
+                </tr>
+                <tr>
+                  <th scope="row">Sequences running at once</th>
+                  {c.plans.map((p) => <td key={p.key}>{limitText(marketingOf(p).sequences)}</td>)}
+                  <td>{limitText(addon.sequences)}</td>
+                </tr>
+                <tr>
+                  <th scope="row">Templates, unsubscribe handling, consent and quiet hours</th>
+                  {c.plans.map((p) => <td key={p.key} className="yes">Included</td>)}
+                  <td className="yes">Included</td>
+                </tr>
+                <tr>
+                  <th scope="row">Lead form for your website</th>
+                  {c.plans.map((p) => <td key={p.key}>{limitText(marketingOf(p).lead_forms)}</td>)}
+                  <td>Unlimited, plus an AI chat widget and tracking script</td>
+                </tr>
+                <tr>
+                  <th scope="row">Visitor history</th>
+                  {c.plans.map((p) => <td key={p.key}>{historyText(marketingOf(p).visitor_history_days)}</td>)}
+                  <td>Full history, plus session replay</td>
+                </tr>
+                <tr>
+                  <th scope="row">Campaign report</th>
+                  {c.plans.map((p) => <td key={p.key}>Sent, opened, clicked, unsubscribed</td>)}
+                  <td>Plus applications and funded deals by campaign</td>
+                </tr>
+                <tr>
+                  <th scope="row">Google Ads</th>
+                  {c.plans.map((p) => (
+                    <td key={p.key}>{p.features.some((f) => f.key === "ad_attribution") ? "Full attribution, ad-waste, Customer Match" : "Results"}</td>
+                  ))}
+                  <td>Full tools on every plan</td>
+                </tr>
+                <tr>
+                  <th scope="row">Landing pages, lead scoring, subject-line A/B test, send-time choice</th>
+                  {c.plans.map((p) => <td key={p.key} className="no">—<span className="visually-hidden">Not included</span></td>)}
+                  <td className="yes">Included</td>
+                </tr>
+                <tr>
+                  <th scope="row">Who uses the advanced tools</th>
+                  {c.plans.map((p) => <td key={p.key}>—</td>)}
+                  <td>Admins plus up to {addon.marketing_seats} people with the Marketing role</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
-          <div className="addon-price" data-testid="addon-price">
-            <p className="plan-price">
-              {formatMoney((c as { marketing_addon?: { price?: number } }).marketing_addon?.price ?? KEYSTONE_MATCH.addonPrice, c.currency)}{" "}
-              <small>per brokerage / month</small>
-            </p>
-            <p className="small">Any plan. Ask for it from Get help in your portal, or talk to us.</p>
-          </div>
+          <p className="small muted" style={{ marginTop: "0.75rem" }}>
+            Marketing users are normal paid seats switched to the Marketing role. Ad spend is paid directly to Google or
+            LinkedIn.
+          </p>
         </div>
       </section>
 
@@ -229,8 +316,8 @@ export default function Pricing() {
           <div>
             <h2 id="usage-h">If you use more</h2>
             <p>
-              Nothing stops working when your team goes past an allowance. Calls connect, texts send, and uploads keep
-              uploading. Extra use is added to your next bill.
+              Calls connect, texts send, signings go out and uploads keep uploading when your team goes past an
+              allowance. Extra use is added to your next bill.
             </p>
           </div>
           <ul className="plain-list">
@@ -239,6 +326,22 @@ export default function Pricing() {
             </li>
             <li>
               <strong>Texts</strong> beyond your pooled allowance: {money(c.overage.text)} a text
+            </li>
+            {c.id_checks ? (
+              <li>
+                <strong>ID checks</strong> (ID and selfie verification, Growth and Pro): {c.id_checks.included.growth} a month
+                included on Growth and {c.id_checks.included.pro} on Pro, then {money(c.id_checks.price)} a check
+              </li>
+            ) : null}
+            <li>
+              <strong>E-signings</strong>: {formatNumber(signings.included)} a month are included with every plan. Each signing
+              after that is {money(signings.price)}, added to next month's bill. A signing is one signature request sent to one
+              signer.
+            </li>
+            <li>
+              <strong>Campaign emails</strong> with the Marketing add-on: {money(c.overage.campaign_email_block ?? 10)} for
+              each extra {formatNumber(c.overage.campaign_email_block_size ?? 10000)}. Without the add-on, campaign emails
+              pause at your plan's allowance until the 1st.
             </li>
             <li>
               <strong>Extra storage</strong>: {money(c.extra_storage.price)} a month for each {c.extra_storage.block_gb} GB

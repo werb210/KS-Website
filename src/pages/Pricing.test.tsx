@@ -56,4 +56,24 @@ describe("Pricing page", () => {
     expect(screen.getByText(/\$0.04 a minute/)).toBeInTheDocument();
     expect(screen.getByText(/\$10 a month for each 50 GB/)).toBeInTheDocument();
   });
+  // KS_WEBSITE_MARKETING_ADDON
+  it("shows each plan's marketing limits, the add-on and the signing allowance; the add-on adds $49 to every total", async () => {
+    mockFetch({ "/api/public/plans": () => ({ status: 503 }) });
+    renderAt(<Pricing />, "/pricing");
+    await screen.findByText(/standard price list/);
+    const table = screen.getByTestId("marketing-section");
+    expect(within(table).getByRole("row", { name: /Campaign emails a month/ })).toHaveTextContent(/500.*1,000.*2,500.*10,000 more, then \$10 per 10,000/);
+    expect(within(table).getByRole("row", { name: /Send one text to many/ })).toHaveTextContent(/50 per send.*250 per send.*500 per send.*1,000 per send/);
+    expect(within(table).getByRole("row", { name: /Visitor history/ })).toHaveTextContent(/30 days.*90 days.*12 months.*Full history/);
+    expect(screen.getByText(/Each signing\s+after that is \$2.50/)).toBeInTheDocument();
+    const starter = screen.getByTestId("plan-starter");
+    expect(within(starter).getByText("4 a month")).toBeInTheDocument();
+    const before = within(starter).getByText(/a month for/).textContent ?? "";
+    fireEvent.click(screen.getByLabelText(/Add the Marketing add-on/));
+    const after = within(starter).getByText(/a month for/).textContent ?? "";
+    const amount = (t: string) => Number((/\$([\d,.]+)/.exec(t)?.[1] ?? "0").replace(/,/g, ""));
+    expect(amount(after) - amount(before)).toBe(49);
+    expect(within(starter).getByText("10,500 a month")).toBeInTheDocument();
+    expect(within(starter).getByRole("link", { name: /Choose/ }).getAttribute("href")).toContain("addon=marketing");
+  });
 });

@@ -21,6 +21,7 @@ const AREAS: Area[] = [
       { name: "Duplicates and clean-up", body: "Find and merge duplicate contacts and companies, and fix messy data in a batch you can undo." },
       { name: "Teams and record visibility", body: "Sales teams, and who sees all records, their team's or only their own.", plan: "Growth" },
       { name: "Reports and dashboards", body: "Funded volume, conversion by source, lender scorecards, speed to lead, commissions and team activity.", plan: "Growth" },
+      { name: "Revenue forecast", body: "Commission forecast per person and team by month or quarter: weighted pipeline, commit and best case, next to each person's goals.", plan: "Growth" },
     ],
   },
   {
@@ -45,11 +46,13 @@ const AREAS: Area[] = [
       { name: "Client mini-portal", body: "Borrowers check status, answer requests, upload what's missing, sign and message you without calling." },
       { name: "Booking pages", body: "A booking link for each person and a team page, with reminders, that lands on the contact's timeline." },
       { name: "Lender portal", body: "Lenders keep their details and products current, and send you deals they can't place themselves." },
+      { name: "ID and selfie verification", body: "Applicants and guarantors verify with a photo of their government ID and a selfie in the client app. Canada and the US. Some checks are included each month.", plan: "Growth" },
       { name: "Referrer portal", body: "Partners send you deals and see how they're going.", plan: "Growth" },
       { name: "Broker portal", body: "Partner brokers sign your broker agreement, upload client files and agree the commission split.", plan: "Growth" },
       {
         name: "Personal Guarantee Insurance (PGI)",
-        body: `Offer PGI to your clients to close more deals and earn extra commission. All you need to do is... nothing. One checkbox, and ${PRODUCT_NAME} pays you.`,
+        // KS_WEBSITE_PGI_REFERRAL_FEE_v1
+        body: "Offer Personal Guarantee Insurance to your clients with one checkbox. Where permitted, your brokerage earns a flat referral fee for each qualified referral, whether or not the client buys a policy. Our insurance partner handles the rest.",
         pgiTip: true,
       },
     ],
@@ -64,6 +67,9 @@ const AREAS: Area[] = [
       { name: "Fraud checks", body: "Tampered files, statement math, reused documents and revenue vs deposits on every plan; more checks on Growth and Pro." },
       { name: "Lender matching and packages", body: "Rank your own lenders' products for the deal, then build the package once and send it by email or as a secure download link." },
       { name: "E-signing", body: "Applications, fee agreements and term sheets signed in the client app." },
+      { name: "Quotes", body: "Turn the lender offers on a file into one branded quote: payment, fees and total cost of borrowing side by side. The client opens it in the client app and accepts the one they want.", plan: "Growth" },
+      // KS_WEBSITE_LENDER_API
+      { name: "Lender API connections", body: "Connect a lender's broker API with your own broker key: submit the package by API and get the lender's status, offers, conditions and document requests back on the file automatically. Email stays the fallback. Growth and Pro." },
       { name: "Storage", body: "Pooled storage per seat, with extra space available when you need it." },
     ],
   },
@@ -119,6 +125,7 @@ const AREAS: Area[] = [
       { name: "Single sign-on", body: "Staff sign in with their Microsoft or Google work account.", plan: "Pro" },
       { name: "API access", body: "Connect your own tools to your data with API keys.", plan: "Pro" },
       { name: "Webhooks and Zapier", body: "Send changes to your other systems as they happen.", plan: "Pro" },
+      { name: "Custom roles and permissions", body: "Build your own roles: choose what each can view, create, edit, delete and export, and whether it sees all records, its team's or only its own.", plan: "Pro" },
     ],
   },
 ];

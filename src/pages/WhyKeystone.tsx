@@ -52,7 +52,7 @@ const JOBS: Array<{ job: string; elsewhere: string; here: string }> = [
 ];
 
 const STEPS: Array<[string, string]> = [
-  ["Sign up online", "Pick a plan and seats, add your logo and colours, and pay by bank debit or card. Your copy is set up within one business day."],
+  ["Sign up online", "Pick a plan and seats, add your logo and colours, and pay by bank debit or card. Your private copy is usually ready in about 15 minutes."],
   ["Bring your data", "Import contacts, companies, lenders, deals, notes and documents from HubSpot, Salesforce, Pipedrive or a spreadsheet. Preview it, run a dry run, then import, and undo the whole import if it isn't right."],
   ["Add your lenders and team", "Add the lenders you already work with. Your staff sign in to the portal, the iPhone dialler and the iPad app with their work email or mobile number."],
   ["Go live", "Send clients your application link. Keep your old system running until you're ready to switch it off."],

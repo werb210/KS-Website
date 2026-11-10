@@ -16,6 +16,8 @@ const Privacy = lazy(() => import("./pages/Legal").then((m) => ({ default: m.Pri
 const Signup = lazy(() => import("./pages/Signup"));
 const SignupSuccess = lazy(() => import("./pages/SignupSuccess"));
 const SignupCancelled = lazy(() => import("./pages/SignupCancelled"));
+const SignupAgreement = lazy(() => import("./pages/SignupAgreement")); // KS_WEBSITE_LICENCE_AGREEMENT
+const SignupTeam = lazy(() => import("./pages/SignupTeam")); // KS_WEBSITE_TEAM_ROSTER
 const TryDemo = lazy(() => import("./pages/TryDemo"));
 const BetaProgramme = lazy(() => import("./pages/BetaProgramme")); // KS_WEBSITE_BETA_v1
 const Help = lazy(() => import("./pages/Help")); // KS_WEBSITE_KB_v1
@@ -44,6 +46,8 @@ export default function App() {
           <Route path="/signup" element={<Signup />} />
           <Route path="/signup/success" element={<SignupSuccess />} />
           <Route path="/signup/cancelled" element={<SignupCancelled />} />
+          <Route path="/signup/agreement" element={<SignupAgreement />} />
+          <Route path="/signup/team" element={<SignupTeam />} />
           <Route path="/try" element={<TryDemo />} />
           <Route path="/beta" element={<BetaProgramme />} />
           <Route path="/help" element={<Help />} />

@@ -62,11 +62,15 @@ export function PgiTip({ label = "What is PGI?" }: { label?: string }) {
         >
           <h3 id={titleId}>What is PGI?</h3>
           <p>
-            Personal Guarantee Insurance protects the business owner's personal assets, like their home and savings, if
-            the loan they personally guaranteed goes bad.
+            {/* KS_WEBSITE_PGI_REFERRAL_FEE_v1 */}
+            Personal Guarantee Insurance can pay a business owner part of their loss if the personal guarantee they
+            signed on a business loan is enforced, subject to the policy terms. It doesn't cover the whole loan.
           </p>
-          <p>Your client ticks one box in their application. That's all they do.</p>
-          <p>Your brokerage earns a referral commission, paid through {PRODUCT_NAME}.</p>
+          <p>Your client ticks one box in their application. Our insurance partner handles the rest; you don't give insurance advice.</p>
+          <p>
+            Where permitted, your brokerage earns a flat referral fee for each qualified referral, paid through {PRODUCT_NAME},
+            whether or not a policy is bound.
+          </p>
           <button
             ref={close}
             type="button"
