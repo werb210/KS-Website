@@ -3,7 +3,8 @@ import { Link } from "react-router-dom";
 import { PRODUCT_NAME } from "../config";
 import { useCatalog } from "../hooks/useCatalog";
 import { usePageMeta } from "../hooks/usePageMeta";
-import { formatNumber, quote } from "../lib/pricing";
+import { formatNumber } from "../lib/pricing";
+import { keystoneMatch, money, sumText } from "../lib/match";
 import {
   CHECKED_LABEL,
   COMPETITORS,
@@ -19,11 +20,9 @@ import {
   type CompetitorCell,
   type Mark,
   type OurCell,
-  type PriceTotals,
 } from "../data/compare";
 
 const SEATS = 5;
-const OUR_PLAN = "growth";
 
 const MARK_TEXT: Record<Mark, { symbol: string; text: string }> = {
   yes: { symbol: "✓", text: "Yes" },
@@ -32,10 +31,6 @@ const MARK_TEXT: Record<Mark, { symbol: string; text: string }> = {
   no: { symbol: "✗", text: "No" },
   unknown: { symbol: "", text: "Not stated" },
 };
-
-/** "CAD $595", "USD $500": the currency code first, so prices in different currencies can't be mistaken. */
-const money = (n: number, currency: string) =>
-  `${currency} $${new Intl.NumberFormat("en-CA", { minimumFractionDigits: Number.isInteger(n) ? 0 : 2, maximumFractionDigits: 2 }).format(n)}`;
 
 /** Footnote numbers for the sources of the competitors on screen, in the order they are first used. */
 function numberSources(shown: Competitor[]) {
@@ -62,13 +57,6 @@ function SourceRef({ n, label }: { n: number; label: string }) {
     </sup>
   );
 }
-
-/** "CAD $1,819" or "CAD $182 + USD $49", for one field of the per-currency totals. */
-const sumText = (totals: PriceTotals, field: "monthly" | "firstYear" | "oneTime") =>
-  totals.byCurrency
-    .filter((t) => t[field] > 0)
-    .map((t) => money(t[field], t.currency))
-    .join(" + ");
 
 function CompetitorPrice({ c, num, col }: { c: Competitor; num: (c: Competitor, id: string) => number; col: number }) {
   const p = c.price;
@@ -150,13 +138,13 @@ export default function Compare() {
   const shown = picked.map((id) => competitor(id)).filter((c): c is Competitor => Boolean(c));
   const { order, num } = numberSources(shown);
 
-  const plan = catalog.plans.find((p) => p.key === OUR_PLAN) ?? catalog.plans[0];
-  const ours = quote(plan, SEATS, "annual", undefined);
-  const oursMonthly = quote(plan, SEATS, "monthly", undefined);
-  // KS_WEBSITE_COMPARE_MATCH - the add-on price from the live catalogue once it sends one, else KS-Ops' bundled figure.
-  const addonPrice = catalog.marketing_addon?.price ?? KEYSTONE_MATCH.addonPrice;
-  const oursTotal = ours.monthlyTotal + addonPrice;
-  const oursMonthlyTotal = oursMonthly.monthlyTotal + addonPrice;
+  // KS_WEBSITE_COMPARE_MATCH - Growth + the Marketing add-on, the same figures as /why-keystone (src/lib/match.ts).
+  const match = keystoneMatch(catalog);
+  const plan = match.plan;
+  const ours = { monthlyTotal: match.seatsMonthly };
+  const addonPrice = match.addon;
+  const oursTotal = match.monthly;
+  const oursMonthlyTotal = match.monthlyBilledMonthly;
 
   function choose(slot: 0 | 1, id: string) {
     setPicked((prev) => {

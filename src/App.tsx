@@ -21,6 +21,8 @@ const SignupTeam = lazy(() => import("./pages/SignupTeam")); // KS_WEBSITE_TEAM_
 const TryDemo = lazy(() => import("./pages/TryDemo"));
 const BetaProgramme = lazy(() => import("./pages/BetaProgramme")); // KS_WEBSITE_BETA_v1
 const Help = lazy(() => import("./pages/Help")); // KS_WEBSITE_KB_v1
+const WhyKeystone = lazy(() => import("./pages/WhyKeystone")); // KS_WEBSITE_OVERHAUL
+const Roadmap = lazy(() => import("./pages/Roadmap")); // KS_WEBSITE_ROADMAP_v1
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 export default function App() {
@@ -29,7 +31,9 @@ export default function App() {
       <Suspense fallback={<div className="wrap page-head" aria-busy="true" />}>
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/why-keystone" element={<WhyKeystone />} />
           <Route path="/features" element={<Features />} />
+          <Route path="/roadmap" element={<Roadmap />} />
           <Route path="/pricing" element={<Pricing />} />
           <Route path="/compare" element={<Compare />} />
           <Route path="/mobile-apps" element={<MobileApps />} />

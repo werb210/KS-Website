@@ -34,7 +34,8 @@ App screenshots: real screens of the client app and staff portal from their demo
 
 ## Pages
 
-Home, Features, Pricing, Mobile apps, Security, FAQ, Help articles (`/help`, `/help/:slug`, KS_WEBSITE_KB_v1), Contact, Terms (draft), Privacy (draft), Sign up,
+Home, Why Keystone (`/why-keystone`), Features, Pricing, Compare, Mobile apps, Security and compliance, Fraud protection,
+Roadmap (`/roadmap`, KS_WEBSITE_ROADMAP_v1), FAQ, Help articles (`/help`, `/help/:slug`, KS_WEBSITE_KB_v1), Contact, Terms (draft), Privacy (draft), Sign up,
 `/signup/success`, `/signup/cancelled`.
 
 Sign-up branding step: "Use my website" posts the brokerage's address to KS-Ops `POST /api/public/brand-scan`, which
@@ -54,3 +55,17 @@ form (name, email, brokerage, team size, optional phone, a consent box) sent to 
 puts the lead in the Keystone CRM and emails sales. No cookies: the chat is kept in the tab's sessionStorage. The panel
 moves up by `--cookie-banner-height` if a cookie banner is added. Help articles come from `GET /api/public/kb/...` and
 are cleaned again in the browser (`src/lib/safeHtml.ts`). No new settings: it uses `VITE_OPS_URL`.
+
+## Roadmap and "why switch" (KS_WEBSITE_ROADMAP_v1, KS_WEBSITE_OVERHAUL)
+
+`/roadmap` lists KS-Ops `GET /api/public/roadmap` (requested, planned, working on it, shipped), sends +1s with a random
+per-browser id only (`POST /api/public/roadmap/items/:id/vote|unvote`) and a "Suggest a feature" form
+(`POST /api/public/roadmap/ideas`: consent box, honeypot, Turnstile when set). Ideas show only after Keystone staff
+approve them on KS-Ops `/ops/roadmap`; names and emails are never shown.
+
+`/why-keystone`, the home page and `/compare` price Keystone Growth + the Marketing add-on for 5 seats from the catalogue
+(`src/lib/match.ts`) next to each general CRM's matching products from `src/data/compare.ts`, in each vendor's own
+currency. When the compare data changes, update the four comparison articles in KS-Ops `/ops/kb` too.
+
+Navigation: Why Keystone, Features, Pricing and Security in the bar, with Try it and Sign up; every other page is in the
+phone menu and the footer.
