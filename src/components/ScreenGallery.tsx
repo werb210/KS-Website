@@ -11,7 +11,7 @@ export type GalleryItem = {
 type Props = {
   items: GalleryItem[];
   /** Layout: "grid" is 3 across on a desktop, 2 on a tablet and 1 on a phone. The others keep a page's own layout. */
-  layout?: "grid" | "pair" | "phones" | "single";
+  layout?: "grid" | "pair" | "phones" | "single" | "duo";
   /** Screen-reader name for the group, e.g. "Staff portal screenshots". */
   label: string;
 };
@@ -21,6 +21,7 @@ const LAYOUT_CLASS: Record<NonNullable<Props["layout"]>, string> = {
   pair: "gallery shots-pair",
   phones: "gallery shots-phones",
   single: "gallery gallery--single",
+  duo: "gallery gallery--duo",
 };
 
 /**

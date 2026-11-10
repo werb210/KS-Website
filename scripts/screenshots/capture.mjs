@@ -141,7 +141,8 @@ async function portalPage(viewport, scale, step) {
   await page.waitForTimeout(5000);
   // The tour card, spotlight, pop-up toasts and the "notifications are blocked" hint are not part of the product.
   await page.addStyleTag({
-    content: `.ksld-tour,.ksld-dim,.ksld-spot,.ksld-call,[data-sonner-toaster],.Toastify,[role="status"][aria-live]{display:none!important}`,
+    // The "demo off" badges on menu items the sample data doesn't cover are demo chrome, not the product.
+    content: `.ksld-tour,.ksld-dim,.ksld-spot,.ksld-call,[data-sonner-toaster],.Toastify,[role="status"][aria-live],[data-testid="live-demo-nav-off"]>span{display:none!important}`,
   });
   await page.evaluate(() => {
     for (const el of document.querySelectorAll("body *")) {
@@ -172,6 +173,13 @@ if (want("ipad-documents")) {
   // iPad Air 11" landscape. The portal runs on iPad as the staff app.
   const { ctx, page } = await portalPage({ width: 1180, height: 820 }, 2, STEPS.documents);
   await shot(page, "ipad-documents");
+  await ctx.close();
+}
+
+// KS_WEBSITE_OVERHAUL - the pipeline on iPad (the first screen staff see in the iPad app), for the Mobile apps page.
+if (want("ipad-pipeline")) {
+  const { ctx, page } = await portalPage({ width: 1180, height: 820 }, 2, STEPS.pipeline);
+  await shot(page, "ipad-pipeline");
   await ctx.close();
 }
 

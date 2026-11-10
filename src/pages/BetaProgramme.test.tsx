@@ -63,7 +63,8 @@ describe("Beta programme", () => {
 describe("Don't see a feature your business needs?", () => {
   it("offers the beta programme next to the idea link", () => {
     renderAt(<FeatureRequest />, "/");
-    expect(screen.getByRole("link", { name: "Tell us your idea" })).toHaveAttribute("href", "/contact");
+    expect(screen.getByRole("link", { name: "Tell us your idea" })).toHaveAttribute("href", "/roadmap#suggest");
+    expect(screen.getByRole("link", { name: "See the roadmap" })).toHaveAttribute("href", "/roadmap");
     expect(screen.getByRole("link", { name: "Join our beta programme" })).toHaveAttribute("href", "/beta");
   });
 });

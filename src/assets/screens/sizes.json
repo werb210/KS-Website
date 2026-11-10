@@ -19,6 +19,11 @@
     "height": 510,
     "frame": "ipad"
   },
+  "ipad-pipeline": {
+    "width": 720,
+    "height": 510,
+    "frame": "ipad"
+  },
   "portal-banking": {
     "width": 800,
     "height": 524,
