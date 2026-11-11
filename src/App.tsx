@@ -6,6 +6,7 @@ import Home from "./pages/Home";
 const Features = lazy(() => import("./pages/Features"));
 const Pricing = lazy(() => import("./pages/Pricing"));
 const Compare = lazy(() => import("./pages/Compare"));
+const Alternative = lazy(() => import("./pages/Compare").then((m) => ({ default: m.Alternative }))); // KS_WEBSITE_ALTERNATIVES_v1
 const MobileApps = lazy(() => import("./pages/MobileApps"));
 const Security = lazy(() => import("./pages/Security"));
 const FraudProtection = lazy(() => import("./pages/FraudProtection"));
@@ -36,6 +37,7 @@ export default function App() {
           <Route path="/roadmap" element={<Roadmap />} />
           <Route path="/pricing" element={<Pricing />} />
           <Route path="/compare" element={<Compare />} />
+          <Route path="/alternatives/:product" element={<Alternative />} />
           <Route path="/mobile-apps" element={<MobileApps />} />
           <Route path="/security" element={<Security />} />
           <Route path="/fraud-protection" element={<FraudProtection />} />

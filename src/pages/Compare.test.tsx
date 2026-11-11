@@ -80,3 +80,41 @@ describe("/compare", () => {
     }
   });
 });
+
+// KS_WEBSITE_ALTERNATIVES_v1
+describe("/alternatives/<product>", () => {
+  const at = async (path: string) => {
+    const { Alternative } = await import("./Compare");
+    const { Route, Routes } = await import("react-router-dom");
+    return renderAt(
+      <Routes>
+        <Route path="/alternatives/:product" element={<Alternative />} />
+        <Route path="/compare" element={<p>full comparison</p>} />
+      </Routes>,
+      path,
+    );
+  };
+
+  it("opens the comparison on that product, priced like for like, with its own title", async () => {
+    await at("/alternatives/hubspot");
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("An alternative to HubSpot Sales Hub, built for finance brokers");
+    expect(screen.getByTestId("alternative-intro")).toHaveTextContent("starts at CAD $49 a seat");
+    const heads = Array.from(screen.getByTestId("compare-table").querySelectorAll("thead th")).map((h) => h.textContent);
+    expect(heads).toEqual(["Feature", "Keystone", "HubSpot Sales Hub", "Salesforce Sales Cloud"]);
+    expect(screen.getByTestId("compare-price-hubspot")).toHaveTextContent("CAD $1,819 a month");
+    expect(document.title).toContain("an alternative to HubSpot Sales Hub");
+  });
+
+  it("sends an unknown product to the full comparison", async () => {
+    await at("/alternatives/not-a-product");
+    expect(screen.getByText("full comparison")).toBeInTheDocument();
+  });
+
+  it("has a sitemap entry and a link for every product compared", async () => {
+    const { ROUTES } = await import("../../build/site-files");
+    renderAt(<Compare />, "/compare");
+    const links = Array.from(screen.getByTestId("alternative-links").querySelectorAll("a")).map((a) => a.getAttribute("href"));
+    expect(links).toEqual(COMPETITORS.map((c) => `/alternatives/${c.id}`));
+    for (const l of links) expect(ROUTES).toContain(l);
+  });
+});
