@@ -67,7 +67,8 @@ const AREAS: Area[] = [
       { name: "Fraud checks", body: "Tampered files, statement math, reused documents and revenue vs deposits on every plan; more checks on Growth and Pro." },
       { name: "Lender matching and packages", body: "Rank your own lenders' products for the deal, then build the package once and send it by email or as a secure download link." },
       { name: "E-signing", body: "Applications, fee agreements and term sheets signed in the client app." },
-      { name: "Quotes", body: "Turn the lender offers on a file into one branded quote: payment, fees and total cost of borrowing side by side. The client opens it in the client app and accepts the one they want.", plan: "Growth" },
+      // KS_WEBSITE_OFFERS_NOT_QUOTES - quotes were removed; offers and term sheets replace them.
+      { name: "Offers and term sheets", body: "Upload each lender's term sheet, or issue your own when you buy the deal and sell it on, with no lender name. Set your rate, fees and fee from the proceeds on each offer and see what it earns you. Clients compare offers side by side and sign in the client app." },
       // KS_WEBSITE_LENDER_API
       { name: "Lender API connections", body: "Connect a lender's broker API with your own broker key: submit the package by API and get the lender's status, offers, conditions and document requests back on the file automatically. Email stays the fallback. Growth and Pro." },
       { name: "Storage", body: "Pooled storage per seat, with extra space available when you need it." },
