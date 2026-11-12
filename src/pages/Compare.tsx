@@ -1,5 +1,5 @@
 import { Fragment, useId, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, Navigate, useParams } from "react-router-dom";
 import { PRODUCT_NAME } from "../config";
 import { useCatalog } from "../hooks/useCatalog";
 import { usePageMeta } from "../hooks/usePageMeta";
@@ -125,14 +125,25 @@ function CompetitorCellView({ c, cell, n, col }: { c: Competitor; cell: Competit
   );
 }
 
-export default function Compare() {
+/** KS_WEBSITE_ALTERNATIVES_v1 - /alternatives/<product>: the same comparison, opened on one product, for people
+ *  searching for an alternative to it. An unknown product goes to the full comparison. */
+export function Alternative() {
+  const { product = "" } = useParams();
+  const c = competitor(product);
+  if (!c) return <Navigate to="/compare" replace />;
+  return <Compare key={c.id} focus={c} />;
+}
+
+export default function Compare({ focus }: { focus?: Competitor } = {}) {
   usePageMeta(
-    `${PRODUCT_NAME} compared with other CRMs`,
-    `${PRODUCT_NAME} side by side with Salesforce, HubSpot, Zoho, Pipedrive and lending CRMs used by commercial-lending brokers: features, and what a 5-person brokerage pays each vendor to match ${PRODUCT_NAME} with marketing.`,
-    "/compare",
+    focus ? `${PRODUCT_NAME}: an alternative to ${focus.name} for finance brokers` : `${PRODUCT_NAME} compared with other CRMs`,
+    focus
+      ? `${PRODUCT_NAME} against ${focus.name} for commercial-finance and equipment-finance brokers, feature by feature, and what a 5-person brokerage pays ${focus.name} for the same feature set. ${PRODUCT_NAME} starts at CAD $49 a seat.`
+      : `${PRODUCT_NAME} side by side with Salesforce, HubSpot, Zoho, Pipedrive and lending CRMs used by commercial-lending brokers: features, and what a 5-person brokerage pays each vendor to match ${PRODUCT_NAME} with marketing.`,
+    focus ? `/alternatives/${focus.id}` : "/compare",
   );
   const { catalog } = useCatalog();
-  const [picked, setPicked] = useState<[string, string]>(DEFAULT_COMPARE);
+  const [picked, setPicked] = useState<[string, string]>(() => (focus ? [focus.id, DEFAULT_COMPARE.find((id) => id !== focus.id) ?? DEFAULT_COMPARE[0]] : DEFAULT_COMPARE));
   const selectIds = [useId(), useId()];
 
   const shown = picked.map((id) => competitor(id)).filter((c): c is Competitor => Boolean(c));
@@ -160,11 +171,20 @@ export default function Compare() {
   return (
     <>
       <div className="wrap page-head">
-        <h1>How {PRODUCT_NAME} compares</h1>
-        <p>
-          {PRODUCT_NAME} side by side with the CRMs commercial-lending, small-business-finance and equipment-finance
-          brokers use most. Pick any two to compare.
-        </p>
+        <h1>{focus ? `An alternative to ${focus.name}, built for finance brokers` : `How ${PRODUCT_NAME} compares`}</h1>
+        {focus ? (
+          <p data-testid="alternative-intro">
+            {PRODUCT_NAME} starts at CAD $49 a seat. The table prices {focus.name} for the same feature set, so the comparison is like for
+            like: the edition with automation, plus the marketing, calling and texting a brokerage would have to add. The loan file, client
+            app, statement reading and lender matching come with {PRODUCT_NAME}. <Link to="/try">Try the live demo</Link> or{" "}
+            <Link to="/compare">compare every product</Link>.
+          </p>
+        ) : (
+          <p>
+            {PRODUCT_NAME} side by side with the CRMs commercial-lending, small-business-finance and equipment-finance
+            brokers use most. Pick any two to compare.
+          </p>
+        )}
       </div>
 
       <div className="wrap">
@@ -338,6 +358,14 @@ export default function Compare() {
             {LEFT_OUT.map((x) => (
               <li key={x.name}>
                 <strong>{x.name}</strong>: {x.why}
+              </li>
+            ))}
+          </ul>
+          <h3>Switching from one of these?</h3>
+          <ul className="plain-list" data-testid="alternative-links">
+            {COMPETITORS.map((c) => (
+              <li key={c.id}>
+                <Link to={`/alternatives/${c.id}`}>An alternative to {c.name}</Link>
               </li>
             ))}
           </ul>
