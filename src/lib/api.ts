@@ -551,3 +551,33 @@ export async function previewAgreement(input: Record<string, unknown>): Promise<
     return null;
   }
 }
+
+// KS_WEBSITE_SOCIAL_SIGNUP - "Continue with Google / Microsoft / Apple" on the sign-up page.
+export type SocialProvider = "google" | "microsoft" | "apple";
+export const socialStartUrl = (p: SocialProvider) => opsUrl(`/api/public/signup/social/${p}/start`);
+
+/** Which buttons to show (none when the service cannot be reached: the form still works). */
+export async function socialProviders(): Promise<SocialProvider[]> {
+  try {
+    const res = await fetch(opsUrl("/api/public/signup/social"), { headers: { Accept: "application/json" } });
+    if (!res.ok) return [];
+    const b = (await res.json()) as { providers?: unknown };
+    return Array.isArray(b.providers) ? (b.providers.filter((x) => x === "google" || x === "microsoft" || x === "apple") as SocialProvider[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+/** Who the person is, after they chose their account. */
+export async function socialPrefill(token: string): Promise<{ provider: SocialProvider; name: string; email: string } | null> {
+  try {
+    const res = await fetch(opsUrl("/api/public/signup/social/prefill"), {
+      method: "POST", headers: { "Content-Type": "application/json", Accept: "application/json" }, body: JSON.stringify({ token }),
+    });
+    if (!res.ok) return null;
+    const b = (await res.json()) as { provider?: SocialProvider; name?: string; email?: string };
+    return b.email ? { provider: b.provider ?? "google", name: String(b.name ?? ""), email: String(b.email) } : null;
+  } catch {
+    return null;
+  }
+}
