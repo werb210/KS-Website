@@ -114,7 +114,7 @@ function stepOfField(k: string): StepKey | undefined {
   return FIELD_STEP[k] ?? (k.startsWith("team.") ? "team" : undefined);
 }
 
-type Adjust = {
+export type Adjust = {
   choosePlan: (k: PlanKey) => void;
   setSeats: (n: number) => void;
   setBilling: (b: BillingInterval) => void;
@@ -134,7 +134,7 @@ function supportPriceText(s: SupportLevel, m: (n: number) => string) {
   return s.covered_seats == null ? base : `${base}, covers ${s.covered_seats} seats, then ${m(s.extra_seat_price)} per extra seat`;
 }
 
-function PriceSummary({ c, f, adjust, showControls, onDetails }: {
+export function PriceSummary({ c, f, adjust, showControls, onDetails }: {
   c: Catalog; f: SignupForm; adjust: Adjust; showControls: boolean; onDetails: () => void;
 }) {
   const plan = findPlan(c, f.plan);
@@ -269,7 +269,7 @@ function PriceSummary({ c, f, adjust, showControls, onDetails }: {
   );
 }
 
-function RadioCard({ name, value, checked, onChange, children }: {
+export function RadioCard({ name, value, checked, onChange, children }: {
   name: string; value: string; checked: boolean; onChange: () => void; children: ReactNode;
 }) {
   return (
