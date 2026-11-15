@@ -14,7 +14,7 @@ const Faq = lazy(() => import("./pages/Faq"));
 const Contact = lazy(() => import("./pages/Contact"));
 const Terms = lazy(() => import("./pages/Legal").then((m) => ({ default: m.Terms })));
 const Privacy = lazy(() => import("./pages/Legal").then((m) => ({ default: m.Privacy })));
-const Signup = lazy(() => import("./pages/Signup"));
+const Signup = lazy(() => import("./pages/SignupQuick")); // KS_WEBSITE_QUICK_SIGNUP - one page, then payment
 const SignupSuccess = lazy(() => import("./pages/SignupSuccess"));
 const SignupCancelled = lazy(() => import("./pages/SignupCancelled"));
 const SignupAgreement = lazy(() => import("./pages/SignupAgreement")); // KS_WEBSITE_LICENCE_AGREEMENT

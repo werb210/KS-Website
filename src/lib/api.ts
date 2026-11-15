@@ -537,3 +537,17 @@ export async function voteRoadmap(id: string, voterId: string, on: boolean): Pro
     return null;
   }
 }
+
+// KS_WEBSITE_QUICK_SIGNUP - the licence agreement as it reads for the choices on the sign-up page (nothing is saved).
+export async function previewAgreement(input: Record<string, unknown>): Promise<{ title: string; version: string; html: string } | null> {
+  try {
+    const res = await fetch(opsUrl("/api/public/licence-agreement/preview"), {
+      method: "POST", headers: { "Content-Type": "application/json", Accept: "application/json" }, body: JSON.stringify(input),
+    });
+    if (!res.ok) return null;
+    const b = (await res.json()) as Record<string, unknown>;
+    return typeof b.html === "string" ? { title: String(b.title ?? "Licence agreement"), version: String(b.version ?? ""), html: b.html } : null;
+  } catch {
+    return null;
+  }
+}

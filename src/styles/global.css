@@ -809,3 +809,9 @@ table.compare-table thead th.compare-us { color: var(--accent-ink); }
 .agreement-text h2 { font-size: var(--step-1); margin-top: 0; }
 .agreement-text h3 { font-size: var(--step-0); margin: 1rem 0 0.35rem; }
 .agreement-text p, .agreement-text li { font-size: var(--step--1); line-height: 1.55; }
+
+/* KS_WEBSITE_QUICK_SIGNUP */
+.linklike { background: none; border: 0; padding: 0; font: inherit; color: inherit; text-decoration: underline; cursor: pointer; }
+.signup__fieldset { border: 0; padding: 0; margin: 1rem 0; }
+.signup__fieldset legend { font-weight: 600; margin-bottom: 0.5rem; }
+.signup__actions { display: flex; justify-content: flex-end; margin-top: 1rem; }
