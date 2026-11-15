@@ -815,3 +815,9 @@ table.compare-table thead th.compare-us { color: var(--accent-ink); }
 .signup__fieldset { border: 0; padding: 0; margin: 1rem 0; }
 .signup__fieldset legend { font-weight: 600; margin-bottom: 0.5rem; }
 .signup__actions { display: flex; justify-content: flex-end; margin-top: 1rem; }
+
+/* KS_WEBSITE_SOCIAL_SIGNUP - "Continue with Google / Microsoft / Apple" above the sign-up form. */
+.social-signup { display: grid; gap: 0.6rem; margin: 0 0 1.25rem; }
+.social-signup__btn { display: flex; justify-content: center; align-items: center; min-height: 44px; text-align: center; }
+.social-signup__or { margin: 0.4rem 0 0; text-align: center; font-size: 0.9rem; opacity: 0.8; }
+.social-signup__note { margin: 0 0 1rem; font-weight: 600; }

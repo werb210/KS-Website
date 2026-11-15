@@ -11,7 +11,7 @@ import { Turnstile } from "../components/Turnstile";
 import { PRODUCT_NAME, TURNSTILE_SITE_KEY } from "../config";
 import { useCatalog } from "../hooks/useCatalog";
 import { usePageMeta } from "../hooks/usePageMeta";
-import { previewAgreement, submitSignup, type SignupPayload } from "../lib/api";
+import { previewAgreement, socialPrefill, socialProviders, socialStartUrl, submitSignup, type SignupPayload, type SocialProvider } from "../lib/api";
 import { cleanArticleHtml } from "../lib/safeHtml";
 import { useDemoContact } from "../lib/prefill";
 import { goTo } from "../lib/navigate";
@@ -74,6 +74,8 @@ function initialForm(params: URLSearchParams): SignupForm {
   return f;
 }
 
+const SOCIAL_NAME: Record<SocialProvider, string> = { google: "Google", microsoft: "Microsoft", apple: "Apple" };
+
 export default function SignupQuick() {
   usePageMeta(`Sign up | ${PRODUCT_NAME}`, "Start your brokerage on Keystone: a few details, payment, and you are in.");
   const [params] = useSearchParams();
@@ -88,6 +90,29 @@ export default function SignupQuick() {
   const [turnstileToken, setTurnstileToken] = useState("");
   const [turnstileReset, setTurnstileReset] = useState(0);
   const [agreement, setAgreement] = useState<{ title: string; version: string; html: string } | "loading" | "failed" | null>(null);
+
+  // KS_WEBSITE_SOCIAL_SIGNUP - "Continue with Google / Microsoft / Apple": the buttons this service offers, and, when
+  // the person comes back from choosing their account, their name and email filled in.
+  const [social, setSocial] = useState<SocialProvider[]>([]);
+  const [socialNote, setSocialNote] = useState("");
+  useEffect(() => {
+    let live = true;
+    void socialProviders().then((p) => { if (live) setSocial(p); });
+    const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+    const token = hash.get("social");
+    const failed = hash.get("social_error");
+    if (token || failed) window.history.replaceState(null, "", window.location.pathname + window.location.search);
+    if (failed) setSocialNote(failed === "cancelled" ? "" : "That did not work. Fill in the form below instead.");
+    if (token) {
+      void socialPrefill(token).then((who) => {
+        if (!live) return;
+        if (!who) { setSocialNote("That sign-in has expired. Fill in the form below, or choose your account again."); return; }
+        setF((prev) => ({ ...prev, contact_name: who.name || prev.contact_name, contact_email: who.email }));
+        setSocialNote(`Signed in as ${who.email}. Add your company name and mobile and you're nearly done.`);
+      });
+    }
+    return () => { live = false; };
+  }, []);
 
   const demo = useDemoContact();
   useEffect(() => {
@@ -195,6 +220,15 @@ export default function SignupQuick() {
       <div className="container signup">
         <form className="signup__panel" onSubmit={onSubmit} noValidate aria-label="Sign-up" data-testid="quick-signup">
           {alert && <div className="alert" role="alert">{alert}</div>}
+          {social.length > 0 && (
+            <div className="social-signup" data-testid="social-signup">
+              {social.map((p) => (
+                <a key={p} className="btn btn--quiet social-signup__btn" href={socialStartUrl(p)}>Continue with {SOCIAL_NAME[p]}</a>
+              ))}
+              <p className="social-signup__or" aria-hidden="true">or fill in the form</p>
+            </div>
+          )}
+          {socialNote && <p className="social-signup__note" role="status">{socialNote}</p>}
           <Field id="company_name" label="Company name" hint="The name your clients know you by." error={errorFor("company_name")}>
             {(a) => <input {...a} type="text" autoComplete="organization" maxLength={120} value={f.company_name} onChange={(e) => update("company_name", e.target.value)} />}
           </Field>
