@@ -77,7 +77,7 @@ function initialForm(params: URLSearchParams): SignupForm {
 const SOCIAL_NAME: Record<SocialProvider, string> = { google: "Google", microsoft: "Microsoft", apple: "Apple" };
 
 export default function SignupQuick() {
-  usePageMeta(`Sign up | ${PRODUCT_NAME}`, "Start your brokerage on Keystone: a few details, payment, and you are in.");
+  usePageMeta("Sign up", "Start your brokerage on Keystone: a few details, payment, and you are in.");
   const [params] = useSearchParams();
   const { catalog: c } = useCatalog();
   const [f, setF] = useState<SignupForm>(() => initialForm(params));
@@ -193,7 +193,7 @@ export default function SignupQuick() {
   if (done) {
     return (
       <section className="section">
-        <div className="container signup__done">
+        <div className="wrap signup__done">
           <h1>Thanks — we'll contact you to complete payment</h1>
           <div className="card">
             <p>
@@ -212,12 +212,12 @@ export default function SignupQuick() {
   return (
     <>
       <section className="section section--tight">
-        <div className="container">
+        <div className="wrap">
           <h1>Sign up</h1>
           <p className="lede">A few details, then payment, and you're in. Your logo, your team, your lenders and your phone line are all set up inside {PRODUCT_NAME}, when you're ready.</p>
         </div>
       </section>
-      <div className="container signup">
+      <div className="wrap signup">
         <form className="signup__panel" onSubmit={onSubmit} noValidate aria-label="Sign-up" data-testid="quick-signup">
           {alert && <div className="alert" role="alert">{alert}</div>}
           {social.length > 0 && (
