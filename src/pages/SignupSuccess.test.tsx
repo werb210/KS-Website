@@ -62,7 +62,9 @@ describe("Sign-up success", () => {
     mockFetch({ "/status": () => (++n < 2 ? { status: 500 } : { body: { status: "trial", company_name: "X" } }) });
     renderSuccess();
     await act(async () => { await vi.advanceTimersByTimeAsync(POLL_INTERVAL_MS); });
-    expect(screen.getByTestId("signup-status")).toHaveTextContent(/Payment received/);
+    // KS_WEB_TRIAL_WORDING_v1 - a free trial took no payment.
+    expect(screen.getByTestId("signup-status")).toHaveTextContent(/Your free trial is confirmed/);
+    expect(screen.getByTestId("signup-status")).not.toHaveTextContent(/Payment received/);
   });
 
   it("explains when the link has no sign-up details", async () => {

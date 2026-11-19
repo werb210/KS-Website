@@ -69,8 +69,8 @@ export function SetupProgress({ token, company }: { token: string; company: stri
           </a>
         </p>
         <p style={{ marginBottom: 0 }}>
-          An email with your sign-in link and company code is on its way. Sign in with your email or mobile number; we'll
-          send you a one-time code.
+          An email with your sign-in link and company code is on its way. Sign in with your mobile number and we'll text
+          you a one-time code, or use Sign in with Microsoft or Google.
         </p>
       </div>
     );
@@ -140,6 +140,8 @@ export default function SignupSuccess() {
   }, [id, token]);
 
   const paid = PAID.has(status);
+  // KS_WEB_TRIAL_WORDING_v1 - a staff free trial took no payment, so it must not say "Payment received".
+  const received = status === "trial" ? `Your free trial is confirmed${company ? ` for ${company}` : ""}.` : `Payment received${company ? ` for ${company}` : ""}.`;
 
   return (
     <div className="wrap wrap--narrow page-head">
@@ -152,12 +154,12 @@ export default function SignupSuccess() {
           </p>
         ) : paid && setupToken ? (
           <>
-            <p style={{ marginTop: 0 }}>Payment received{company ? ` for ${company}` : ""}.</p>
+            <p style={{ marginTop: 0 }}>{received}</p>
             <SetupProgress token={setupToken} company={company} />
           </>
         ) : paid ? (
           <p style={{ margin: 0 }}>
-            Payment received{company ? ` for ${company}` : ""}. We're setting up your copy now.
+            {received} We're setting up your copy now.
           </p>
         ) : gaveUp ? (
           <p style={{ margin: 0 }}>
