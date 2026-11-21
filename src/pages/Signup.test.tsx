@@ -341,6 +341,7 @@ describe("Sign-up", () => {
         "business_number", "business_type", "contact_title", // KS_WEBSITE_TWILIO_AUTO
         "marketing_addon", // KS_WEBSITE_MARKETING_ADDON
         "team", // KS_WEBSITE_TEAM_ROSTER
+        "team_invites", // KS_WEBSITE_TEAM_INVITE_TIMING_v1
       ].sort(),
     );
     expect(body).toMatchObject({ business_number: "123456789", business_type: "corporation", contact_title: "Owner" });

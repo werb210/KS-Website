@@ -23,7 +23,7 @@ export function TeamRoster({ owner, team, seats, errors, onChange, addSeatsHint 
     <div data-testid="team-roster">
       <p className="muted">
         Everyone who signs in takes one seat, you included. Each person gets an invite email once your licence agreement is
-        signed, and signs in with a code texted to their mobile.
+        signed (or when you send it, if you set up first), and signs in with a code texted to their mobile.
       </p>
       <p className="small" data-testid="team-seats" aria-live="polite">
         {used} of {seats} {seats === 1 ? "seat" : "seats"} used.
