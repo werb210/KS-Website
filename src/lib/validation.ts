@@ -48,6 +48,8 @@ export type SignupForm = {
   website_url: string;
   /** KS_WEBSITE_TEAM_ROSTER - everyone else on the team (the owner, from the contact step, is always person 1). */
   team: TeamMemberForm[];
+  /** KS_WEBSITE_TEAM_INVITE_TIMING_v1 - invite the team as soon as the system is ready, or after the owner sets up. */
+  team_invites: "auto" | "owner";
 };
 
 export type TeamRole = "Broker" | "Marketing" | "Admin";
@@ -100,6 +102,7 @@ export const EMPTY_FORM: SignupForm = {
   accept_privacy: false,
   website_url: "",
   team: [],
+  team_invites: "auto",
 };
 
 export type Errors = Partial<Record<keyof SignupForm | string, string>>;

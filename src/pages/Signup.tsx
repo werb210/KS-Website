@@ -102,6 +102,7 @@ export function buildPayload(f: SignupForm, turnstileToken: string): SignupPaylo
     turnstile_token: turnstileToken || undefined,
     website_url: f.website_url,
     // KS_WEBSITE_TEAM_ROSTER - the owner first (an Admin), then everyone else, mobiles as +1XXXXXXXXXX.
+    team_invites: f.team_invites === "owner" ? "owner" : "auto", // KS_WEBSITE_TEAM_INVITE_TIMING_v1
     team: [
       { full_name: f.contact_name.trim(), email: f.contact_email.trim(), phone: e164NaPhone(f.contact_phone) || f.contact_phone.trim(), role: "Admin" },
       ...f.team.map((m) => ({ full_name: m.full_name.trim().replace(/\s+/g, " "), email: m.email.trim(), phone: e164NaPhone(m.phone) || m.phone.trim(), role: m.role })),
@@ -813,6 +814,22 @@ export default function Signup() {
           )}
 
           {step === "team" && (
+            <>
+            {/* KS_WEBSITE_TEAM_INVITE_TIMING_v1 */}
+            <fieldset className="field" data-testid="team-invites">
+              <legend>When should your team get their invites?</legend>
+              <label className="check">
+                <input type="radio" name="team_invites" checked={f.team_invites !== "owner"} onChange={() => update("team_invites", "auto")} />{" "}
+                As soon as my system is ready
+              </label>
+              <label className="check">
+                <input type="radio" name="team_invites" checked={f.team_invites === "owner"} onChange={() => update("team_invites", "owner")} />{" "}
+                I'll set things up first, then invite them myself from Settings &gt; Team and roles
+              </label>
+              <p className="small muted" style={{ marginBottom: 0 }}>
+                Adding people here is optional. A large team? Skip this and import them from a spreadsheet in your portal later.
+              </p>
+            </fieldset>
             <TeamRoster
               owner={{ name: f.contact_name, email: f.contact_email, phone: f.contact_phone }}
               team={f.team}
@@ -824,6 +841,7 @@ export default function Signup() {
                 setApiErrors((e) => Object.fromEntries(Object.entries(e).filter(([k]) => !k.startsWith("team"))));
               }}
             />
+            </>
           )}
 
           {step === "branding" && (

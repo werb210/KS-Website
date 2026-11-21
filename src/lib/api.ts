@@ -76,6 +76,7 @@ export type SignupPayload = {
   website_url: string;
   /** KS_WEBSITE_TEAM_ROSTER - the team, owner first (KS-Ops KS_OPS_ONBOARDING_v1); at most one person per seat. */
   team: TeamPayloadMember[];
+  team_invites?: "auto" | "owner"; // KS_WEBSITE_TEAM_INVITE_TIMING_v1
 };
 
 export type TeamPayloadMember = { full_name: string; email: string; phone: string; role: string };
