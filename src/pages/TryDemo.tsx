@@ -7,13 +7,7 @@ import { requestDemo } from "../lib/api";
 import { rememberDemoContact } from "../lib/prefill";
 import { formatNaPhone, validNaPhone } from "../lib/validation";
 
-const WHAT_YOU_DO = [
-  "See it as your client: walk through the client app the way your borrowers do. Every answer is already filled in - you just click Next.",
-  "See it as the broker: the application lands in your pipeline. Accept the documents, check the financials and the bank summary, and approve the credit summary.",
-  "Catch the fraud: one bank statement was doctored, and the fraud report flags it before it reaches a lender.",
-  "Take the call: your client rings on an iPhone and Apple Watch with their file on screen, and the AI writes the call note for you.",
-  "Pick the lender and send it. The lender package lands in your inbox, so you see exactly what a lender would receive.",
-]
+// KS_WEBSITE_LIVE_DEMO_v1 (2026-11-24) - Todd: "Live Demo", and no step list on the page.
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
@@ -22,7 +16,7 @@ type Form = { name: string; email: string; phone: string; company: string; websi
 
 export default function TryDemo() {
   usePageMeta(
-    "Try it yourself",
+    "Live Demo",
     `Try ${PRODUCT_NAME} yourself: see a deal from the client app and from the broker portal, with sample data. It takes about ten minutes.`,
     "/try",
   );
@@ -75,7 +69,7 @@ export default function TryDemo() {
   return (
     <>
       <div className="wrap wrap--narrow page-head">
-        <h1>Try it yourself</h1>
+        <h1>Live Demo</h1>
         <p className="lede">
           It takes about ten minutes: you'll see a real deal from both sides, first the client app your borrowers use,
           then your portal. Nothing to download, nothing to type - just click Next. Your own private demo, with sample
@@ -83,11 +77,6 @@ export default function TryDemo() {
         </p>
       </div>
       <div className="wrap wrap--narrow">
-        <ol className="try-steps">
-          {WHAT_YOU_DO.map((s) => (
-            <li key={s}>{s}</li>
-          ))}
-        </ol>
         {state === "sent" ? (
           <div className="alert alert--info" role="status" data-testid="demo-sent">
             <p>

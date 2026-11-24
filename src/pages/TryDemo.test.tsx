@@ -14,12 +14,11 @@ const fill = () => {
 const submit = () => fireEvent.click(screen.getByRole("button", { name: "Start my demo" }));
 
 describe("Try it yourself", () => {
-  it("explains what the demo covers", () => {
+  it("is called Live Demo and has no step list", () => {
     mockFetch({});
     renderAt(<TryDemo />, "/try");
-    expect(screen.getByRole("heading", { name: "Try it yourself" })).toBeInTheDocument();
-    expect(screen.getByText(/one bank statement was doctored/)).toBeInTheDocument();
-    expect(screen.getByText(/iPhone and Apple Watch/)).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Live Demo" })).toBeInTheDocument();
+    expect(screen.queryByText(/one bank statement was doctored/)).toBeNull();
   });
 
   it("formats the mobile number as it is typed", () => {

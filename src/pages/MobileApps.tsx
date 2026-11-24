@@ -133,7 +133,7 @@ export default function MobileApps() {
           </p>
           <p className="actions">
             <Link className="btn" to="/try">
-              Try it yourself
+              Live Demo
             </Link>
             <Link className="btn btn--quiet" to="/signup">
               Start sign-up

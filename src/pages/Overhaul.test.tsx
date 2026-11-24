@@ -31,7 +31,7 @@ describe("navigation", () => {
     const lists = within(main).getAllByRole("list");
     expect(within(lists[0]).getAllByRole("link").map((a) => a.textContent)).toEqual(["Why Keystone", "Features", "Pricing", "Security"]);
     expect(within(lists[1]).getAllByRole("link").map((a) => a.getAttribute("href"))).toEqual(["/try", "/compare", "/fraud-protection", "/mobile-apps", "/roadmap", "/faq", "/contact"]);
-    expect(screen.getByRole("link", { name: "Try it" })).toHaveAttribute("href", "/try");
+    expect(screen.getAllByRole("link", { name: "Live Demo" })[0]).toHaveAttribute("href", "/try");
     expect(screen.getAllByRole("link", { name: "Sign up" })[0]).toHaveAttribute("href", "/signup");
     const menu = screen.getByRole("button", { name: "Menu" });
     fireEvent.click(menu);
