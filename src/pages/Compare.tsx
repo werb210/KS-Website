@@ -374,7 +374,7 @@ export default function Compare({ focus }: { focus?: Competitor } = {}) {
               Start sign-up
             </Link>{" "}
             <Link className="btn btn--quiet" to="/try">
-              Try it yourself
+              Live Demo
             </Link>
           </p>
         </div>

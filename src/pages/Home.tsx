@@ -75,7 +75,7 @@ export default function Home() {
             </p>
             <div className="hero__actions">
               <Link className="btn" to="/try">
-                Try it yourself
+                Live Demo
               </Link>
               <Link className="btn btn--quiet" to="/why-keystone">
                 Why brokers switch

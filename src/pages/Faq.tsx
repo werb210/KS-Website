@@ -41,7 +41,7 @@ export default function Faq() {
           q: "Can we try it before we buy?",
           a: (
             <>
-              Yes. <Link to="/try">Try it yourself</Link> with sample data in about ten minutes, nothing to install. Once
+              Yes. <Link to="/try">Live Demo</Link> with sample data in about ten minutes, nothing to install. Once
               you're a customer on Starter or Growth, you can turn on a {c.trial.days}-day trial of every Pro feature from
               inside the app. When it ends you stay on your plan unless you choose to upgrade. Each brokerage gets one
               trial.
