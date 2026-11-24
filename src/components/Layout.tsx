@@ -16,7 +16,7 @@ const NAV = [
 
 /** Shown in the phone menu under the main links. */
 const MORE = [
-  { to: "/try", label: "Try it yourself" },
+  { to: "/try", label: "Live Demo" },
   { to: "/compare", label: "Compare CRMs" },
   { to: "/fraud-protection", label: "Fraud protection" },
   { to: "/mobile-apps", label: "Mobile apps" },
@@ -42,7 +42,7 @@ const FOOTER: Array<{ title: string; links: Array<{ to: string; label: string }>
       { to: "/why-keystone", label: "Why switch" },
       { to: "/compare", label: "Compare CRMs" },
       { to: "/pricing", label: "Pricing" },
-      { to: "/try", label: "Try it yourself" },
+      { to: "/try", label: "Live Demo" },
       { to: "/faq", label: "FAQ" },
     ],
   },
@@ -119,7 +119,7 @@ export function Layout({ children }: { children: ReactNode }) {
           <div className="site-header__actions">
             <CountrySwitch />
             <Link className="btn btn--quiet btn--try" to="/try">
-              Try it
+              Live Demo
             </Link>
             <Link className="btn" to="/signup">
               Sign up

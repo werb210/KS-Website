@@ -77,7 +77,7 @@ export default function WhyKeystone() {
         </p>
         <div className="actions">
           <Link className="btn" to="/try">
-            Try it yourself
+            Live Demo
           </Link>
           <Link className="btn btn--quiet" to="/pricing">
             See pricing
@@ -188,7 +188,7 @@ export default function WhyKeystone() {
           <details>
             <summary>Can we try it first?</summary>
             <p>
-              Yes. <Link to="/try">Try it yourself</Link> with sample data in about ten minutes. Customers on Starter or
+              Yes. <Link to="/try">Live Demo</Link> with sample data in about ten minutes. Customers on Starter or
               Growth can also turn on a {trialDays}-day trial of every Pro feature from inside the app.
             </p>
           </details>
@@ -208,7 +208,7 @@ export default function WhyKeystone() {
           <h2 id="why-cta-h">See your own deal in {PRODUCT_NAME}</h2>
           <div className="actions">
             <Link className="btn btn--on-dark" to="/try">
-              Try it yourself
+              Live Demo
             </Link>
             <Link className="btn btn--quiet-on-dark" to="/signup">
               Start sign-up
