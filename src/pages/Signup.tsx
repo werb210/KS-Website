@@ -12,6 +12,8 @@ import { TeamRoster } from "../components/TeamRoster"; // KS_WEBSITE_TEAM_ROSTER
 import { AgreementSign } from "../components/AgreementSign"; // KS_WEBSITE_LICENCE_AGREEMENT
 import { PRODUCT_NAME, TURNSTILE_SITE_KEY } from "../config";
 import { useCatalog } from "../hooks/useCatalog";
+import { setCountry } from "../hooks/useCountry"; // KS_WEBSITE_COUNTRY_v1
+import { detectCountry } from "../lib/country";
 import { useCodeAvailability } from "../hooks/useCodeAvailability";
 import { usePageMeta } from "../hooks/usePageMeta";
 import { submitSignup, type BrandScanResult, type SignupPayload } from "../lib/api";
@@ -45,6 +47,9 @@ import {
 function initialForm(params: URLSearchParams): SignupForm {
   const draft = load<Partial<SignupForm>>(DRAFT_KEY);
   const f: SignupForm = { ...EMPTY_FORM, ...(draft ?? {}), website_url: "" };
+  // KS_WEBSITE_COUNTRY_v1 - a new sign-up starts in the visitor's country; US brokers pay by card in USD.
+  if (!draft?.country) f.country = detectCountry();
+  if (f.country === "US") f.payment_method = "card";
   if (f.logo_file && (typeof f.logo_file !== "object" || typeof f.logo_file.data_url !== "string")) f.logo_file = null;
   if (f.favicon_file && (typeof f.favicon_file !== "object" || typeof f.favicon_file.data_url !== "string")) f.favicon_file = null;
   const plan = params.get("plan");
@@ -581,8 +586,11 @@ export default function Signup() {
                         {...a}
                         value={f.country}
                         onChange={(e) => {
-                          update("country", e.target.value as "CA" | "US");
+                          const next = e.target.value as "CA" | "US";
+                          update("country", next);
                           update("province_state", "");
+                          setCountry(next); // KS_WEBSITE_COUNTRY_v1 - prices switch to that country's currency
+                          if (next === "US") update("payment_method", "card");
                         }}
                       >
                         <option value="CA">Canada</option>
@@ -790,9 +798,9 @@ export default function Signup() {
               </fieldset>
               <fieldset className="field">
                 <legend>How you'll pay</legend>
-                <span className="hint">Bank debit is the default. You enter your bank or card details on the secure Stripe payment page.</span>
+                <span className="hint">{f.country === "US" ? "US brokerages pay by credit card, in US dollars, on the secure Stripe payment page." : "Bank debit is the default. You enter your bank or card details on the secure Stripe payment page."}</span>
                 <div className="radio-cards radio-cards--wide">
-                  {PAYMENT_METHODS.map((pm) => (
+                  {PAYMENT_METHODS.filter((pm) => f.country !== "US" || pm.key === "card").map((pm) => (
                     <RadioCard key={pm.key} name="payment_method" value={pm.key} checked={f.payment_method === pm.key} onChange={() => update("payment_method", pm.key)}>
                       <strong>
                         {pm.name}

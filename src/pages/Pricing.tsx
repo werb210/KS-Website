@@ -118,7 +118,7 @@ export default function Pricing() {
         <h1>Pricing per seat, pooled across your team</h1>
         <p>
           A seat is one person on your team who signs in. Call minutes and texts are shared by everyone, so a busy
-          closer can use what a new hire doesn't. Prices are in {c.currency === "CAD" ? "Canadian dollars" : c.currency}.
+          closer can use what a new hire doesn't. Prices are in {c.currency === "USD" ? "US dollars" : "Canadian dollars"}.
         </p>
       </div>
 

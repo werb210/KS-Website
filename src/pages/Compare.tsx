@@ -135,14 +135,14 @@ export function Alternative() {
 }
 
 export default function Compare({ focus }: { focus?: Competitor } = {}) {
+  const { catalog } = useCatalog();
   usePageMeta(
     focus ? `${PRODUCT_NAME}: an alternative to ${focus.name} for finance brokers` : `${PRODUCT_NAME} compared with other CRMs`,
     focus
-      ? `${PRODUCT_NAME} against ${focus.name} for commercial-finance and equipment-finance brokers, feature by feature, and what a 5-person brokerage pays ${focus.name} for the same feature set. ${PRODUCT_NAME} starts at CAD $49 a seat.`
+      ? `${PRODUCT_NAME} against ${focus.name} for commercial-finance and equipment-finance brokers, feature by feature, and what a 5-person brokerage pays ${focus.name} for the same feature set. ${PRODUCT_NAME} starts at ${catalog.currency} $49 a seat.`
       : `${PRODUCT_NAME} side by side with Salesforce, HubSpot, Zoho, Pipedrive and lending CRMs used by commercial-lending brokers: features, and what a 5-person brokerage pays each vendor to match ${PRODUCT_NAME} with marketing.`,
     focus ? `/alternatives/${focus.id}` : "/compare",
   );
-  const { catalog } = useCatalog();
   const [picked, setPicked] = useState<[string, string]>(() => (focus ? [focus.id, DEFAULT_COMPARE.find((id) => id !== focus.id) ?? DEFAULT_COMPARE[0]] : DEFAULT_COMPARE));
   const selectIds = [useId(), useId()];
 
@@ -174,7 +174,7 @@ export default function Compare({ focus }: { focus?: Competitor } = {}) {
         <h1>{focus ? `An alternative to ${focus.name}, built for finance brokers` : `How ${PRODUCT_NAME} compares`}</h1>
         {focus ? (
           <p data-testid="alternative-intro">
-            {PRODUCT_NAME} starts at CAD $49 a seat. The table prices {focus.name} for the same feature set, so the comparison is like for
+            {PRODUCT_NAME} starts at {catalog.currency} $49 a seat. The table prices {focus.name} for the same feature set, so the comparison is like for
             like: the edition with automation, plus the marketing, calling and texting a brokerage would have to add. The loan file, client
             app, statement reading and lender matching come with {PRODUCT_NAME}. <Link to="/try">Try the live demo</Link> or{" "}
             <Link to="/compare">compare every product</Link>.

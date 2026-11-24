@@ -20,6 +20,7 @@ import { MAX_SEATS, PAYMENT_METHODS, findPlan, isPaymentMethod } from "../lib/pl
 import { clampInt, seatRange } from "../lib/pricing";
 import { regionsFor } from "../lib/regions";
 import { LAST_SIGNUP_KEY, save } from "../lib/storage";
+import { detectCountry } from "../lib/country";
 import { EMPTY_FORM, MOBILE_ERROR, e164NaPhone, formatNaPhone, validNaPhone, validateStep, type Errors, type SignupForm } from "../lib/validation";
 import { PriceSummary, RadioCard, type Adjust } from "./Signup";
 
@@ -64,6 +65,8 @@ export function quickPayload(f: SignupForm, turnstileToken: string): SignupPaylo
 
 function initialForm(params: URLSearchParams): SignupForm {
   const f: SignupForm = { ...EMPTY_FORM, website_url: "" };
+  f.country = detectCountry(); // KS_WEBSITE_COUNTRY_v1
+  if (f.country === "US") f.payment_method = "card";
   const plan = params.get("plan");
   if (plan === "starter" || plan === "growth" || plan === "pro") f.plan = plan;
   const seats = Number(params.get("seats"));
