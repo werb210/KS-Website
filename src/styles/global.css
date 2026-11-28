@@ -821,3 +821,7 @@ table.compare-table thead th.compare-us { color: var(--accent-ink); }
 .social-signup__btn { display: flex; justify-content: center; align-items: center; min-height: 44px; text-align: center; }
 .social-signup__or { margin: 0.4rem 0 0; text-align: center; font-size: 0.9rem; opacity: 0.8; }
 .social-signup__note { margin: 0 0 1rem; font-weight: 600; }
+
+/* KS_WEBSITE_COUNTRY_v1 - the country / currency switch in the header */
+.country-switch select { min-height: 36px; padding: 0.2rem 0.5rem; border: 1px solid var(--mortar); border-radius: var(--radius-s); background: var(--surface); color: inherit; font: inherit; font-size: 0.875rem; }
+@media (max-width: 640px) { .country-switch select { max-width: 8.5rem; } }

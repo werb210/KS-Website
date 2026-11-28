@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { FALLBACK_CATALOG, fetchCatalog, type Catalog } from "../lib/plans";
+import { currencyOf } from "../lib/country";
+import { useCountry } from "./useCountry";
 
 let cache: { catalog: Catalog; source: "live" | "fallback" } | null = null;
 
@@ -28,5 +30,7 @@ export function useCatalog() {
       });
     return () => ac.abort();
   }, []);
-  return state;
+  // KS_WEBSITE_COUNTRY_v1 - the same prices, in USD for US visitors and CAD for Canadian ones.
+  const [country] = useCountry();
+  return { ...state, catalog: { ...state.catalog, currency: currencyOf(country) } };
 }

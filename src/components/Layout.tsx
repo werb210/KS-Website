@@ -3,6 +3,7 @@ import { Link, NavLink, useLocation } from "react-router-dom";
 import { CONTACT_EMAIL, PRODUCT_NAME } from "../config";
 import { Mark } from "./Mark";
 import { SalesAssistant } from "./SalesAssistant"; // KS_WEBSITE_KB_v1
+import { useCountry } from "../hooks/useCountry"; // KS_WEBSITE_COUNTRY_v1
 
 // KS_WEBSITE_OVERHAUL - four links and two actions in the bar; everything else is one tap away in the menu (on a phone)
 // and in the footer. The rest of the pages are linked from the pages that need them.
@@ -116,6 +117,7 @@ export function Layout({ children }: { children: ReactNode }) {
             </ul>
           </nav>
           <div className="site-header__actions">
+            <CountrySwitch />
             <Link className="btn btn--quiet btn--try" to="/try">
               Live Demo
             </Link>
@@ -175,5 +177,19 @@ export function Layout({ children }: { children: ReactNode }) {
       </footer>
       <SalesAssistant />
     </>
+  );
+}
+
+// KS_WEBSITE_COUNTRY_v1 - Canada (CAD) or the United States (USD); the prices on every page follow it.
+function CountrySwitch() {
+  const [country, setCountry] = useCountry();
+  return (
+    <label className="country-switch" title="Prices are shown in this country's currency">
+      <span className="visually-hidden">Country</span>
+      <select aria-label="Country" value={country} onChange={(e) => setCountry(e.target.value === "US" ? "US" : "CA")} data-testid="country-switch">
+        <option value="CA">Canada · CAD</option>
+        <option value="US">USA · USD</option>
+      </select>
+    </label>
   );
 }
